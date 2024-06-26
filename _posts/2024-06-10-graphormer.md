@@ -29,6 +29,9 @@ toc:
         - name: Edge Encoding
         - name: VNode
   - name: Theoretical aspects on expressivity
+    subsections:
+        - name: Fact 1 and 2
+        - name: Fact 3
   - name: Results
   - name: Extra?
 
@@ -92,13 +95,27 @@ However, we consider it good style to mention author last names if you discuss s
 
 ### VNode
 
-The \[VNode\] (or a Virtual Node) is arguably one of the most important contributions from the work. It is an artificial node which is connected to <b>all</b> other nodes. Although the paper cites another paper as an empirical motivation, a better intuition behind the concept is as a generalization of the \[CLS\] token widely used in NLP and Vision for downstream tasks. The sharp reader will notice that this has an important implication on $b$ and $\phi$, because the \[VNode\] is connected to every node,
+The \[VNode\] (or a Virtual Node) is arguably one of the most important contributions from the work. It is an artificial node which is connected to <b>all</b> other nodes. Although the paper cites another <a href="https://arxiv.org/abs/1704.01212">paper</a> as an empirical motivation, a better intuition behind the concept is as a generalization of the \[CLS\] token widely used in NLP and Vision for downstream tasks. The sharp reader will notice that this has an important implication on $b$ and $\phi$, because the \[VNode\] is connected to every node,
 
-$$ \phi([VNode], v) = 1, \forall v \in G $$
+$$ 
+\phi([VNode], v) = 1, \forall v \in G 
+$$
 
-But as this is not a <b>physical connection</b>, and to provide the model with this important geometric information, $b_{\phi([VNode], v)}$ is set to be a <b>distinct</b> learnable vector (for all $v$).<br>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0"> <!--Dummy divs to take up space, need to do this because height, width tags don't work with the given image class-->
+    </div>
+    <div class="col-sm-6 mt-3 mt-md-0"> <!-- Note  this is a trick to make the image small keep it center but also not too small (using -6)-->
+        {% include figure.liquid loading="eager" path="assets/img/2024-06-10-graphormer/VNode.png" class="img-fluid rounded z-depth-1" %}
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+    </div>
+</div>
 
-\[CLS\] tokens are often employed as "summary" tokens for text and provide a global context to the model; In addition this default advantage, as graphs and text are different modalities, the \[VNode\] also helps in <b>relaying</b> global information to distant or non-connected clusters in a Graph, this is significantly important to the model's expressivity, as this information might otherwise never propagate. (This is the intuition behind proofs in the next section, and has also been verified empirically)<br>
+But as this is not a <b>physical connection</b>, and to provide the model with this important geometric information, $b_{\phi([VNode], v)}$ is set to be a <b>distinct</b> learnable vector (for all $v$).
+
+
+\[CLS\] tokens are often employed as "summary" tokens for text and provide a global context to the model; In addition to this default advantage, as graphs and text are different modalities, the \[VNode\] also helps in <b>relaying</b> global information to distant or non-connected clusters in a Graph, this is significantly important to the model's expressivity, as this information might otherwise never propagate. (This is the intuition behind proofs in the next section, and has also been verified empirically)
+
 
 As we pointed out, \[CLS\] tokens are used for varied downstream tasks, in a similar way, \[VNode\] can be (and is) used as the final representation of the Graph, i.e., this becomes a learnable and dataset-specfic READOUT function!
 
@@ -115,9 +132,87 @@ This is <i>extremely</i> simple in code and can be implemented as follows (in Py
     graph_attn[:, :, 0, :] = graph_attn[:, :, 0, :] + headed_emb
     ...
 </d-code>
+
 We would again emphasize that the information-relay point of view is much more important to the model than the summary-token view, the design choice of one \[VNode\] per head reflects that.
 
-## Interactive Plots
+---
+
+## Theoretical aspects on expressivity
+
+We first list down the three important facts from the paper and then discuss them in detail,
+
+1. With appropriate weights and $ \phi $, GCN, GraphSAGE, GIN are all <b>special cases</b> of a Graphormer.
+2. Graphormer is better than architectures that are limited by the 1-WL test. (so <b>all</b> traditional GNNs!)
+3. With appropriate weights, <b>every node</b> representation in the output can be MEAN-READOUT.
+
+### Fact 1 and 2
+
+This is intuitive for the most part, it is not tough to absorb the fact that the [spatial-encoding](link_to_spatial_eqn) provides the model with important geometric information (clearly, the node-degree is one of them). First off, observe that with an appropriate $b_{\phi(v_i, v_j)}$ the model can <b>find (learn)</b> neighbours for any $v_i$ and thus easily implement <b>mean statistics (GCN!)</b>. Secondly, knowing the degree (some form of [centrality-encoding](link_to_centrality_eqn)), mean-statistics can be transformed to sum-statistics; and although it does not follow so directly, different and complicated statistics can be learned by different heads, which lead to varied representations, and allow GraphSAGE, GIN or GCN to be modelled as a Graphormer.
+
+Fact 2 follows from Fact 1, as GIN is anyways the most powerful traditional GNN, which can theoretically distinguish all graphs distinguishable by the 1-WL test, now as it is just a special case of Graphormer, the latter can do the same (& more!).
+
+The Proofs for Fact 1 are really easy to follow, but feel free to skip them.
+{% details Proof(s) for Fact 1 %}
+For each type of aggregation, we provide simple function and weight definitions that achieve it, 
+* <b>Mean Aggregate</b> :
+    - Set $ b_{\phi(v_i, v_j)} = 0 $ when $\phi(v_i, v_j) = 1$ and $-\infty$ otherwise,
+    - Set $ W_Q = 0, W_K = 0$ and let $ W_V = I$ (Identity matrix), using these,
+    - $$ h^{(l)}_{v_i} = \sum_{v_j \in N(v_i)} softmax(A_{ij}) * (W_v * h^{(l-1)}_{v_j}) \implies h^{(l)}_{v_i} = \frac{1}{|N(v_i)|}*\sum_{v_j \in N(v_i)} h^{(l-1)}_{v_j} $$
+* <b>Sum Aggregate</b> :
+    - For this, we just need to get the mean aggregate and then multiply by $ \|N(v_i)\| $,
+    - Loosely, the degree can be extracted from a [centrality-encoding](link_to_centrality_eqn) by an attention head, and then the FFN can multiply this to the learned mean aggregate, the latter part is not so loose, because it is a direct consequence of the universal approximation theorem.
+* <b>Max Aggregate</b> :
+    - For this one we assume that if we have $t$ dimensions in our hidden state, we <i>also</i> have t heads.
+    - The proof is such that each Head will extract the maximum from neighbours, clearly, to only keep immediate neighbours around, we can use the same formulation for $b$ and $\phi$ as in the mean aggregate.
+    - Using $W_K = e_t$ (t-th unit vector), $W_K = e_t$ and $W_Q = 0$ (Identity matrix), we can get a pretty good approximation to the max aggregate. To get the full deal however, we need a <i>hard-max</i> instead of the <i>soft-max</i> being used; to accomplish this we finally consider the bias in the query layer (i.e., something like `nn.Linear(in_dim, out_dim, use_bias=True)`), set it to $T \cdot I$ with a high enough $T$ (temperature), this will make the soft-max behave like a hard-max.
+{% enddetails %}
+
+For Fact 2, we explain the example from the paper, along with explicitly providing the final WL representation. Again, feel free to skip this part.
+{% details Example for Fact 2 %}
+First we need to fix some notation for the WL test, briefly, it can be expressed as -
+
+$$ c^{(k+1)}(v) = HASH(c^{(k)}(v), \{c^{(k)}(u)\}_{u \in N(v)} )$$
+
+where $c^{(k)}(v)$ is the $k^{th}$ iteration representation (color for convinience) of node $v$ and importantly $HASH$ is an <i>injective</i> hash function. Additionally, all nodes with the same color have the same feature vector
+
+Given this, consider the following graphs -
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+    </div>
+    <div class="col-sm-6 mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" path="assets/img/2024-06-10-graphormer/wl-test.gif" class="img-fluid rounded z-depth-1" %}
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+    </div>
+</div>
+
+The hashing process converges in one iteration itself, now the 1-WL test would count number of colors and that vector would act as the final graph representation, which for both of the graphs will be $ [0, 0, 4, 2] $ (i.e., $ [count(a), count(b), count(x), count(y)] $), even though they are different, the 1-WL test fails to distinguish them. There are several such cases and so traditional GNNs are fairly limited in their expressivity.
+
+However for the graphormer, Shortest Path Distances (SPD) directly affects attention weights (because the paper uses SPD as $\phi(v_i, v_j)$), and if we look at the SPD sets for the two types of nodes (red and blue) in both the graphs, (we have ordered according to the BFS traversal by top left red node, though any ordering would suffice)
+
+* Left graph -
+    - Red nodes - $$ \{ 0, 1, 1, 2, 2, 3 \} $$
+    - Blue nodes - $$ \{1, 0, 2, 1, 1, 2\} $$
+* Right graph -
+    - Red nodes - $$ \{0, 1, 1, 2, 3, 3\} $$
+    - Blue nodes - $$ \{1, 0, 1, 1, 2, 2\} $$
+
+What is important is not that red and blue nodes have a different SPD set, <u><i>but that these two types of nodes have different SPD sets across the two graphs</i></u>, this signal can help the model distinguish the two graphs and is the reason why Graphormer is better than 1-WL test limited architectures.
+{% enddetails %}
+
+### Fact 3
+
+The proof behind Fact 3 is really easy to follow if you have checked the proof of [Fact1][link to facts 1 and 2]. Nevertheless, what is more important is the power it lends to the model, this fact implies that Graphormer allows the flow of <i>Global</i> information within the network (in addition to Local). This truly sets the network apart from traditional GNNs which can only aggregate local information upto a fixed radius (or depth).
+
+Importantly, traditional GNNs are <i>designed</i> to prevent this type of a flow as with their architecture this would lead to over smoothening, however, the clever design around $[VNode]$ prevents this from happening in Graphormer. This is verified empirically and proved ahead, but intuitively the addition of a supernode along with Attention and the learnable $b_{\phi(v_i, v_j)}$ already facilitate for this, the $[VNode]$ can relay global information and the attention mechanism can selectively choose from there. If this explanation is not enough a concrete proof od the fact follows,
+
+{% details Proof for Fact 3 %}
+Setting $W_Q = W_K = 0$, and the bias terms in both to be $T \cdot 1$ (where T is temperature), as well as, setting $W_V = I$ (Identity matrix), with a large enough $T$ (much larger than the scale of $b_{\phi(v_i, v_j)}$, so that $T^2 1 1^T$ can dominate), we can get MEAN-READOUT on all nodes. Note that while this proof doesn't require $[VNode]$, it should be noted that, the $[Vnode]$ is very important to establish a <b>balance</b> between this completely global flow and the local flow. As in a normal setting, with the $T$ not being too large, the only way for global information is through the $[VNode]$, as the $b_{\phi(v_i, v_j)}$ would most likely limit information from nodes that are very far.
+{% enddetails %}
+
+[link to facts 1 and 2]: #fact-1-and-2
+
+<!-- ## Interactive Plots
 
 You can add interative plots using plotly + iframes :framed_picture:
 
@@ -146,7 +241,7 @@ mapbox_style="stamen-terrain",
 )
 fig.show()
 fig.write_html('assets/distill-template/plotly/demo.html')
-{% endhighlight %}
+{% endhighlight %} -->
 
 ---
 
