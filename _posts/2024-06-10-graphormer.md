@@ -89,6 +89,26 @@ However, we consider it good style to mention author last names if you discuss s
 ### Spatial Encoding
 
 ### Edge Encoding
+Graphormer's edge encoding method significantly enhances the way the model incorporates structural features from graph edges into its attention mechanism. Initially, node features $(h_i, h_j)$ and edge features $(x_{e_n})$ from the shortest path between nodes are processed. For each pair of nodes $(v_i, v_j)$, the edge features on the shortest path $SP_{ij}$ are averaged after being weighted by learnable embeddings $(w^E_n)$, resulting in the edge encoding $c_{ij}$:
+
+$$ c_{ij} = \frac{1}{N} \sum_{n=1}^{N} x_{e_n} (w^E_n)^T $$
+
+This edge encoding is then incorporated into the attention score between nodes. The initial attention score is calculated as a dot product of their feature transformations:
+
+
+$$ A_{ij} = \frac{(h_i W_Q)(h_j W_K)^T}{\sqrt{d}} $$
+
+
+An additional bias term $b_{\phi(v_i,v_j)}$ is added to account for node relations, and the edge encoding $c_{ij}$ modifies the attention score as follows:
+
+$$ A_{ij} = \frac{(h_i W_Q)(h_j W_K)^T}{\sqrt{d}} + b_{\phi(v_i,v_j)} + c_{ij} $$
+
+This process ensures that edge features directly contribute to the attention score between any two nodes, allowing for a more nuanced and comprehensive utilization of edge information.
+
+The impact of this method is significant. Unlike traditional approaches that either add edge features to node features or use them during aggregation - propagating edge information only to associated nodes - Graphormer's approach ensures that edges play a vital role in the overall node correlation. This method greatly improves the model's performance, as evidenced by the ablation study results on the PCQM4M-LSC dataset. The mean absolute error (MAE) decreases from 0.1328 (with other encodings) to 0.1304 when using edge encoding as an attention bias, highlighting its effectiveness in capturing spatial information.
+
+Thus, by considering the shortest path and the specific features of edges along this path, the model can better capture spatial relationships within the graph.
+
 
 ### VNode
 
