@@ -135,6 +135,45 @@ The softmax function allows the capturing of this information, called the node i
 
 ### Spatial Encoding
 
+Before trying to understand about what this encoding does and why it’s needed, let’s take a small detour about how positional encodings work in transformers. 
+
+One of the main properties of the Transformer architecture that makes it so effective in processing sequences is its ability to model long-range dependencies and contextual information with its receptive field. In more specific terms, each token in the input sequence can interact with (or pay “attention” to) every other token in the sequence when transforming its representation. The mechanism, called *self-attention,* allows the model to gain a more comprehensive understanding of the relevant information encoded in the sequence. 
+
+<!-- ![ [Source](https://sebastianraschka.com/blog/2023/self-attention-from-scratch.html)](Spatial%20Encoding%20d515dd50b6354ab19b8310fab3005464/Untitled.png) -->
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" path="assets/img/distill-template/9.jpg" class="img-fluid rounded z-depth-1" %}
+    </div>
+</div>
+<div class="caption">
+    An illustration of attention mechanism at play for a translation task. Notice how each word(or token) can attend to different parts of the sequence, forward or backward.
+</div>
+
+An illustration of attention mechanism at play for a translation task. Notice how each word(or token) can attend to different parts of the sequence, forward or backward. [Source](https://sebastianraschka.com/blog/2023/self-attention-from-scratch.html)
+
+However, the information about the position of the token in the sequence is lost in this mechanism. This is because each token is interacting with all other tokens in the sequence, and thus making it difficult for the transformer to understand the positioning of each token. This doesn’t happen in traditional networks such as RNNs or  LSTMs, as they process each token at a time and thus the auto-regressive relationship enables it to learn about the occurence of a token in the sequence.
+
+(If you are thinking about why positional information is important in the first place, take a translation task for example. You wouldn’t want your translated sentence to be all jumbled up and consisting of keywords all around the place! [The original paper](https://arxiv.org/abs/1706.03762) has an ablation study which empirically confirms this)
+
+Literature uses several methods for encoding this position information.  In one such method, each position in the input sequence is given a unique embedding vector, which is added to the token embeddings. This explicitly tells the transformer the position of each token. Other methods rely on using “relative” positional information by encoding the relative distances between them. This means the model knows how far apart any two tokens are in the sequence. All these methods are shown to give good results. We won’t go into the details here, as there are several amazing articles and resources on the web which explain this.
+
+Let’s get back to graphs.
+
+You probably already have noticed a problem with our setup. Graphs consist of nodes(analogous to tokens), connected with edges in a non-linear, multi-dimensional space. There’s no inherent notion of an “ordering” or a “sequence” in its structure, but as with positional information it’s gonna be helpful if we inject some sort of structural information when we process the graph-structured data. 
+
+How can we go about doing this? A naive way would be to just learn the encodings themselves. Another way would be to perform some sort of an operation on the graph structure. Examples include random-walk methods and Laplacian eigenvectors of the node feature matrix. The intuition would be to perform an operation on the structure to extract some “structural” information. 
+
+The authors propose a novel a novel encoding, which they call *Spatial Encoding.* The idea is a simple combination of learnable encodings and walk-based methods mentioned earlier:  take as input a pair of nodes(reminder: analogous to tokens) and output a scalar value as a function of the shortest-path-distance between the nodes. This scalar value is then added to the element corresponding to the operation between the two nodes in the Query-Key product matrix. 
+
+$$
+A_{ij} = \frac{(h_i W_Q)(h_j W_K)^T}{\sqrt{d}} + b_{\phi(v_i, v_j)}
+$$
+
+The above equation shows the modified computation of the Query-Key Product matrix. Notice that the additional term $b_{\phi(v_i, v_j)}$  is a learnable scalar value and acts like a bias term. Since this strucutral information is independent of which layer of our model is using it, we let this value be shared across all the layers. 
+
+The benefits of using such a formulation of the encoding is several fold - 1. Our receptive field is effectively increased, as we are no longer limited to the information from our neighbours, as what happens in conventional message-passing networks, and 2. we let the model figure out the best way to adaptively attend to the structural information. For example - if the scalar valued function is a decreasing function for a given node, we know that the nodes closer to our node are more important(in some sense) compared to the ones far away.
+
+
 ### Edge Encoding
 Graphormer's edge encoding method significantly enhances the way the model incorporates structural features from graph edges into its attention mechanism. Initially, node features $(h_i, h_j)$ and edge features $(x_{e_n})$ from the shortest path between nodes are processed. For each pair of nodes $(v_i, v_j)$, the edge features on the shortest path $SP_{ij}$ are averaged after being weighted by learnable embeddings $(w^E_n)$, resulting in the edge encoding $c_{ij}$:
 
