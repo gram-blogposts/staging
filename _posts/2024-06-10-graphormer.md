@@ -142,7 +142,7 @@ One of the main properties of the Transformer architecture that makes it so effe
 <!-- ![ [Source](https://sebastianraschka.com/blog/2023/self-attention-from-scratch.html)](Spatial%20Encoding%20d515dd50b6354ab19b8310fab3005464/Untitled.png) -->
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/distill-template/9.jpg" class="img-fluid rounded z-depth-1" %}
+        {% include figure.liquid loading="eager" path="assets/img/2024-06-10-graphormer/Untitled.png" class="img-fluid rounded z-depth-1" %}
     </div>
 </div>
 <div class="caption">
