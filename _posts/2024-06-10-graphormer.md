@@ -147,7 +147,7 @@ This is <i>extremely</i> simple in code and can be implemented as follows (in Py
     # During forward pass (suppose VNode is the first node)
     ...
     headed_emb = self.v_node.weight.view(1, self.num_heads, 1)
-    graph_attn[:, :, 1:, 0] = graph_attn[:, :, 1:, 0] + headed_emb 
+    graph_attn[:, :, 1:, 0] = graph_attn[:, :, 1:, 0] + headed_emb
         #(n_graph, n_heads, n_nodes + 1, n_nodes + 1)
     graph_attn[:, :, 0, :] = graph_attn[:, :, 0, :] + headed_emb
     ...
@@ -155,6 +155,78 @@ This is <i>extremely</i> simple in code and can be implemented as follows (in Py
 
 We would again emphasize that the information-relay point of view is much more important to the model than the summary-token view, the design choice of one \[VNode\] per head reflects that.
 
+### Experiments
+
+The Graphormer was benchmarked against state-of-the-art GNNs like GCN, GIN, their VN variants, as well as other leading models such as multi-hop GIN, [DeeperGCN](https://arxiv.org/abs/2006.07739), and the Transformer-based [GT](https://arxiv.org/abs/2012.09699) model.
+
+Two model sizes, *Graphormer* (L=12, d=768) and a smaller *GraphormerSMALL* (L=6, d=512), were evaluated on the [OGB-LSC](https://ogb.stanford.edu/docs/lsc/) quantum chemistry regression challenge (PCQM4M-LSC), one of the largest graph-level prediction dataset with over 3.8 million graphs where it significantly outperformed previous state-of-the-art models like GIN-VN and GT as seen in Table 1. Notably, Graphormers did not encounter over-smoothing issues, with both training and validation errors continuing to decrease as model depth and width increased, thereby going beyond the *1-WL* test.
+
+Table 1: Results on PCQM4M-LSC
+
+| method | # param. | train MAE | validate MAE |
+|--------|---------|-----------|--------------|
+| GCN | 2.0M | 0.1318 | 0.1691 |
+| GIN | 3.8M | 0.1203 | 0.1537 |
+| GCN-VN | 4.9M | 0.1225 | 0.1485 |
+| GIN-VN | 6.7M | 0.1150 | 0.1395 |
+| GINE-VN | 13.2M | 0.1248 | 0.1430 |
+| DeeperGCN-VN | 25.5M | 0.1059 | 0.1398 |
+| GT | 0.6M | 0.0944 | 0.1400 |
+| GT-Wide | 83.2M | 0.0955 | 0.1408 |
+| GraphormerSMALL | 12.5M | 0.0778 | 0.1264 |
+| Graphormer | 47.1M | 0.0582 | 0.1234 |
+
+Further experiments for graph-level prediction tasks were performed on datasets from popular leaderboards like [OGBG](https://ogb.stanford.edu/docs/graphprop/#ogbg-mol) (MolPCBA, MolHIV) and [benchmarking-GNNs](https://paperswithcode.com/paper/benchmarking-graph-neural-networks) (ZINC) which also showed Graphormers consistently outperforming top-performing GNNs.
+
+Table 2: Results on MolPCBA
+
+| method | #param. | AP (%) |
+|--------|---------|--------|
+| DeeperGCN-VN+FLAG | 5.6M | 28.42±0.43 |
+| DGN | 6.7M | 28.85±0.30 |
+| GINE-VN | 6.1M | 29.17±0.15 |
+| PHC-GNN | 1.7M | 29.47±0.26 |
+| GINE-APPNP | 6.1M | 29.79±0.30 |
+| GIN-VN (fine-tune) | 3.4M | 29.02±0.17 |
+| Graphormer-FLAG | 119.5M | 31.39±0.32 |
+
+Table 3: Results on MolHIV.
+
+| method | #param. | AUC (%) |
+|--------|---------|---------|
+| GCN-GraphNorm | 526K | 78.83±1.00 |
+| PNA | 326K | 79.05±1.32 |
+| PHC-GNN | 111K | 79.34±1.16 |
+| DeeperGCN-FLAG | 532K | 79.42±1.20 |
+| DGN | 114K | 79.70±0.97 |
+| GIN-VN (fine-tune) | 3.3M | 77.80±1.82 |
+| Graphormer-FLAG | 47.0M | 80.51±0.53 |
+
+Table 4: Results on ZINC.
+
+| method | #param. | test MAE |
+|--------|---------|----------|
+| GIN | 509,549 | 0.526±0.051 |
+| GraphSage | 505,341 | 0.398±0.002 |
+| GAT | 531,345 | 0.384±0.007 |
+| GCN | 505,079 | 0.367±0.011 |
+| GatedGCN-PE | 505,011 | 0.214±0.006 |
+| MPNN (sum) | 480,805 | 0.145±0.007 |
+| PNA | 387,155 | 0.142±0.010 |
+| GT | 588,929 | 0.226±0.014 |
+| SAN | 508,577 | 0.139±0.006 |
+| GraphormerSLIM | 489,321 | 0.122±0.006 |
+
+The paper also dives into a series of ablation studies to assess the effects of the encodings proposed by the authors, whose results can be summed up as follows:
+
+- Node Relation Encoding: Spatial encoding significantly outperformed traditional positional encodings like Laplacian PE, demonstrating its superior ability to capture node relationships.
+
+- Centrality Encoding: Incorporating degree-based centrality encoding resulted in a substantial performance boost, underscoring its critical role in graph data modeling.
+
+- Edge Encoding: The attention bias based edge encoding outperformed conventional methods, highlighting its effectiveness in capturing spatial information on edges.
+
+## Interactive Plots
+=======
 ---
 
 ## Theoretical aspects on expressivity
@@ -232,7 +304,8 @@ Setting $W_Q = W_K = 0$, and the bias terms in both to be $T \cdot 1$ (where T i
 
 [link to facts 1 and 2]: #fact-1-and-2
 
-<!-- ## Interactive Plots
+
+## Interactive Plots
 
 You can add interative plots using plotly + iframes :framed_picture:
 
@@ -247,7 +320,7 @@ To generate the plot that you see above, you can use the following code snippet:
 import pandas as pd
 import plotly.express as px
 df = pd.read_csv(
-'https://raw.githubusercontent.com/plotly/datasets/master/earthquakes-23k.csv'
+'<https://raw.githubusercontent.com/plotly/datasets/master/earthquakes-23k.csv>'
 )
 fig = px.density_mapbox(
 df,
@@ -367,11 +440,11 @@ The rest of the images in this post are all zoomable, arranged into different mi
 
 ## Other Typography?
 
-Emphasis, aka italics, with _asterisks_ (`*asterisks*`) or _underscores_ (`_underscores_`).
+Emphasis, aka italics, with *asterisks* (`*asterisks*`) or *underscores* (`_underscores_`).
 
 Strong emphasis, aka bold, with **asterisks** or **underscores**.
 
-Combined emphasis with **asterisks and _underscores_**.
+Combined emphasis with **asterisks and *underscores***.
 
 Strikethrough uses two tildes. ~~Scratch this.~~
 
@@ -390,7 +463,7 @@ Strikethrough uses two tildes. ~~Scratch this.~~
 
 - Unordered list can use asterisks
 
-* Or minuses
+- Or minuses
 
 - Or pluses
 
@@ -405,7 +478,7 @@ Strikethrough uses two tildes. ~~Scratch this.~~
 Or leave it empty and use the [link text itself].
 
 URLs and URLs in angle brackets will automatically get turned into links.
-http://www.example.com or <http://www.example.com> and sometimes
+<http://www.example.com> or <http://www.example.com> and sometimes
 example.com (but not on Github, for example).
 
 Some text to show that the reference links can follow later.
@@ -455,7 +528,7 @@ raw Markdown line up prettily. You can also use inline Markdown.
 
 | Markdown | Less      | Pretty     |
 | -------- | --------- | ---------- |
-| _Still_  | `renders` | **nicely** |
+| *Still*  | `renders` | **nicely** |
 | 1        | 2         | 3          |
 
 > Blockquotes are very handy in email to emulate reply text.
@@ -463,11 +536,11 @@ raw Markdown line up prettily. You can also use inline Markdown.
 
 Quote break.
 
-> This is a very long line that will still be quoted properly when it wraps. Oh boy let's keep writing to make sure this is long enough to actually wrap for everyone. Oh, you can _put_ **Markdown** into a blockquote.
+> This is a very long line that will still be quoted properly when it wraps. Oh boy let's keep writing to make sure this is long enough to actually wrap for everyone. Oh, you can *put* **Markdown** into a blockquote.
 
 Here's a line for us to start with.
 
-This line is separated from the one above by two newlines, so it will be a _separate paragraph_.
+This line is separated from the one above by two newlines, so it will be a *separate paragraph*.
 
 This line is also a separate paragraph, but...
-This line is only separated by a single newline, so it's a separate line in the _same paragraph_.
+This line is only separated by a single newline, so it's a separate line in the *same paragraph*.
