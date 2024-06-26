@@ -84,6 +84,12 @@ However, we consider it good style to mention author last names if you discuss s
 
 ## Graphormer
 
+### Introduction
+The Transformer archtechture has revolutionised the field of sequence modeling. The versatility of the architechture is demonstrated from its application from various domains, from natural language processing, to computer vision, to even reinforcement learning.
+With its strong ability to learn strong representations across domains, it follows that the power of the transformer can be extended to the graph domain. This paper tackles this challenge. The aforementioned domains rely on the conversion of the input to a sequence be it a sequence of tokens, patches or actions. However, a graph has no such direct analogue. Taking concepts used in the transformer, one is able to encode a graph using Graphormer.
+
+The paper introduces a Centrality Encoding in Graphormer to capture the node importance in the graph,a Spatial Encoding in Graphormer to capture the structural relation between nodes.
+
 ### Centrality Encoding
 
 ### Spatial Encoding
