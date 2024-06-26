@@ -225,9 +225,7 @@ The paper also dives into a series of ablation studies to assess the effects of 
 
 - Edge Encoding: The attention bias based edge encoding outperformed conventional methods, highlighting its effectiveness in capturing spatial information on edges.
 
-## Interactive Plots
-=======
----
+
 
 ## Theoretical aspects on expressivity
 
