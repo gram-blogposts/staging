@@ -139,7 +139,15 @@ Before trying to understand about what this encoding does and why it’s needed,
 
 One of the main properties of the Transformer architecture that makes it so effective in processing sequences is its ability to model long-range dependencies and contextual information with its receptive field. In more specific terms, each token in the input sequence can interact with (or pay “attention” to) every other token in the sequence when transforming its representation. The mechanism, called *self-attention,* allows the model to gain a more comprehensive understanding of the relevant information encoded in the sequence. 
 
-![An illustration of attention mechanism at play for a translation task. Notice how each word(or token) can attend to different parts of the sequence, forward or backward. [Source](https://sebastianraschka.com/blog/2023/self-attention-from-scratch.html)](Spatial%20Encoding%20d515dd50b6354ab19b8310fab3005464/Untitled.png)
+<!-- ![ [Source](https://sebastianraschka.com/blog/2023/self-attention-from-scratch.html)](Spatial%20Encoding%20d515dd50b6354ab19b8310fab3005464/Untitled.png) -->
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" path="assets/img/distill-template/9.jpg" class="img-fluid rounded z-depth-1" %}
+    </div>
+</div>
+<div class="caption">
+    An illustration of attention mechanism at play for a translation task. Notice how each word(or token) can attend to different parts of the sequence, forward or backward.
+</div>
 
 An illustration of attention mechanism at play for a translation task. Notice how each word(or token) can attend to different parts of the sequence, forward or backward. [Source](https://sebastianraschka.com/blog/2023/self-attention-from-scratch.html)
 
