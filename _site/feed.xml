@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-06-10T23:46:21+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-06-26T15:31:51+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
 </subtitle><entry><title type="html">Do Transformers Really Perform Bad for Graph Representation?</title><link href="http://localhost:4000/blog/2024/graphormer/" rel="alternate" type="text/html" title="Do Transformers Really Perform Bad for Graph Representation?" /><published>2024-06-10T00:00:00+02:00</published><updated>2024-06-10T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/graphormer</id><content type="html" xml:base="http://localhost:4000/blog/2024/graphormer/"><![CDATA[<h2 id="introduction--motivation">Introduction &amp; Motivation</h2>
 
 <p>This theme supports rendering beautiful math in inline and display modes using <a href="https://www.mathjax.org/">MathJax 3</a> engine.
@@ -38,13 +38,40 @@ However, we consider it good style to mention author last names if you discuss s
 
 <h3 id="vnode">VNode</h3>
 
-<p>The [VNode] (or a Virtual Node) is arguably one of the most important contributions from the work. It is an artificial node which is connected to <b>all</b> other nodes. Although the paper cites another paper as an empirical motivation, a better intuition behind the concept is as a generalization of the [CLS] token widely used in NLP and Vision for downstream tasks. The sharp reader will notice that this has an important implication on $b$ and $\phi$, because the [VNode] is connected to every node,</p>
+<p>The [VNode] (or a Virtual Node) is arguably one of the most important contributions from the work. It is an artificial node which is connected to <b>all</b> other nodes. Although the paper cites another <a href="https://arxiv.org/abs/1704.01212">paper</a> as an empirical motivation, a better intuition behind the concept is as a generalization of the [CLS] token widely used in NLP and Vision for downstream tasks. The sharp reader will notice that this has an important implication on $b$ and $\phi$, because the [VNode] is connected to every node,</p>
 
 \[\phi([VNode], v) = 1, \forall v \in G\]
 
-<p>But as this is not a <b>physical connection</b>, and to provide the model with this important geometric information, $b_{\phi([VNode], v)}$ is set to be a <b>distinct</b> learnable vector (for all $v$).<br /></p>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0"> <!--Dummy divs to take up space, need to do this because height, width tags don't work with the given image class-->
+    </div>
+    <div class="col-sm-6 mt-3 mt-md-0"> <!-- Note  this is a trick to make the image small keep it center but also not too small (using -6)-->
+        
 
-<p>[CLS] tokens are often employed as “summary” tokens for text and provide a global context to the model; In addition this default advantage, as graphs and text are different modalities, the [VNode] also helps in <b>relaying</b> global information to distant or non-connected clusters in a Graph, this is significantly important to the model’s expressivity, as this information might otherwise never propagate. (This is the intuition behind proofs in the next section, and has also been verified empirically)<br /></p>
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-10-graphormer/VNode-480.webp 480w,/assets/img/2024-06-10-graphormer/VNode-800.webp 800w,/assets/img/2024-06-10-graphormer/VNode-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-10-graphormer/VNode.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+    </div>
+</div>
+
+<p>But as this is not a <b>physical connection</b>, and to provide the model with this important geometric information, $b_{\phi([VNode], v)}$ is set to be a <b>distinct</b> learnable vector (for all $v$).</p>
+
+<p>[CLS] tokens are often employed as “summary” tokens for text and provide a global context to the model; In addition to this default advantage, as graphs and text are different modalities, the [VNode] also helps in <b>relaying</b> global information to distant or non-connected clusters in a Graph, this is significantly important to the model’s expressivity, as this information might otherwise never propagate. (This is the intuition behind proofs in the next section, and has also been verified empirically)</p>
 
 <p>As we pointed out, [CLS] tokens are used for varied downstream tasks, in a similar way, [VNode] can be (and is) used as the final representation of the Graph, i.e., this becomes a learnable and dataset-specfic READOUT function!</p>
 
@@ -61,18 +88,135 @@ However, we consider it good style to mention author last names if you discuss s
     graph_attn[:, :, 0, :] = graph_attn[:, :, 0, :] + headed_emb
     ...
 </d-code>
+
 <p>We would again emphasize that the information-relay point of view is much more important to the model than the summary-token view, the design choice of one [VNode] per head reflects that.</p>
 
-<h2 id="interactive-plots">Interactive Plots</h2>
+<hr />
 
-<p>You can add interative plots using plotly + iframes :framed_picture:</p>
+<h2 id="theoretical-aspects-on-expressivity">Theoretical aspects on expressivity</h2>
 
-<div class="l-page">
-  <iframe src="/assets/plotly/distill-template/demo.html" frameborder="0" scrolling="no" height="500px" width="100%" style="border: 1px dashed grey;"></iframe>
+<p>We first list down the three important facts from the paper and then discuss them in detail,</p>
+
+<ol>
+  <li>With appropriate weights and $ \phi $, GCN, GraphSAGE, GIN are all <b>special cases</b> of a Graphormer.</li>
+  <li>Graphormer is better than architectures that are limited by the 1-WL test. (so <b>all</b> traditional GNNs!)</li>
+  <li>With appropriate weights, <b>every node</b> representation in the output can be MEAN-READOUT.</li>
+</ol>
+
+<h3 id="fact-1-and-2">Fact 1 and 2</h3>
+
+<p>This is intuitive for the most part, it is not tough to absorb the fact that the <a href="link_to_spatial_eqn">spatial-encoding</a> provides the model with important geometric information (clearly, the node-degree is one of them). First off, observe that with an appropriate $b_{\phi(v_i, v_j)}$ the model can <b>find (learn)</b> neighbours for any $v_i$ and thus easily implement <b>mean statistics (GCN!)</b>. Secondly, knowing the degree (some form of <a href="link_to_centrality_eqn">centrality-encoding</a>), mean-statistics can be transformed to sum-statistics; and although it does not follow so directly, different and complicated statistics can be learned by different heads, which lead to varied representations, and allow GraphSAGE, GIN or GCN to be modelled as a Graphormer.</p>
+
+<p>Fact 2 follows from Fact 1, as GIN is anyways the most powerful traditional GNN, which can theoretically distinguish all graphs distinguishable by the 1-WL test, now as it is just a special case of Graphormer, the latter can do the same (&amp; more!).</p>
+
+<p>The Proofs for Fact 1 are really easy to follow, but feel free to skip them.</p>
+<details><summary>Proof(s) for Fact 1</summary>
+<p>For each type of aggregation, we provide simple function and weight definitions that achieve it,</p>
+<ul>
+  <li><b>Mean Aggregate</b> :
+    <ul>
+      <li>Set $ b_{\phi(v_i, v_j)} = 0 $ when $\phi(v_i, v_j) = 1$ and $-\infty$ otherwise,</li>
+      <li>Set $ W_Q = 0, W_K = 0$ and let $ W_V = I$ (Identity matrix), using these,</li>
+      <li>
+\[h^{(l)}_{v_i} = \sum_{v_j \in N(v_i)} softmax(A_{ij}) * (W_v * h^{(l-1)}_{v_j}) \implies h^{(l)}_{v_i} = \frac{1}{|N(v_i)|}*\sum_{v_j \in N(v_i)} h^{(l-1)}_{v_j}\]
+      </li>
+    </ul>
+  </li>
+  <li><b>Sum Aggregate</b> :
+    <ul>
+      <li>For this, we just need to get the mean aggregate and then multiply by $ |N(v_i)| $,</li>
+      <li>Loosely, the degree can be extracted from a <a href="link_to_centrality_eqn">centrality-encoding</a> by an attention head, and then the FFN can multiply this to the learned mean aggregate, the latter part is not so loose, because it is a direct consequence of the universal approximation theorem.</li>
+    </ul>
+  </li>
+  <li><b>Max Aggregate</b> :
+    <ul>
+      <li>For this one we assume that if we have $t$ dimensions in our hidden state, we <i>also</i> have t heads.</li>
+      <li>The proof is such that each Head will extract the maximum from neighbours, clearly, to only keep immediate neighbours around, we can use the same formulation for $b$ and $\phi$ as in the mean aggregate.</li>
+      <li>Using $W_K = e_t$ (t-th unit vector), $W_K = e_t$ and $W_Q = 0$ (Identity matrix), we can get a pretty good approximation to the max aggregate. To get the full deal however, we need a <i>hard-max</i> instead of the <i>soft-max</i> being used; to accomplish this we finally consider the bias in the query layer (i.e., something like <code class="language-plaintext highlighter-rouge">nn.Linear(in_dim, out_dim, use_bias=True)</code>), set it to $T \cdot I$ with a high enough $T$ (temperature), this will make the soft-max behave like a hard-max.</li>
+    </ul>
+  </li>
+</ul>
+</details>
+
+<p>For Fact 2, we explain the example from the paper, along with explicitly providing the final WL representation. Again, feel free to skip this part.</p>
+<details><summary>Example for Fact 2</summary>
+<p>First we need to fix some notation for the WL test, briefly, it can be expressed as -</p>
+
+\[c^{(k+1)}(v) = HASH(c^{(k)}(v), \{c^{(k)}(u)\}_{u \in N(v)} )\]
+
+<p>where $c^{(k)}(v)$ is the $k^{th}$ iteration representation (color for convinience) of node $v$ and importantly $HASH$ is an <i>injective</i> hash function. Additionally, all nodes with the same color have the same feature vector</p>
+
+<p>Given this, consider the following graphs -</p>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+    </div>
+    <div class="col-sm-6 mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-10-graphormer/wl-test-480.webp 480w,/assets/img/2024-06-10-graphormer/wl-test-800.webp 800w,/assets/img/2024-06-10-graphormer/wl-test-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-10-graphormer/wl-test.gif" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+    </div>
 </div>
 
-<p>The plot must be generated separately and saved into an HTML file.
-To generate the plot that you see above, you can use the following code snippet:</p>
+<p>The hashing process converges in one iteration itself, now the 1-WL test would count number of colors and that vector would act as the final graph representation, which for both of the graphs will be $ [0, 0, 4, 2] $ (i.e., $ [count(a), count(b), count(x), count(y)] $), even though they are different, the 1-WL test fails to distinguish them. There are several such cases and so traditional GNNs are fairly limited in their expressivity.</p>
+
+<p>However for the graphormer, Shortest Path Distances (SPD) directly affects attention weights (because the paper uses SPD as $\phi(v_i, v_j)$), and if we look at the SPD sets for the two types of nodes (red and blue) in both the graphs, (we have ordered according to the BFS traversal by top left red node, though any ordering would suffice)</p>
+
+<ul>
+  <li>Left graph -
+    <ul>
+      <li>Red nodes - \(\{ 0, 1, 1, 2, 2, 3 \}\)</li>
+      <li>Blue nodes - \(\{1, 0, 2, 1, 1, 2\}\)</li>
+    </ul>
+  </li>
+  <li>Right graph -
+    <ul>
+      <li>Red nodes - \(\{0, 1, 1, 2, 3, 3\}\)</li>
+      <li>Blue nodes - \(\{1, 0, 1, 1, 2, 2\}\)</li>
+    </ul>
+  </li>
+</ul>
+
+<p>What is important is not that red and blue nodes have a different SPD set, <u><i>but that these two types of nodes have different SPD sets across the two graphs</i></u>, this signal can help the model distinguish the two graphs and is the reason why Graphormer is better than 1-WL test limited architectures.</p>
+</details>
+
+<h3 id="fact-3">Fact 3</h3>
+
+<p>The proof behind Fact 3 is really easy to follow if you have checked the proof of <a href="#fact-1-and-2">Fact1</a>. Nevertheless, what is more important is the power it lends to the model, this fact implies that Graphormer allows the flow of <i>Global</i> information within the network (in addition to Local). This truly sets the network apart from traditional GNNs which can only aggregate local information upto a fixed radius (or depth).</p>
+
+<p>Importantly, traditional GNNs are <i>designed</i> to prevent this type of a flow as with their architecture this would lead to over smoothening, however, the clever design around $[VNode]$ prevents this from happening in Graphormer. This is verified empirically and proved ahead, but intuitively the addition of a supernode along with Attention and the learnable $b_{\phi(v_i, v_j)}$ already facilitate for this, the $[VNode]$ can relay global information and the attention mechanism can selectively choose from there. If this explanation is not enough a concrete proof od the fact follows,</p>
+
+<details><summary>Proof for Fact 3</summary>
+<p>Setting $W_Q = W_K = 0$, and the bias terms in both to be $T \cdot 1$ (where T is temperature), as well as, setting $W_V = I$ (Identity matrix), with a large enough $T$ (much larger than the scale of $b_{\phi(v_i, v_j)}$, so that $T^2 1 1^T$ can dominate), we can get MEAN-READOUT on all nodes. Note that while this proof doesn’t require $[VNode]$, it should be noted that, the $[Vnode]$ is very important to establish a <b>balance</b> between this completely global flow and the local flow. As in a normal setting, with the $T$ not being too large, the only way for global information is through the $[VNode]$, as the $b_{\phi(v_i, v_j)}$ would most likely limit information from nodes that are very far.</p>
+</details>
+
+<!-- ## Interactive Plots
+
+You can add interative plots using plotly + iframes :framed_picture:
+
+<div class="l-page">
+  <iframe src="/assets/plotly/distill-template/demo.html" frameborder='0' scrolling='no' height="500px" width="100%" style="border: 1px dashed grey;"></iframe>
+</div>
+
+The plot must be generated separately and saved into an HTML file.
+To generate the plot that you see above, you can use the following code snippet:
+
 
 <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="n">pd</span>
 <span class="kn">import</span> <span class="nn">plotly.express</span> <span class="k">as</span> <span class="n">px</span>
@@ -91,6 +235,7 @@ To generate the plot that you see above, you can use the following code snippet:
 <span class="p">)</span>
 <span class="n">fig</span><span class="p">.</span><span class="n">show</span><span class="p">()</span>
 <span class="n">fig</span><span class="p">.</span><span class="n">write_html</span><span class="p">(</span><span class="s">'assets/distill-template/plotly/demo.html'</span><span class="p">)</span></code></pre></figure>
+ -->
 
 <hr />
 
