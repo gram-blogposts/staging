@@ -87,7 +87,51 @@ However, we consider it good style to mention author last names if you discuss s
 
 ## Graphormer
 
+### Introduction
+The Transformer archtechture has revolutionised the field of sequence modeling. The versatility of the architechture is demonstrated from its application from various domains, from natural language processing, to computer vision, to even reinforcement learning.
+With its strong ability to learn strong representations across domains, it follows that the power of the transformer can be extended to the graph domain. This paper tackles this challenge. The aforementioned domains rely on the conversion of the input to a sequence be it a sequence of tokens, patches or actions. However, a graph has no such direct analogue. Taking concepts used in the transformer, one is able to encode a graph using Graphormer.
+
+The paper introduces a Centrality Encoding in Graphormer to capture the node importance in the graph,a Spatial Encoding in Graphormer to capture the structural relation between nodes.
+
+### Preliminaries
+
 ### Centrality Encoding
+
+Attention in a sequence modeling task captures the semantic correlations between nodes (tokens).
+
+Now the goal of this encoding is to capture the most important nodes in the graph
+To understand this section let's cover a few terms.  
+i. Indegree - Number of incoming edges incident on a vertex in a directed graph. The vertex has an indegree of 2 (2 red arrows)   
+ii. Outdegree - Number of outgoing edges from a vertex in a directed graph. The vertex has an outdegree of 1 (1 green arrow)
+
+img here
+
+Now we can understand Equation 5 which is given as: $h_{i}^{(0)} = x_{i} + z^{-}_{deg^{-}(v_{i})} + z^{+}_{deg^{+}(v_{i})}$ 
+
+lets analyse this term by term:
+- $h_{i}^{(0)}$ -> representation ($h$) of vertice i ($v_{i}$) at the 0th layer (first input)
+- $x_{i}$ -> feature vector of vertice i ($v_{i}$)
+- $z^{-}_{deg^{-}(v_{i})}$ -> learnable embedding vector ($z$) of the indegree ($deg^{-}$) of vertice i ($v_{i}$)
+- $z^{+}_{deg^{+}(v_{i})}$ -> learnable embedding vector ($z$) of the outdegree ($deg^{+}$) of vertice i ($v_{i}$)
+
+
+This is an excerpt of the the code used to to compute the Centrality Encoding
+```py
+self.in_degree_encoder = nn.Embedding(num_in_degree, hidden_dim, padding_idx=0) 
+self.out_degree_encoder = nn.Embedding(num_out_degree, hidden_dim, padding_idx=0)
+
+node_feature = (node_feature + self.in_degree_encoder(in_degree) + self.out_degree_encoder(out_degree))
+```
+num_in_degree is the indegree and hidden_dim is the size of the embedding vector - the Embedding function call converts this number (indegree) to a learnable vector of size hidden_dim, which is then added to the node_feature. A similar procedure is done with num_out_degree, resulting in the implementation of Equation 5.
+
+
+With the 'how' being understood, one must understand why such a system works.
+To explain this lets take an example.
+Say I want to compare airports around the world, and find which one is the largest.
+I need a common metric across all to compare them, so I simply take the sum of the total daily incoming and outgoing flights, giving me the world's busiest airports. This is what the algorithm is doing on a logical level, to identify the 'busiest' nodes.
+Additionally, the learnable vectors allow the Graphormer to 'map' out the nodes of the graph.
+The softmax function allows the capturing of this information, called the node importance signal in the paper.
+
 
 ### Spatial Encoding
 
