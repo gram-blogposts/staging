@@ -89,18 +89,29 @@ However, we consider it good style to mention author last names if you discuss s
 
 ### Introduction
 The Transformer archtechture has revolutionised the field of sequence modeling. The versatility of the architechture is demonstrated from its application from various domains, from natural language processing, to computer vision, to even reinforcement learning.
-With its strong ability to learn strong representations across domains, it follows that the power of the transformer can be extended to the graph domain. This paper tackles this challenge. The aforementioned domains rely on the conversion of the input to a sequence be it a sequence of tokens, patches or actions. However, a graph has no such direct analogue. Taking concepts used in the transformer, one is able to encode a graph using Graphormer.
+With its strong ability to learn strong representations across domains, it seems only natural that the power of the transformer can be extended to the graph domain. This paper tackles the challenge of learning graphs using a transformer. The aforementioned domains rely on the conversion of the input to a sequence be it a sequence of tokens, patches or actions. However, a graph has no such direct analogue. Taking concepts used in the transformer, one is able to encode a graph using Graphormer.
 
-The paper introduces a Centrality Encoding in Graphormer to capture the node importance in the graph,a Spatial Encoding in Graphormer to capture the structural relation between nodes.
+Challenges with learning a graph - there is no sequence based representation of graphs, the one representation that places the relative position of a node to another is the adjacency matrix (similar to how a sentence places the order of the tokens) , however since a node is 'placed' in 2 or more dimensions - it is incompatible to be used in a transformer 
+
+Uses for learning graph reprensetation with transformer - 1) Scale, compute, etc.
+2) setup intuition for more current stuff, constraints ...
+
+need smooth transition to start of the paper here.
+
+The paper introduces a Centrality Encoding in Graphormer to capture the node importance in the graph, a Spatial Encoding in Graphormer to capture the structural relation between nodes.
 
 ### Preliminaries
+GNN - formulas
+Transformer - formula
 
 ### Centrality Encoding
 
-Attention in a sequence modeling task captures the semantic correlations between nodes (tokens).
+Attention in a sequence modeling task that captures the semantic correlations between nodes (tokens).
 
 Now the goal of this encoding is to capture the most important nodes in the graph
-To understand this section let's cover a few terms.  
+To understand this section let's cover a few terms. 
+
+<convert to bullet list>
 i. Indegree - Number of incoming edges incident on a vertex in a directed graph. The vertex has an indegree of 2 (2 red arrows)   
 ii. Outdegree - Number of outgoing edges from a vertex in a directed graph. The vertex has an outdegree of 1 (1 green arrow)
 
@@ -132,9 +143,10 @@ I need a common metric across all to compare them, so I simply take the sum of t
 Additionally, the learnable vectors allow the Graphormer to 'map' out the nodes of the graph.
 The softmax function allows the capturing of this information, called the node importance signal in the paper.
 
+<put simple explanation first then equations and code> - talk about graph based example
 
 ### Spatial Encoding
-
+shift some passages, to preliminary
 Before trying to understand about what this encoding does and why it’s needed, let’s take a small detour about how positional encodings work in transformers. 
 
 One of the main properties of the Transformer architecture that makes it so effective in processing sequences is its ability to model long-range dependencies and contextual information with its receptive field. In more specific terms, each token in the input sequence can interact with (or pay “attention” to) every other token in the sequence when transforming its representation. The mechanism, called *self-attention,* allows the model to gain a more comprehensive understanding of the relevant information encoded in the sequence. 
@@ -151,9 +163,11 @@ One of the main properties of the Transformer architecture that makes it so effe
 
 An illustration of attention mechanism at play for a translation task. Notice how each word(or token) can attend to different parts of the sequence, forward or backward. [Source](https://sebastianraschka.com/blog/2023/self-attention-from-scratch.html)
 
+trim below, and keep here, let all above be shift to preliminary.
 However, the information about the position of the token in the sequence is lost in this mechanism. This is because each token is interacting with all other tokens in the sequence, and thus making it difficult for the transformer to understand the positioning of each token. This doesn’t happen in traditional networks such as RNNs or  LSTMs, as they process each token at a time and thus the auto-regressive relationship enables it to learn about the occurence of a token in the sequence.
 
 (If you are thinking about why positional information is important in the first place, take a translation task for example. You wouldn’t want your translated sentence to be all jumbled up and consisting of keywords all around the place! [The original paper](https://arxiv.org/abs/1706.03762) has an ablation study which empirically confirms this)
+
 
 Literature uses several methods for encoding this position information.  In one such method, each position in the input sequence is given a unique embedding vector, which is added to the token embeddings. This explicitly tells the transformer the position of each token. Other methods rely on using “relative” positional information by encoding the relative distances between them. This means the model knows how far apart any two tokens are in the sequence. All these methods are shown to give good results. We won’t go into the details here, as there are several amazing articles and resources on the web which explain this.
 
@@ -191,6 +205,7 @@ $$ A_{ij} = \frac{(h_i W_Q)(h_j W_K)^T}{\sqrt{d}} + b_{\phi(v_i,v_j)} + c_{ij} $
 
 This process ensures that edge features directly contribute to the attention score between any two nodes, allowing for a more nuanced and comprehensive utilization of edge information.
 
+move to start
 The impact of this method is significant. Unlike traditional approaches that either add edge features to node features or use them during aggregation - propagating edge information only to associated nodes - Graphormer's approach ensures that edges play a vital role in the overall node correlation. This method greatly improves the model's performance, as evidenced by the ablation study results on the PCQM4M-LSC dataset. The mean absolute error (MAE) decreases from 0.1328 (with other encodings) to 0.1304 when using edge encoding as an attention bias, highlighting its effectiveness in capturing spatial information.
 
 Thus, by considering the shortest path and the specific features of edges along this path, the model can better capture spatial relationships within the graph.
