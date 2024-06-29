@@ -1,7 +1,7 @@
 ---
 layout: distill
 title: Do Transformers Really Perform Bad for Graph Representation?
-description: A first-principles blog post to understanding the yoay Graphormer.
+description: A first-principles blog post to understanding the Graphormer.
 tags: distill formatting
 giscus_comments: true
 date: 2022-06-10
@@ -25,6 +25,8 @@ toc:
   # - name: Preliminaries
   - name: Graphormer
     subsections:
+        - name: Introduction
+        - name: Preliminaries
         - name: Centrality Encoding
         - name: Spatial Encoding
         - name: Edge Encoding
@@ -63,7 +65,7 @@ _styles: >
 
 
 ### Introduction
-The Transformer archtechture has revolutionised sequence modeling. Its versatility is demonstrated by its application in various domains, from natural language processing, to computer vision, to even reinforcement learning. With its strong ability to learn strong representations across domains, it seems natural that the power of the transformer can be extended to the graphs. Graphormer tackles the challenge of learning graphs using a transformer. The aforementioned domains rely on the conversion of the input to a sequence be it a sequence of tokens, patches or actions. However, a graph has no such analogue. Taking concepts used in the transformer, one is able to encode a graph using Graphormer. 
+The Transformer architechture has revolutionised sequence modeling. Its versatility is demonstrated by its application in various domains, from natural language processing, to computer vision, to even reinforcement learning. With its strong ability to learn strong representations across domains, it seems natural that the power of the transformer can be extended to the graphs. Graphormer tackles the challenge of learning graphs using a transformer. The aforementioned domains rely on the conversion of the input to a sequence be it a sequence of tokens, patches or actions. However, a graph has no such analogue. Taking concepts used in the transformer, one is able to encode a graph using Graphormer. 
 
 The main challenge with applying a transformer to learning a graph is that there is no sequence based representation of graphs, the key representation that places the relative position of a node is the adjacency matrix (like a sentence placing the order of the tokens), however since a node is 'placed' in 2 or more dimensions, it is unusable in a transformer. 
 
@@ -78,10 +80,26 @@ This is where Graphormer and its various novelites come in. Graphormer introduce
 
 ### Preliminaries
 
+- **Graph Neural Networks (GNNs)**: Let $$G = \{V, E\}$$ denote a graph where $$V = \{v_1, v_2, \cdots, v_n\}$$, $$n = \{V\}$$ is the number of nodes. Let the feature vector of node $$v_i$$ be $$x_i$$. GNNs aim to learn representation of nodes and graphs. Typically, modern GNNs follow a learning schema that iteratively updates the representation of a node by aggregating representations of its first or higher-order neighbors. We denote $$h^{(l)}_i$$ as the representation of $$v_i$$ at the $$l$$-th layer and define $$h_i^{(0)} = x_i$$. The $$l$$-th iteration of aggregation could be characterized by AGGREGATE-COMBINE step as $$a_{i}^{(l)}=\text { AGGREGATE }^{(l)}\left(\left\{h_{j}^{(l-1)}: j \in \mathcal{N}(v_i)\right\}\right)$$, $$h_{i}^{(l)}=\text { COMBINE }^{(l)}\left(h_{i}^{(l-1)}, a_{i}^{(l)}\right)$$
 
 
-GNN - formulas
-Transformer - formula
+where $$\mathcal{N}(v_i)$$ is the set of first or higher-order neighbors of $$v_i$$. The AGGREGATE function is used to gather the information from neighbors. Common aggregation functions include MEAN, MAX, SUM, which are used in different architectures of GNNs. The goal of COMBINE function is to fuse the information from neighbors into the node representation. 
+
+In addition, for graph representation tasks, a READOUT function is designed to aggregate node features $$h_i^{(L)}$$ of the final iteration into the representation $$h_G$$ of the entire graph $$G$$:
+
+$$h_{G}=\operatorname{READOUT}\left(\left\{h_{i}^{(L)} \mid v_i \in G \right\}\right)$$
+
+READOUT can be implemented by a simple permutation invariant function such as summation or a more sophisticated graph-level pooling function.
+
+
+
+
+- **Transformer** : The Transformer architecture consists of a composition of Transformer layers. Each Transformer layer has two parts: a self-attention module and a position-wise feed-forward network (FFN). Let $$H = [h_1^\top, \cdots, h_n^\top]^\top\in ℝ^{n\times d}$$ denote the input of self-attention module where $$d$$ is the hidden dimension and $$h_i\in ℝ^{1\times d}$$ is the hidden representation at position $i$. The input $$H$$ is projected by three matrices $$W_Q\inℝ^{d\times d_K}, W_K\inℝ^{d\times d_K}$$ and $$ W_V\inℝ^{d\times d_V}$$ to the corresponding representations $$Q, K, V$$. The self-attention is then calculated as:
+
+
+    $$Q = HW_Q,\ K = HW_K,\ V = HW_V,\ A = \frac{QK^\top}{\sqrt{d_K}},\ Attn(H) = softmax(A)V$$
+
+where $$A$$ is a matrix capturing the similarity between queries and keys. For simplicity of illustration, we consider the single-head self-attention and assume $$d_K = d_V = d$$. The extension to the multi-head attention is standard and straightforward, and we omit bias terms for simplicity.
 
 One of the main properties of the Transformer that makes it so effective in processing sequences is its ability to model long-range dependencies and contextual information with its receptive field. Specifically, each token in the input sequence can interact with (or pay “attention” to) every other token in the sequence when transforming its representation. The mechanism, called *self-attention,* allows the model to gain a comprehensive understanding of the relevant information in the sequence. 
 
@@ -120,14 +138,14 @@ ii. Outdegree - Number of outgoing edges from a vertex in a directed graph. The 
 
 img here
 
-Now we can understand Equation 5 which is given as: $h_{i}^{(0)} = x_{i} + z^{-}_{deg^{-}(v_{i})} + z^{+}_{deg^{+}(v_{i})}$
+Now we can understand Equation 5 which is given as: $$h_{i}^{(0)} = x_{i} + z^{-}_{deg^{-}(v_{i})} + z^{+}_{deg^{+}(v_{i})}$$
 
 lets analyse this term by term:
 
-- $h_{i}^{(0)}$ -> representation ($h$) of vertice i ($v_{i}$) at the 0th layer (first input)
-- $x_{i}$ -> feature vector of vertice i ($v_{i}$)
-- $z^{-}_{deg^{-}(v_{i})}$ -> learnable embedding vector ($z$) of the indegree ($deg^{-}$) of vertice i ($v_{i}$)
-- $z^{+}_{deg^{+}(v_{i})}$ -> learnable embedding vector ($z$) of the outdegree ($deg^{+}$) of vertice i ($v_{i}$)
+- $$h_{i}^{(0)}$$ -> representation ($$h$$) of vertice i ($$v_{i}$$) at the 0th layer (first input)
+- $$x_{i}$$ -> feature vector of vertice i ($$v_{i}$$)
+- $$z^{-}_{deg^{-}(v_{i})}$$-> learnable embedding vector ($$z$$) of the indegree ($$deg^{-}$$) of vertice i ($$v_{i}$$)
+- $$z^{+}_{deg^{+}(v_{i})}$$ -> learnable embedding vector ($$z$$) of the outdegree ($$deg^{+}$$) of vertice i ($$v_{i}$$)
 
 This is an excerpt of the the code used to to compute the Centrality Encoding
 
@@ -163,7 +181,7 @@ A_{ij} = \frac{(h_i W_Q)(h_j W_K)^T}{\sqrt{d}} + b_{\phi(v_i, v_j)}
 $$
 
 
-The above equation shows the modified computation of the Query-Key Product matrix. Notice that the additional term $b_{\phi(v_i, v_j)}$  is a learnable scalar value and acts like a bias term. Since this strucutral information is independent of which layer of our model is using it, we share this value across all layers. 
+The above equation shows the modified computation of the Query-Key Product matrix. Notice that the additional term $$b_{\phi(v_i, v_j)}$$  is a learnable scalar value and acts like a bias term. Since this strucutral information is independent of which layer of our model is using it, we share this value across all layers. 
 
 The benefits of using such an encoding are: 
 1. Our receptive field is effectively increased, as we are no longer limited to the information from our neighbours, as what happens in conventional message-passing networks.
@@ -176,11 +194,11 @@ The benefits of using such an encoding are:
 
 Graphormer's edge encoding method significantly enhances the way the model incorporates structural features from graph edges into its attention mechanism. The prior approaches either add edge features to node features or use them during aggregation, propagating the edge information only to associated nodes. Graphormer's approach ensures that edges play a vital role in the overall node correlation. We consider the shortest path and the specific features of edges along that path, and this way, the model can better capture spatial relationships within the graph.
 
-Initially, node features $(h_i, h_j)$ and edge features $(x_{e_n})$ from the shortest path between nodes are processed. For each pair of nodes $(v_i, v_j)$, the edge features on the shortest path $SP_{ij}$ are averaged after being weighted by learnable embeddings $(w^E_n)$, this results in the edge encoding $c_{ij}$:
+Initially, node features $$(h_i, h_j)$$ and edge features $$(x_{e_n})$$ from the shortest path between nodes are processed. For each pair of nodes $$(v_i, v_j)$$, the edge features on the shortest path $$SP_{ij}$$ are averaged after being weighted by learnable embeddings $$(w^E_n)$$, this results in the edge encoding $$c_{ij}$$:
 
 $$ c_{ij} = \frac{1}{N} \sum_{n=1}^{N} x_{e_n} (w^E_n)^T $$
 
-This is then incorporated as the edge features into the attention score between nodes via a bias-like term. However, you may question why are these encodings being added to the attention scores as such. When considering where to incorporate these features into the attention calculation, it’s essential that the chosen approach carries over to all layers. After incorporating the edge and spatial encodings, the value of $A_{ij}$ is now:
+This is then incorporated as the edge features into the attention score between nodes via a bias-like term. However, you may question why are these encodings being added to the attention scores as such. When considering where to incorporate these features into the attention calculation, it’s essential that the chosen approach carries over to all layers. After incorporating the edge and spatial encodings, the value of $$A_{ij}$$ is now:
 
 $$ A_{ij} = \frac{(h_i W_Q)(h_j W_K)^T}{\sqrt{d}} + b_{\phi(v_i,v_j)} + c_{ij} $$
 
@@ -207,7 +225,7 @@ $$
     </div>
 </div>
 
-But as this is not a <b>physical connection</b>, and to provide the model with this important geometric information, $b_{\phi([VNode], v)}$ is set to be a <b>distinct</b> learnable vector (for all $v$).
+But as this is not a <b>physical connection</b>, and to provide the model with this important geometric information, $$ b_{\phi([VNode], v)} $$ is set to be a <b>distinct</b> learnable vector (for all $$v$$).
 
 
 
@@ -216,7 +234,8 @@ But as this is not a <b>physical connection</b>, and to provide the model with t
 <!-- As we pointed out, \[CLS\] tokens are used for varied downstream tasks, in a similar way, \[VNode\] can be (and is) used as the final representation of the Graph, i.e., this becomes a learnable and dataset-specfic READOUT function! -->
 
 This is can be implemented as follows:
-<d-code block language="python">
+<!-- <d-code block language="python"> -->
+```python
     # Initialize the VNode
     self.v_node = nn.Embedding(1, num_heads) # one per head (different from CLS)
     ...
@@ -227,7 +246,8 @@ This is can be implemented as follows:
         #(n_graph, n_heads, n_nodes + 1, n_nodes + 1)
     graph_attn[:, :, 0, :] = graph_attn[:, :, 0, :] + headed_emb
     ...
-</d-code>
+```
+<!-- </d-code> -->
 
 We again emphasize that the information-relay point of view is much more important to the model than the summary-token view, the design choice of one \[VNode\] per head reflects that.
 
@@ -291,13 +311,13 @@ These findings validate the design choices made by the researchers and also prov
 
 We first list down the three important facts from the paper and then discuss them in detail,
 
-1. With appropriate weights and $ \phi $, GCN, GraphSAGE, GIN are all <b>special cases</b> of a Graphormer.
+1. With appropriate weights and $$ \phi $$, GCN, GraphSAGE, GIN are all <b>special cases</b> of a Graphormer.
 2. Graphormer is better than architectures that are limited by the 1-WL test. (so <b>all</b> traditional GNNs!)
 3. With appropriate weights, <b>every node</b> representation in the output can be MEAN-READOUT.
 
 ### Fact 1 and 2
 
-The [spatial-encoding](link_to_spatial_eqn) provides the model with important geometric information . Observe that with an appropriate $b_{\phi(v_i, v_j)}$ the model can <b>find (learn)</b> neighbours for any $v_i$ and thus easily implement <b>mean-statistics (GCN!)</b>.By knowing the degree (some form of [centrality-encoding](link_to_centrality_eqn)), mean-statistics can be transformed to sum-statistics; it (indirectly) follows that, different and complicated statistics can be learned by different heads, which lead to varied representations, and allow GraphSAGE, GIN or GCN to be modelled as a Graphormer.
+The [spatial-encoding](link_to_spatial_eqn) provides the model with important geometric information . Observe that with an appropriate $$b_{\phi(v_i, v_j)}$$ the model can <b>find (learn)</b> neighbours for any $$v_i$$ and thus easily implement <b>mean-statistics (GCN!)</b>.By knowing the degree (some form of [centrality-encoding](link_to_centrality_eqn)), mean-statistics can be transformed to sum-statistics; it (indirectly) follows that, different and complicated statistics can be learned by different heads, which lead to varied representations, and allow GraphSAGE, GIN or GCN to be modelled as a Graphormer.
 
 Fact 2 follows from Fact 1, as GIN is anyways the most powerful traditional GNN, which can theoretically distinguish all graphs distinguishable by the 1-WL test, now as it is just a special case of Graphormer, the latter can do the same (& more!).
 
@@ -306,16 +326,16 @@ The Proofs for Fact 1 are really easy to follow, but feel free to skip them.
 For each type of aggregation, we provide simple function and weight definitions that achieve it,
 
 - <b>Mean Aggregate</b> :
-  - Set $ b_{\phi(v_i, v_j)} = 0 $ when $\phi(v_i, v_j) = 1$ and $-\infty$ otherwise,
-  - Set $ W_Q = 0, W_K = 0$ and let $ W_V = I$ (Identity matrix), using these,
+  - Set $$ b_{\phi(v_i, v_j)} = 0 $$ when $$\phi(v_i, v_j) = 1$$ and $$-\infty$$ otherwise,
+  - Set $$ W_Q = 0, W_K = 0$$ and let $$ W_V = I$$ (Identity matrix), using these,
   - $$ h^{(l)}_{v_i} = \sum_{v_j \in N(v_i)} softmax(A_{ij}) * (W_v * h^{(l-1)}_{v_j}) \implies h^{(l)}_{v_i} = \frac{1}{|N(v_i)|}*\sum_{v_j \in N(v_i)} h^{(l-1)}_{v_j} $$
 - <b>Sum Aggregate</b> :
-  - For this, we just need to get the mean aggregate and then multiply by $ \|N(v_i)\| $,
+  - For this, we just need to get the mean aggregate and then multiply by $$ \|N(v_i)\| $$,
   - Loosely, the degree can be extracted from a [centrality-encoding](link_to_centrality_eqn) by an attention head, and then the FFN can multiply this to the learned mean aggregate, the latter part is not so loose, because it is a direct consequence of the universal approximation theorem.
 - <b>Max Aggregate</b> :
-  - For this one we assume that if we have $t$ dimensions in our hidden state, we <i>also</i> have t heads.
-  - The proof is such that each Head will extract the maximum from neighbours, clearly, to only keep immediate neighbours around, we can use the same formulation for $b$ and $\phi$ as in the mean aggregate.
-  - Using $W_K = e_t$ (t-th unit vector), $W_K = e_t$ and $W_Q = 0$ (Identity matrix), we can get a pretty good approximation to the max aggregate. To get the full deal however, we need a <i>hard-max</i> instead of the <i>soft-max</i> being used; to accomplish this we finally consider the bias in the query layer (i.e., something like `nn.Linear(in_dim, out_dim, use_bias=True)`), set it to $T \cdot I$ with a high enough $T$ (temperature), this will make the soft-max behave like a hard-max.
+  - For this one we assume that if we have $$t$$ dimensions in our hidden state, we <i>also</i> have t heads.
+  - The proof is such that each Head will extract the maximum from neighbours, clearly, to only keep immediate neighbours around, we can use the same formulation for $$b$$ and $$\phi$$ as in the mean aggregate.
+  - Using $$W_K = e_t$$ (t-th unit vector), $$W_K = e_t$$ and $$W_Q = 0$$ (Identity matrix), we can get a pretty good approximation to the max aggregate. To get the full deal however, we need a <i>hard-max</i> instead of the <i>soft-max</i> being used; to accomplish this we finally consider the bias in the query layer (i.e., something like `nn.Linear(in_dim, out_dim, use_bias=True)`), set it to $$T \cdot I$$ with a high enough $$T$$ (temperature), this will make the soft-max behave like a hard-max.
 {% enddetails %}
 
 For Fact 2, we explain the example from the paper, along with explicitly providing the final WL representation. Again, feel free to skip this part.
@@ -324,7 +344,7 @@ First we need to fix some notation for the WL test, briefly, it can be expressed
 
 $$ c^{(k+1)}(v) = HASH(c^{(k)}(v), \{c^{(k)}(u)\}_{u \in N(v)} )$$
 
-where $c^{(k)}(v)$ is the $k^{th}$ iteration representation (color for convinience) of node $v$ and importantly $HASH$ is an <i>injective</i> hash function. Additionally, all nodes with the same color have the same feature vector
+where $$c^{(k)}(v)$$ is the $$k^{th}$$ iteration representation (color for convinience) of node $$v$$ and importantly $$HASH$$ is an <i>injective</i> hash function. Additionally, all nodes with the same color have the same feature vector
 
 Given this, consider the following graphs -
 <div class="row mt-3">
@@ -337,9 +357,9 @@ Given this, consider the following graphs -
     </div>
 </div>
 
-The hashing process converges in one iteration itself, now the 1-WL test would count number of colors and that vector would act as the final graph representation, which for both of the graphs will be $ [0, 0, 4, 2] $ (i.e., $ [count(a), count(b), count(x), count(y)] $), even though they are different, the 1-WL test fails to distinguish them. There are several such cases and so traditional GNNs are fairly limited in their expressivity.
+The hashing process converges in one iteration itself, now the 1-WL test would count number of colors and that vector would act as the final graph representation, which for both of the graphs will be $$ [0, 0, 4, 2] $$ (i.e., $$ [count(a), count(b), count(x), count(y)] $$), even though they are different, the 1-WL test fails to distinguish them. There are several such cases and so traditional GNNs are fairly limited in their expressivity.
 
-However for the graphormer, Shortest Path Distances (SPD) directly affects attention weights (because the paper uses SPD as $\phi(v_i, v_j)$), and if we look at the SPD sets for the two types of nodes (red and blue) in both the graphs, (we have ordered according to the BFS traversal by top left red node, though any ordering would suffice)
+However for the graphormer, Shortest Path Distances (SPD) directly affects attention weights (because the paper uses SPD as $$\phi(v_i, v_j)$$), and if we look at the SPD sets for the two types of nodes (red and blue) in both the graphs, (we have ordered according to the BFS traversal by top left red node, though any ordering would suffice)
 
 - Left graph -
   - Red nodes - $$ \{ 0, 1, 1, 2, 2, 3 \} $$
@@ -355,10 +375,10 @@ What is important is not that red and blue nodes have a different SPD set, <u><i
 
 The proof behind Fact 3 follows if you have checked the proof of [Fact1][link to facts 1 and 2]. Nevertheless, what is more important is the power it lends to the model, this fact implies that Graphormer allows the flow of <i>Global</i> information within the network (in addition to Local). This truly sets the network apart from traditional GNNs which can only aggregate local information upto a fixed radius (or depth).
 
-Importantly, traditional GNNs are <i>designed</i> to prevent this type of a flow as with their architecture this would lead to over smoothening, however, the clever design around $[VNode]$ prevents this from happening in Graphormer. This is verified empirically and proved ahead, but intuitively the addition of a supernode along with Attention and the learnable $b_{\phi(v_i, v_j)}$ already facilitate for this, the $[VNode]$ can relay global information and the attention mechanism can selectively choose from there. If this explanation is not enough a concrete proof of the fact follows,
+Importantly, traditional GNNs are <i>designed</i> to prevent this type of a flow as with their architecture this would lead to over smoothening, however, the clever design around $$[VNode]$$ prevents this from happening in Graphormer. This is verified empirically and proved ahead, but intuitively the addition of a supernode along with Attention and the learnable $$b_{\phi(v_i, v_j)}$$ already facilitate for this, the $$[VNode]$$ can relay global information and the attention mechanism can selectively choose from there. If this explanation is not enough a concrete proof of the fact follows,
 
 {% details Proof for Fact 3 %}
-Setting $W_Q = W_K = 0$, and the bias terms in both to be $T \cdot 1$ (where T is temperature), as well as, setting $W_V = I$ (Identity matrix), with a large enough $T$ (much larger than the scale of $b_{\phi(v_i, v_j)}$, so that $T^2 1 1^T$ can dominate), we can get MEAN-READOUT on all nodes. Note that while this proof doesn't require $[VNode]$, it should be noted that, the $[Vnode]$ is very important to establish a <b>balance</b> between this completely global flow and the local flow. As in a normal setting, with the $T$ not being too large, the only way for global information is through the $[VNode]$, as the $b_{\phi(v_i, v_j)}$ would most likely limit information from nodes that are very far.
+Setting $$W_Q = W_K = 0$$, and the bias terms in both to be $$T \cdot 1$$ (where T is temperature), as well as, setting $$W_V = I$$ (Identity matrix), with a large enough $$T$$ (much larger than the scale of $$b_{\phi(v_i, v_j)}$$, so that $$T^2 1 1^T$$ can dominate), we can get MEAN-READOUT on all nodes. Note that while this proof doesn't require $$[VNode]$$, it should be noted that, the $$[VNode]$$ is very important to establish a <b>balance</b> between this completely global flow and the local flow. As in a normal setting, with the $$T$$ not being too large, the only way for global information is through the $$[VNode]$$, as the $$b_{\phi(v_i, v_j)}$$ would most likely limit information from nodes that are very far.
 {% enddetails %}
 
 [link to facts 1 and 2]: #fact-1-and-2
