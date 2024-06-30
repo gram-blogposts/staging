@@ -232,7 +232,7 @@ We again emphasize that the information-relay point of view is much more importa
 ---
 ### Experiments
 
-The researchers conducted comprehensive experiments to evaluate Graphormer's performance against leading Graph Neural Networks (GNNs) and other state-of-the-art models like [GCN](https://arxiv.org/abs/1609.02907), [GIN](https://arxiv.org/abs/1810.00826), [DeeperGCN](https://arxiv.org/abs/2006.07739), and the Transformer-based [GT](https://arxiv.org/abs/2012.09699).
+The researchers conducted comprehensive experiments to evaluate Graphormer's performance against state-of-the-art models like [GCN](https://arxiv.org/abs/1609.02907), [GIN](https://arxiv.org/abs/1810.00826), [DeeperGCN](https://arxiv.org/abs/2006.07739), and the Transformer-based [GT](https://arxiv.org/abs/2012.09699).
 
 Two variants of Graphormer, *Graphormer* (L=12, d=768) and a smaller *GraphormerSMALL* (L=6, d=512), were evaluated on the [OGB-LSC](https://ogb.stanford.edu/docs/lsc/) quantum chemistry regression challenge (PCQM4M-LSC), one of the largest graph-level prediction dataset with over 3.8 million graphs.
 
@@ -257,7 +257,7 @@ By using the ensemble with [ExpC](https://arxiv.org/abs/2012.07219), Graphormer 
 
 ### Comparison against State-of-the-Art Molecular Representation Models
 
-Let's first take a look at [GROVER](https://arxiv.org/abs/2007.02835), a transformer-based GNN boasting 100 million parameters and pre-trained on a massive dataset of 10 million unlabeled molecules. GROVER's ability to extract rich structural and semantic information from unlabeled molecular data represented a significant leap in molecular representation learning.
+Let's first take a look at [GROVER](https://arxiv.org/abs/2007.02835), a transformer-based GNN boasting 100 million parameters and pre-trained on a massive dataset of 10 million unlabeled molecules.
 
 The authors further fine-tune GROVER on MolHIV and MolPCBA to achieve competitive performance along with supplying additional molecular features such as morgan fingerprints and other 2D features. Note that Random Forest model fitted on these features alone outperform that GNN model showing the huge boost in performance granted by the same.
 
@@ -271,18 +271,6 @@ Table 2: Comparison between Graphormer and GROVER on MolHIV
 | GROVER | 48.8M | 79.33±0.09 |
 | GROVER (LARGE)| 107.7M | 80.32±0.14 |
 | Graphormer-FLAG | 47.0M | 80.51±0.53 |
-
-### Unpacking the Encodings
-
-The researchers conducted a series of ablation studies to evaluate the effectiveness of their proposed encodings. These studies yielded insights into the performance of different components:
-
-- Node Relation Encoding: The spatial encoding demonstrated markedly superior performance compared to traditional positional encodings, including the Laplacian PE. This suggests a substantial improvement in capturing node relationships within graph structures.
-
-- Centrality Encoding: Incorporating the degree-based centrality encoding led to a notable boost in performance. This underscores the importance of node centrality information in effectively modeling graph data for graph representation learning.
-
-- Edge Encoding: The attention bias-based edge encoding outperformed conventional methods, highlighting its efficacy in capturing spatial information on edges. This approach appears to offer a more nuanced understanding of edge relationships within graphs.
-
-These findings validate the design choices made by the researchers and also provide valuable insights into how each encoding mechanism contributes uniquely to the overall effectiveness of Graphormers.
 
 
 ## Theoretical aspects on expressivity
