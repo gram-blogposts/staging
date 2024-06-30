@@ -244,20 +244,20 @@ These are the three main facts from the paper,
 
 The [spatial-encoding](link_to_spatial_eqn) provides the model with important geometric information. Observe that with an appropriate $$b_{\phi(v_i, v_j)}$$ the model can <b>find (learn)</b> neighbours for any $$v_i$$ and thus easily implement <b>mean-statistics (GCN!)</b>. By knowing the degree (some form of [centrality-encoding](link_to_centrality_eqn)), mean-statistics can be transformed to sum statistics; it (indirectly) follows that different and complicated statistics can be learned by different heads, which leads to varied representations, and allow GraphSAGE, GIN or GCN to be modeled as a Graphormer.
 
-Fact 2 follows Fact 1, GIN being the most powerful traditional GNN, which can theoretically distinguish all graphs distinguishable by the 1-WL test. Now as it is just a special case of Graphormer, the latter can do the same (& more!).
+Fact 2 follows Fact 1, GIN being the most powerful traditional GNN, which can theoretically distinguish all graphs distinguishable by the 1-WL test. Now, as it is just a special case of Graphormer, the latter can do the same (& more!).
 
-Nevertheless, what is more important is the power it lends to the model, this fact implies that Graphormer allows the flow of <i>Global</i> information within the network (in addition to Local). This truly sets the network apart from traditional GNNs, which can only aggregate local information up to a fixed depth.
+Nevertheless, what is more important is the power it lends to the model, this fact implies that Graphormer allows the flow of <i>Global</i> information within the network (in addition to Local). This truly sets the network apart from traditional GNNs, which can only aggregate local information to a fixed depth.
 
-Importantly, traditional GNNs are <i>designed</i> to prevent this type of a flow as with their architecture this would lead to over smoothening, however, the clever design around $$[VNode]$$ prevents this from happening in Graphormer. This can be verified empirically, but intuitively the addition of a supernode along with Attention and the learnable $$b_{\phi(v_i, v_j)}$$ already facilitate this, the $$[VNode]$$ can relay global information and the attention mechanism can selectively choose from there. 
+Importantly, traditional GNNs are <i>designed</i> to prevent this type of a flow as with their architecture this would lead to over smoothening, however, the clever design around $$[VNode]$$ prevents this from happening in Graphormer. This can be verified empirically, but intuitively, the addition of a supernode along with Attention and the learnable $$b_{\phi(v_i, v_j)}$$ already facilitate this, the $$[VNode]$$ can relay global information and the attention mechanism can selectively choose from there. 
 
 ---
 ### Experiments
 
-The researchers conducted comprehensive experiments to evaluate Graphormer's performance against state-of-the-art models like [GCN](https://arxiv.org/abs/1609.02907), [GIN](https://arxiv.org/abs/1810.00826), [DeeperGCN](https://arxiv.org/abs/2006.07739), and the Transformer-based [GT](https://arxiv.org/abs/2012.09699).
+The researchers conducted comprehensive experiments to evaluate Graphormer's performance against state-of-the-art models like GCN<d-cite key="kipf2017semisupervisedclassificationgraphconvolutional"></d-cite>, GIN<d-cite key="xu2019powerfulgraphneuralnetworks"></d-cite>, DeeperGCN<d-cite key="li2020deepergcnneedtraindeeper"></d-cite>, and the Transformer-based GT<d-cite key="dwivedi2021generalizationtransformernetworksgraphs"></d-cite>.
 
 Two variants of Graphormer, *Graphormer* (L=12, d=768) and a smaller *GraphormerSMALL* (L=6, d=512), were evaluated on the [OGB-LSC](https://ogb.stanford.edu/docs/lsc/) quantum chemistry regression challenge (PCQM4M-LSC), one of the largest graph-level prediction dataset with over 3.8 million graphs.
 
-The results, as shown in Table 1, demonstrate Graphormer's significant performance improvements over previous top-performing models such as GIN-VN, DeeperGCN-VN and GT.
+The results, as shown in Table 1, demonstrate Graphormer's significant performance improvements over previous top-performing models such as GIN-VN, DeeperGCN-VN, and GT.
 
 Table 1: Results on PCQM4M-LSC
 
