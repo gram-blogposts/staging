@@ -65,24 +65,28 @@ _styles: >
 
 
 ### Introduction
-The Transformer architechture has revolutionised sequence modeling. Its versatility is demonstrated by its application in various domains, from natural language processing, to computer vision, to even reinforcement learning. With its strong ability to learn rich representations across domains, it seems natural that the power of the transformer can be adapted to graphs. Graphormer is the first to tackle the challenge of learning graphs using a transformer. The aforementioned domains rely on the conversion of the input to a sequence.  
+The Transformer architecture has revolutionized sequence modeling. Its versatility is demonstrated by its application in various domains, from natural language processing to computer vision to even reinforcement learning. With its strong ability to learn rich representations across domains, it seems natural that the power of the transformer can be adapted to graphs. 
 
-The main challenge with applying a transformer to graph data is that there is no obvious sequence based representation of graphs. One of the most widely used representation of graphs is the adjacency matrix/list, since they have no notion of order (unlike a sentence, which is a structured order of words), it is unusable in a transformer. 
+The main challenge with applying a transformer to graph data is that there is no obvious sequence-based representation of graphs. Graphs are commonly represented by adjacency matrices or lists, which lack inherent order and are thus unsuitable for transformers.
 
-The primary reason to find a sequence-based representation of a graph is to combine the advantages of a transformer (such its high scalabality), with the ability of graphs to capture non-sequential and multidimensional relationships.Graph Neural Networks (GNNs) employ various constraints during training, for example while using a GNN to generate a molecule we apply the constraint of valency for each molecule/node. However choosing such constraints may not be straightforward for other problems. With transformers we can apply these very constraints in a simpler manner, analogous to applying a causal mask. A transformer based generalization of graphs can also aid in the discovery of newer ways to apply constraints in GNNs, by presenting existing concepts in an intutive manner.
+The primary reason for finding a sequence-based representation of a graph is to combine the advantages of a transformer (such as its high scalability) with the ability of graphs to capture non-sequential and multidimensional relationships. Graph Neural Networks (GNNs) employ various constraints during training, for example, GNNs apply various constraints during training, such as enforcing valency limits when generating molecules. However, choosing such constraints may not be as straightforward for other problems. With transformers, we can apply these very constraints in a simpler manner, analogous to applying a causal mask. A transformer-based generalization of graphs can also aid in discovering newer ways to apply constraints in GNNs by presenting existing concepts in an intuitive manner.
 
-This is where Graphormer and its various novelites come in. Graphormer introduces a Centrality Encoding to capture the node importances, a Spatial Encoding to capture the structural relations, and an Edge Encoding to capture the non linear relationships between nodes. In addition to this, Graphormer makes other architechtures more explainable and easier to implement by making various existing architechtures special cases of Graphormer. 
+This is where Graphormer and its various novelties come in. Graphormer introduces Centrality Encoding to capture the node importance, Spatial Encoding to capture the structural relations, and Edge Encoding to capture the nonlinear relationships between nodes. In addition to this, Graphormer makes other architecture more explainable and easier to implement by making various existing architecture special cases of Graphormer. 
 
 ---
 
 ### Preliminaries
 
-- **Graph Neural Networks (GNNs)**: Let $$G = \{V, E\}$$ denote a graph where $$V = \{v_1, v_2, \cdots, v_n\}$$, $$n = \{V\}$$ is the number of nodes. Node $$v_i$$ is represented as a feature vector $$x_i$$. Modern GNNs follow a learning scheme that iteratively updates the representation of a node by aggregating representations of its first or higher-order neighbors. $$h^{(l)}_i$$ is the representation of $$v_i$$ at the $$l$$-th layer and define $$h_i^{(0)} = x_i$$. The $$l$$-th iteration of aggregation could be characterized by AGGREGATE-COMBINE step as $$a_{i}^{(l)}=\text { AGGREGATE }^{(l)}\left(\left\{h_{j}^{(l-1)}: j \in \mathcal{N}(v_i)\right\}\right)$$, $$h_{i}^{(l)}=\text { COMBINE }^{(l)}\left(h_{i}^{(l-1)}, a_{i}^{(l)}\right)$$ where $$\mathcal{N}(v_i)$$ is the set of first or higher-order neighbors of $$v_i$$. The AGGREGATE function is used to gather the information from neighbors. Common aggregation functions include MEAN, MAX, SUM, which are used in different architectures of GNNs. The goal of COMBINE function is to fuse the information from neighbors into the node representation. In addition, for graph representation tasks, a READOUT function is designed to aggregate node features $$h_i^{(L)}$$ of the final iteration into the representation $$h_G$$ of the entire graph $$G$$: $$h_{G}=\operatorname{READOUT}\left(\left\{h_{i}^{(L)} \mid v_i \in G \right\}\right)$$ READOUT can be implemented by a simple permutation invariant function such as summation or a more sophisticated graph-level pooling function.
-
-<!-- <rephrase> GNNs-->
-
-
-- **Transformer** : The Transformer architecture consists of a composition of Transformer layers. Each Transformer layer has two parts: a self-attention module and a position-wise feed-forward network (FFN). Let $$H = [h_1^\top, \cdots, h_n^\top]^\top\in ℝ^{n\times d}$$ denote the input of self-attention module where $$d$$ is the hidden dimension and $$h_i\in ℝ^{1\times d}$$ is the hidden representation at position $i$. The input $$H$$ is projected by three matrices $$W_Q\inℝ^{d\times d_K}, W_K\inℝ^{d\times d_K}$$ and $$ W_V\inℝ^{d\times d_V}$$ to the corresponding representations $$Q, K, V$$. The self-attention is then calculated as: $$Q = HW_Q,\ K = HW_K,\ V = HW_V,\ A = \frac{QK^\top}{\sqrt{d_K}},\ Attn(H) = softmax(A)V$$ where $$A$$ is a matrix capturing the similarity between queries and keys. The mechanism, called *self-attention,* allows the model to gain a comprehensive understanding of the relevant information in the sequence. 
+- **Graph Neural Networks (GNNs)**: Consider a graph $$G = \{V, E\}$$ where $$V = \{v_1, v_2, \cdots, v_n\}$$ and $$n = |V|$$ is the number of nodes. Each node $$v_i$$ has a feature vector $$x_i$$. Modern GNNs update node representations iteratively by aggregating information from neighbors. The representation of node $$v_i$$ at layer $$l$$ is $$h^{(l)}_i$$, with $$h_i^{(0)} = x_i$$. The aggregation and combination at layer $$l$$ are defined as: 
+  $$a_{i}^{(l)}=\text{AGGREGATE}^{(l)}\left(\left\{h_{j}^{(l-1)}: j \in \mathcal{N}(v_i)\right\}\right)$$ 
+  $$h_{i}^{(l)}=\text{COMBINE}^{(l)}\left(h_{i}^{(l-1)}, a_{i}^{(l)}\right)$$ 
+  where $$\mathcal{N}(v_i)$$ is the set of neighbors of $$v_i$$. Common aggregation functions include MEAN, MAX, and SUM. The COMBINE function fuses neighbor information into the node representation. For graph-level tasks, a READOUT function aggregates node features $$h_i^{(L)}$$ from the final iteration into a graph representation $$h_G$$:
+  $$h_{G}=\operatorname{READOUT}\left(\left\{h_{i}^{(L)} \mid v_i \in G \right\}\right)$$
+  READOUT can be a simple summation or a more complex pooling function.
+ 
+- **Transformer**: The Transformer architecture comprises layers with two main components: a self-attention module and a position-wise feed-forward network (FFN). Let $$H = [h_1^\top, \cdots, h_n^\top]^\top\in ℝ^{n\times d}$$ be the input to the self-attention module, where $$d$$ is the hidden dimension and $$h_i\in ℝ^{1\times d}$$ is the hidden representation at position $$i$$. The input $$H$$ is projected using matrices $$W_Q\inℝ^{d\times d_K}, W_K\inℝ^{d\times d_K}$$, and $$W_V\inℝ^{d\times d_V}$$ to obtain representations $$Q, K, V$$. Self-attention is computed as:
+  $$Q = HW_Q,\ K = HW_K,\ V = HW_V,\ A = \frac{QK^\top}{\sqrt{d_K}},\ Attn(H) = \text{softmax}(A)V$$
+  where $$A$$ captures the similarity between queries and keys. This self-attention mechanism allows the model to understand relevant information in the sequence comprehensively.
 
 <!-- For simplicity of illustration, we consider the single-head self-attention and assume $$d_K = d_V = d$$. The extension to the multi-head attention is standard and straightforward, and we omit bias terms for simplicity. xxxx One of the main properties of the Transformer that makes it so effective in processing sequences is its ability to model long-range dependencies and contextual information with its receptive field. Specifically, each token in the input sequence can interact with (or pay “attention” to) every other token in the sequence when transforming its representation xxxx. -->
 
@@ -93,12 +97,10 @@ This is where Graphormer and its various novelites come in. Graphormer introduce
     </div>
 </div>
 <div class="caption">
-    An illustration of attention mechanism at play for a translation task. Notice how each word(or token) can attend to different parts of the sequence, forward or backward.
+    An illustration of the attention mechanism.
 </div>
 
 <!-- An illustration of attention mechanism at play for a translation task. Notice how each word(or token) can attend to different parts of the sequence, forward or backward. [Source](https://sebastianraschka.com/blog/2023/self-attention-from-scratch.html) -->
-
-
 
 ---
 
@@ -106,18 +108,18 @@ This is where Graphormer and its various novelites come in. Graphormer introduce
 
 In a sequence modeling task, Attention captures the semantic correlations between the nodes (tokens).
 The goal of this encoding is to capture the most important nodes in the graph.
-Lets take an example.
-Say we want to compare airports, and find which one is the largest.
-We need a common metric to compare them, so we take the sum of the total daily incoming and outgoing flights, giving us the busiest airports. This is what the algorithm is doing on a logical level, to identify the 'busiest' nodes.
-Additionally, the learnable vectors allow the Graphormer to 'map' out the nodes. All this culminates in better performance for graph based tasks such as molecule generation.
+Let's take an example.
+Say we want to compare airports and find which one is the largest.
+We need a common metric to compare them, so we take the sum of the total daily incoming and outgoing flights, giving us the busiest airports. This is what the algorithm is doing on a logical level to identify the 'busiest' nodes.
+Additionally, the learnable vectors allow the Graphormer to 'map' out the nodes. All this culminates in better performance for graph-based tasks such as molecule generation.
 
-To understand how this works let's cover a few terms. 
+To understand how this works, let's cover a few terms. 
 
 <!-- <convert to bullet list> -->
 - Indegree - Number of incoming edges incident on a vertex in a directed graph.
 - Outdegree - Number of outgoing edges from a vertex in a directed graph.
 
-Now we can understand the Centrality Encoding which is given as: 
+Now we can understand the Centrality Encoding, which is given as: 
 
 $$h_{i}^{(0)} = x_{i} + z^{-}_{deg^{-}(v_{i})} + z^{+}_{deg^{+}(v_{i})}$$
 
