@@ -65,43 +65,26 @@ _styles: >
 
 
 ### Introduction
-The Transformer architechture has revolutionised sequence modeling. Its versatility is demonstrated by its application in various domains, from natural language processing, to computer vision, to even reinforcement learning. With its strong ability to learn strong representations across domains, it seems natural that the power of the transformer can be extended to the graphs. Graphormer tackles the challenge of learning graphs using a transformer. The aforementioned domains rely on the conversion of the input to a sequence be it a sequence of tokens, patches or actions. However, a graph has no such analogue. Taking concepts used in the transformer, one is able to encode a graph using Graphormer. 
+The Transformer architechture has revolutionised sequence modeling. Its versatility is demonstrated by its application in various domains, from natural language processing, to computer vision, to even reinforcement learning. With its strong ability to learn rich representations across domains, it seems natural that the power of the transformer can be adapted to graphs. Graphormer is the first to tackle the challenge of learning graphs using a transformer. The aforementioned domains rely on the conversion of the input to a sequence.  
 
-The main challenge with applying a transformer to learning a graph is that there is no sequence based representation of graphs, the key representation that places the relative position of a node is the adjacency matrix (like a sentence placing the order of the tokens), however since a node is 'placed' in 2 or more dimensions, it is unusable in a transformer. 
+The main challenge with applying a transformer to graph data is that there is no obvious sequence based representation of graphs. One of the most widely used representation of graphs is the adjacency matrix/list, since they have no notion of order (unlike a sentence, which is a structured order of words), it is unusable in a transformer. 
 
-Despite these limitations, one is interested in finding a representation of a graphs.
-The primary reason is to combine the advantages of a transformer such its high scalabality, with the ability of graphs to capture non-sequential and multidimensional relations. Another reason is the theoretical aspect. Various Graph Neural Networks (GNNs) employ various constraints during training, for example while using a GNN to generate a molecule we apply the constraint of valency for each molecule/node.
+The primary reason to find a sequence-based representation of a graph is to combine the advantages of a transformer (such its high scalabality), with the ability of graphs to capture non-sequential and multidimensional relationships.Graph Neural Networks (GNNs) employ various constraints during training, for example while using a GNN to generate a molecule we apply the constraint of valency for each molecule/node. However choosing such constraints may not be straightforward for other problems. With transformers we can apply these very constraints in a simpler manner, analogous to applying a causal mask. A transformer based generalization of graphs can also aid in the discovery of newer ways to apply constraints in GNNs, by presenting existing concepts in an intutive manner.
 
-However choosing such constraints may not be straightforward for other problems. With transformers we can apply these very constraints in a simpler manner, analogous to applying a causal mask, constraining tokens to only refer to tokens behind them. A transformer based generalization of graphs can also aid in the discovery of newer ways to apply constraints in GNNs, by presenting existing concepts in an intutive manner.
-
-This is where Graphormer and its various novelites come in. Graphormer introduces a Centrality Encoding in Graphormer to capture the node importances, a Spatial Encoding in Graphormer to capture the structural relations, akin to the postional encoding in a Transformer, and an Edge Encoding to capture the non linear relationships. In addition to this, Graphormer makes other architechtures more explainable and easier to implement by making various existing architechtures special cases of Graphormer. 
+This is where Graphormer and its various novelites come in. Graphormer introduces a Centrality Encoding to capture the node importances, a Spatial Encoding to capture the structural relations, and an Edge Encoding to capture the non linear relationships between nodes. In addition to this, Graphormer makes other architechtures more explainable and easier to implement by making various existing architechtures special cases of Graphormer. 
 
 ---
 
 ### Preliminaries
 
-- **Graph Neural Networks (GNNs)**: Let $$G = \{V, E\}$$ denote a graph where $$V = \{v_1, v_2, \cdots, v_n\}$$, $$n = \{V\}$$ is the number of nodes. Let the feature vector of node $$v_i$$ be $$x_i$$. GNNs aim to learn representation of nodes and graphs. Typically, modern GNNs follow a learning schema that iteratively updates the representation of a node by aggregating representations of its first or higher-order neighbors. We denote $$h^{(l)}_i$$ as the representation of $$v_i$$ at the $$l$$-th layer and define $$h_i^{(0)} = x_i$$. The $$l$$-th iteration of aggregation could be characterized by AGGREGATE-COMBINE step as $$a_{i}^{(l)}=\text { AGGREGATE }^{(l)}\left(\left\{h_{j}^{(l-1)}: j \in \mathcal{N}(v_i)\right\}\right)$$, $$h_{i}^{(l)}=\text { COMBINE }^{(l)}\left(h_{i}^{(l-1)}, a_{i}^{(l)}\right)$$
+- **Graph Neural Networks (GNNs)**: Let $$G = \{V, E\}$$ denote a graph where $$V = \{v_1, v_2, \cdots, v_n\}$$, $$n = \{V\}$$ is the number of nodes. Node $$v_i$$ is represented as a feature vector $$x_i$$. Modern GNNs follow a learning scheme that iteratively updates the representation of a node by aggregating representations of its first or higher-order neighbors. $$h^{(l)}_i$$ is the representation of $$v_i$$ at the $$l$$-th layer and define $$h_i^{(0)} = x_i$$. The $$l$$-th iteration of aggregation could be characterized by AGGREGATE-COMBINE step as $$a_{i}^{(l)}=\text { AGGREGATE }^{(l)}\left(\left\{h_{j}^{(l-1)}: j \in \mathcal{N}(v_i)\right\}\right)$$, $$h_{i}^{(l)}=\text { COMBINE }^{(l)}\left(h_{i}^{(l-1)}, a_{i}^{(l)}\right)$$ where $$\mathcal{N}(v_i)$$ is the set of first or higher-order neighbors of $$v_i$$. The AGGREGATE function is used to gather the information from neighbors. Common aggregation functions include MEAN, MAX, SUM, which are used in different architectures of GNNs. The goal of COMBINE function is to fuse the information from neighbors into the node representation. In addition, for graph representation tasks, a READOUT function is designed to aggregate node features $$h_i^{(L)}$$ of the final iteration into the representation $$h_G$$ of the entire graph $$G$$: $$h_{G}=\operatorname{READOUT}\left(\left\{h_{i}^{(L)} \mid v_i \in G \right\}\right)$$ READOUT can be implemented by a simple permutation invariant function such as summation or a more sophisticated graph-level pooling function.
+
+<!-- <rephrase> GNNs-->
 
 
-where $$\mathcal{N}(v_i)$$ is the set of first or higher-order neighbors of $$v_i$$. The AGGREGATE function is used to gather the information from neighbors. Common aggregation functions include MEAN, MAX, SUM, which are used in different architectures of GNNs. The goal of COMBINE function is to fuse the information from neighbors into the node representation. 
+- **Transformer** : The Transformer architecture consists of a composition of Transformer layers. Each Transformer layer has two parts: a self-attention module and a position-wise feed-forward network (FFN). Let $$H = [h_1^\top, \cdots, h_n^\top]^\top\in ℝ^{n\times d}$$ denote the input of self-attention module where $$d$$ is the hidden dimension and $$h_i\in ℝ^{1\times d}$$ is the hidden representation at position $i$. The input $$H$$ is projected by three matrices $$W_Q\inℝ^{d\times d_K}, W_K\inℝ^{d\times d_K}$$ and $$ W_V\inℝ^{d\times d_V}$$ to the corresponding representations $$Q, K, V$$. The self-attention is then calculated as: $$Q = HW_Q,\ K = HW_K,\ V = HW_V,\ A = \frac{QK^\top}{\sqrt{d_K}},\ Attn(H) = softmax(A)V$$ where $$A$$ is a matrix capturing the similarity between queries and keys. The mechanism, called *self-attention,* allows the model to gain a comprehensive understanding of the relevant information in the sequence. 
 
-In addition, for graph representation tasks, a READOUT function is designed to aggregate node features $$h_i^{(L)}$$ of the final iteration into the representation $$h_G$$ of the entire graph $$G$$:
-
-$$h_{G}=\operatorname{READOUT}\left(\left\{h_{i}^{(L)} \mid v_i \in G \right\}\right)$$
-
-READOUT can be implemented by a simple permutation invariant function such as summation or a more sophisticated graph-level pooling function.
-
-
-
-
-- **Transformer** : The Transformer architecture consists of a composition of Transformer layers. Each Transformer layer has two parts: a self-attention module and a position-wise feed-forward network (FFN). Let $$H = [h_1^\top, \cdots, h_n^\top]^\top\in ℝ^{n\times d}$$ denote the input of self-attention module where $$d$$ is the hidden dimension and $$h_i\in ℝ^{1\times d}$$ is the hidden representation at position $i$. The input $$H$$ is projected by three matrices $$W_Q\inℝ^{d\times d_K}, W_K\inℝ^{d\times d_K}$$ and $$ W_V\inℝ^{d\times d_V}$$ to the corresponding representations $$Q, K, V$$. The self-attention is then calculated as:
-
-
-    $$Q = HW_Q,\ K = HW_K,\ V = HW_V,\ A = \frac{QK^\top}{\sqrt{d_K}},\ Attn(H) = softmax(A)V$$
-
-where $$A$$ is a matrix capturing the similarity between queries and keys. For simplicity of illustration, we consider the single-head self-attention and assume $$d_K = d_V = d$$. The extension to the multi-head attention is standard and straightforward, and we omit bias terms for simplicity.
-
-One of the main properties of the Transformer that makes it so effective in processing sequences is its ability to model long-range dependencies and contextual information with its receptive field. Specifically, each token in the input sequence can interact with (or pay “attention” to) every other token in the sequence when transforming its representation. The mechanism, called *self-attention,* allows the model to gain a comprehensive understanding of the relevant information in the sequence. 
+<!-- For simplicity of illustration, we consider the single-head self-attention and assume $$d_K = d_V = d$$. The extension to the multi-head attention is standard and straightforward, and we omit bias terms for simplicity. xxxx One of the main properties of the Transformer that makes it so effective in processing sequences is its ability to model long-range dependencies and contextual information with its receptive field. Specifically, each token in the input sequence can interact with (or pay “attention” to) every other token in the sequence when transforming its representation xxxx. -->
 
 <!-- ![ [Source](https://sebastianraschka.com/blog/2023/self-attention-from-scratch.html)](Spatial%20Encoding%20d515dd50b6354ab19b8310fab3005464/Untitled.png) -->
 <div class="row mt-3">
@@ -121,31 +104,29 @@ One of the main properties of the Transformer that makes it so effective in proc
 
 ### Centrality Encoding
 
-Attention in a sequence modeling task that captures the semantic correlations between nodes (tokens).
-
-
+In a sequence modeling task, Attention captures the semantic correlations between the nodes (tokens).
 The goal of this encoding is to capture the most important nodes in the graph.
 Lets take an example.
 Say we want to compare airports, and find which one is the largest.
-We need a common metric compare them, so we take the sum of the total daily incoming and outgoing flights, giving us the busiest airports. This is what the algorithm is doing on a logical level, to identify the 'busiest' nodes.
+We need a common metric to compare them, so we take the sum of the total daily incoming and outgoing flights, giving us the busiest airports. This is what the algorithm is doing on a logical level, to identify the 'busiest' nodes.
 Additionally, the learnable vectors allow the Graphormer to 'map' out the nodes. All this culminates in better performance for graph based tasks such as molecule generation.
 
 To understand how this works let's cover a few terms. 
 
 <!-- <convert to bullet list> -->
-i. Indegree - Number of incoming edges incident on a vertex in a directed graph. The vertex has an indegree of 2 (2 red arrows)   
-ii. Outdegree - Number of outgoing edges from a vertex in a directed graph. The vertex has an outdegree of 1 (1 green arrow)
+- Indegree - Number of incoming edges incident on a vertex in a directed graph.
+- Outdegree - Number of outgoing edges from a vertex in a directed graph.
 
-img here
+Now we can understand the Centrality Encoding which is given as: 
 
-Now we can understand Equation 5 which is given as: $$h_{i}^{(0)} = x_{i} + z^{-}_{deg^{-}(v_{i})} + z^{+}_{deg^{+}(v_{i})}$$
+$$h_{i}^{(0)} = x_{i} + z^{-}_{deg^{-}(v_{i})} + z^{+}_{deg^{+}(v_{i})}$$
 
 lets analyse this term by term:
 
-- $$h_{i}^{(0)}$$ -> representation ($$h$$) of vertice i ($$v_{i}$$) at the 0th layer (first input)
-- $$x_{i}$$ -> feature vector of vertice i ($$v_{i}$$)
-- $$z^{-}_{deg^{-}(v_{i})}$$-> learnable embedding vector ($$z$$) of the indegree ($$deg^{-}$$) of vertice i ($$v_{i}$$)
-- $$z^{+}_{deg^{+}(v_{i})}$$ -> learnable embedding vector ($$z$$) of the outdegree ($$deg^{+}$$) of vertice i ($$v_{i}$$)
+- $$h_{i}^{(0)}$$ - Representation ($$h$$) of vertice i ($$v_{i}$$) at the 0th layer (first input)
+- $$x_{i}$$ - Feature vector of vertice i ($$v_{i}$$)
+- $$z^{-}_{deg^{-}(v_{i})}$$ - Learnable embedding vector ($$z$$) of the indegree ($$deg^{-}$$) of vertice i ($$v_{i}$$)
+- $$z^{+}_{deg^{+}(v_{i})}$$ - Learnable embedding vector ($$z$$) of the outdegree ($$deg^{+}$$) of vertice i ($$v_{i}$$)
 
 This is an excerpt of the the code used to to compute the Centrality Encoding
 
@@ -167,12 +148,10 @@ node_feature = (node_feature + self.in_degree_encoder(in_degree) + self.out_degr
 ### Spatial Encoding
 
 
-There are several methods for encoding the position information of the tokens in a sequence.  In one method, each position in the input sequence is given a unique embedding vector, which is added to the token embeddings. This explicitly tells the transformer the position of each token. Other methods use “relative” positional information by encoding the relative distances between them. 
-
-
+There are several methods for encoding the position information of the tokens in a sequence.
 In a graph however, there is a problem. Graphs consist of nodes (analogous to tokens), connected with edges in a non-linear, multi-dimensional space. There’s no inherent notion of an “ordering” or a “sequence” in its structure, but as with positional information, it’ll be helpful if we inject some sort of structural information when we process the graph. 
 
-A naive solution would be to learn the encodings themselves. Another would be to perform some operation on the graph structure, such as a random walk, or components from the feature matrix. The intuition is to perform an operation on the graph to extract some “structural” information. 
+<!-- A naive solution would be to learn the encodings themselves. Another would be to perform some operation on the graph structure, such as a random walk, or components from the feature matrix. The intuition is to perform an operation on the graph to extract some “structural” information.  -->
 
 The authors propose a novel encoding, called *Spatial Encoding.* The idea is a simple combination of learnable encodings and walk-based methods mentioned earlier: take as input a pair of nodes (analogous to tokens) and output a scalar value as a function of the shortest-path-distance (SPD) between the nodes. This scalar value is then added to the element corresponding to the operation between the two nodes in the Query-Key product matrix. 
 
@@ -202,13 +181,12 @@ This is then incorporated as the edge features into the attention score between 
 
 $$ A_{ij} = \frac{(h_i W_Q)(h_j W_K)^T}{\sqrt{d}} + b_{\phi(v_i,v_j)} + c_{ij} $$
 
-
-This process ensures that edge features directly contribute to the attention score between any two nodes, allowing for a more nuanced and comprehensive utilization of edge information. The impact is significant, and it greatly improves the performance, as proven empirically in the Experiments section. 
+This ensures that edge features directly contribute to the attention score between any two nodes, allowing for a more nuanced and comprehensive utilization of edge information. The impact is significant, and it greatly improves the performance, as proven empirically in the Experiments section. 
 
 ---
 ### VNode
 
-The \[VNode\] (or a Virtual Node) is arguably one of the most important contributions from the work. It is an artificial node which is connected to <b>all</b> other nodes. The paper cites <a href="https://arxiv.org/abs/1704.01212">paper</a> as an empirical motivation, but a better intuition behind the concept is as a generalization of the \[CLS\] token widely used in NLP and Vision. 
+The \[VNode\] (or a Virtual Node) is arguably one of the most important contributions from the work. It is an artificial node which is connected to <b>all</b> other nodes. The authors cite this <a href="https://arxiv.org/abs/1704.01212">paper</a> as an empirical motivation, but a better intuition behind the concept is as a generalization of the \[CLS\] token widely used in NLP and Vision. 
 <!-- The sharp reader will notice that this has an important implication on $b$ and $\phi$, because the \[VNode\] is connected to every node, -->
 
 $$
