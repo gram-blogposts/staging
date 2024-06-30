@@ -188,7 +188,7 @@ This ensures that edge features directly contribute to the attention score betwe
 ---
 ### VNode
 
-The \[VNode\] (or a Virtual Node) is arguably one of the most important contributions from the work. It is an artificial node which is connected to <b>all</b> other nodes. The authors cite this <a href="https://arxiv.org/abs/1704.01212">paper</a> as an empirical motivation, but a better intuition behind the concept is as a generalization of the \[CLS\] token widely used in NLP and Vision. 
+The \[VNode\] (or a Virtual Node) is arguably one of the most important contributions from the work. It is an artificial node which is connected to <b>all</b> other nodes. The authors cite this paper<d-cite key="gilmer2017neuralmessagepassingquantum"></d-cite> as an empirical motivation, but a better intuition behind the concept is as a generalization of the \[CLS\] token widely used in NLP and Vision. 
 <!-- The sharp reader will notice that this has an important implication on $b$ and $\phi$, because the \[VNode\] is connected to every node, -->
 
 $$
