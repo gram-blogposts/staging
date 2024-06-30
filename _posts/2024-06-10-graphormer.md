@@ -232,6 +232,25 @@ This is can be implemented as follows:
 We again emphasize that the information-relay point of view is much more important to the model than the summary-token view, the design choice of one \[VNode\] per head reflects that.
 
 ---
+
+### Theoretical aspects on expressivity
+
+These are the three main facts from the paper,
+
+1. With appropriate weights and $$ \phi $$, GCN, GraphSAGE, GIN are all <b>special cases</b> of a Graphormer.
+2. Graphormer is better than architectures that are limited by the 1-WL test. (so <b>all</b> traditional GNNs!)
+3. With appropriate weights, <b>every node</b> representation in the output can be MEAN-READOUT.
+
+
+The [spatial-encoding](link_to_spatial_eqn) provides the model with important geometric information. Observe that with an appropriate $$b_{\phi(v_i, v_j)}$$ the model can <b>find (learn)</b> neighbours for any $$v_i$$ and thus easily implement <b>mean-statistics (GCN!)</b>. By knowing the degree (some form of [centrality-encoding](link_to_centrality_eqn)), mean-statistics can be transformed to sum statistics; it (indirectly) follows that different and complicated statistics can be learned by different heads, which leads to varied representations, and allow GraphSAGE, GIN or GCN to be modeled as a Graphormer.
+
+Fact 2 follows Fact 1, GIN being the most powerful traditional GNN, which can theoretically distinguish all graphs distinguishable by the 1-WL test. Now as it is just a special case of Graphormer, the latter can do the same (& more!).
+
+Nevertheless, what is more important is the power it lends to the model, this fact implies that Graphormer allows the flow of <i>Global</i> information within the network (in addition to Local). This truly sets the network apart from traditional GNNs, which can only aggregate local information up to a fixed depth.
+
+Importantly, traditional GNNs are <i>designed</i> to prevent this type of a flow as with their architecture this would lead to over smoothening, however, the clever design around $$[VNode]$$ prevents this from happening in Graphormer. This can be verified empirically, but intuitively the addition of a supernode along with Attention and the learnable $$b_{\phi(v_i, v_j)}$$ already facilitate this, the $$[VNode]$$ can relay global information and the attention mechanism can selectively choose from there. 
+
+---
 ### Experiments
 
 The researchers conducted comprehensive experiments to evaluate Graphormer's performance against state-of-the-art models like [GCN](https://arxiv.org/abs/1609.02907), [GIN](https://arxiv.org/abs/1810.00826), [DeeperGCN](https://arxiv.org/abs/2006.07739), and the Transformer-based [GT](https://arxiv.org/abs/2012.09699).
@@ -255,15 +274,15 @@ Notably, Graphormers did not encounter over-smoothing issues, with both training
 
 Further experiments for graph-level prediction tasks were performed on datasets from popular leaderboards like [OGBG](https://ogb.stanford.edu/docs/graphprop/#ogbg-mol) (MolPCBA, MolHIV) and [benchmarking-GNNs](https://paperswithcode.com/paper/benchmarking-graph-neural-networks) (ZINC) which also showed Graphormers consistently outperforming top-performing GNNs.
 
-By using the ensemble with [ExpC](https://arxiv.org/abs/2012.07219), Graphormer was able to reach a 0.1200 MAE and win the graph-level track in OGB Large-Scale Challenge.
+By using the ensemble with [ExpC](https://arxiv.org/abs/2012.07219), Graphormer was able to reach a 0.1200 MAE and win the graph-level track in the OGB Large-Scale Challenge.
 
 ### Comparison against State-of-the-Art Molecular Representation Models
 
 Let's first take a look at [GROVER](https://arxiv.org/abs/2007.02835), a transformer-based GNN boasting 100 million parameters and pre-trained on a massive dataset of 10 million unlabeled molecules.
 
-The authors further fine-tune GROVER on MolHIV and MolPCBA to achieve competitive performance along with supplying additional molecular features such as morgan fingerprints and other 2D features. Note that Random Forest model fitted on these features alone outperform that GNN model showing the huge boost in performance granted by the same.
+The authors further fine-tune GROVER on MolHIV and MolPCBA to achieve competitive performance along with supplying additional molecular features such as morgan fingerprints and other 2D features. Note that the Random Forest model fitted on these features alone outperforms the GNN model, showing the huge boost in performance granted by the same.
 
-However Graphormer manages to outperform it consistently on the benchmarks without even using the additional features (known to boost performance), which showcases it increases expressiveness of complex information.
+However, Graphormer manages to outperform it consistently on the benchmarks without even using the additional features (known to boost performance), which showcases it increases the expressiveness of complex information.
 
 Table 2: Comparison between Graphormer and GROVER on MolHIV
 
@@ -275,227 +294,8 @@ Table 2: Comparison between Graphormer and GROVER on MolHIV
 | Graphormer-FLAG | 47.0M | 80.51±0.53 |
 
 
-## Theoretical aspects on expressivity
 
-We first list down the three important facts from the paper and then discuss them in detail,
 
-1. With appropriate weights and $$ \phi $$, GCN, GraphSAGE, GIN are all <b>special cases</b> of a Graphormer.
-2. Graphormer is better than architectures that are limited by the 1-WL test. (so <b>all</b> traditional GNNs!)
-3. With appropriate weights, <b>every node</b> representation in the output can be MEAN-READOUT.
 
 
-The [spatial-encoding](link_to_spatial_eqn) provides the model with important geometric information . Observe that with an appropriate $$b_{\phi(v_i, v_j)}$$ the model can <b>find (learn)</b> neighbours for any $$v_i$$ and thus easily implement <b>mean-statistics (GCN!)</b>. By knowing the degree (some form of [centrality-encoding](link_to_centrality_eqn)), mean-statistics can be transformed to sum-statistics; it (indirectly) follows that, different and complicated statistics can be learned by different heads, which lead to varied representations, and allow GraphSAGE, GIN or GCN to be modelled as a Graphormer.
 
-Fact 2 follows from Fact 1, as GIN is anyways the most powerful traditional GNN, which can theoretically distinguish all graphs distinguishable by the 1-WL test, now as it is just a special case of Graphormer, the latter can do the same (& more!).
-
-
-Nevertheless, what is more important is the power it lends to the model, this fact implies that Graphormer allows the flow of <i>Global</i> information within the network (in addition to Local). This truly sets the network apart from traditional GNNs which can only aggregate local information upto a fixed radius (or depth).
-
-Importantly, traditional GNNs are <i>designed</i> to prevent this type of a flow as with their architecture this would lead to over smoothening, however, the clever design around $$[VNode]$$ prevents this from happening in Graphormer. This is verified empirically and proved ahead, but intuitively the addition of a supernode along with Attention and the learnable $$b_{\phi(v_i, v_j)}$$ already facilitate for this, the $$[VNode]$$ can relay global information and the attention mechanism can selectively choose from there. If this explanation is not enough a concrete proof of the fact follows,
-
-
-
-[link to facts 1 and 2]: #fact-1-and-2
-
-
-
-
-
-<!-- ## Interactive Plots
-
-You can add interative plots using plotly + iframes :framed_picture:
-
-<div class="l-page">
-  <iframe src="{{ '/assets/plotly/distill-template/demo.html' | relative_url }}" frameborder='0' scrolling='no' height="500px" width="100%" style="border: 1px dashed grey;"></iframe>
-</div>
-
-The plot must be generated separately and saved into an HTML file.
-To generate the plot that you see above, you can use the following code snippet:
-
-{% highlight python %}
-import pandas as pd
-import plotly.express as px
-df = pd.read_csv(
-'<https://raw.githubusercontent.com/plotly/datasets/master/earthquakes-23k.csv>'
-)
-fig = px.density_mapbox(
-df,
-lat='Latitude',
-lon='Longitude',
-z='Magnitude',
-radius=10,
-center=dict(lat=0, lon=180),
-zoom=0,
-mapbox_style="stamen-terrain",
-)
-fig.show()
-fig.write_html('assets/distill-template/plotly/demo.html')
-{% endhighlight %} -->
-
-
-
-<!-- ## Details boxes
-
-Details boxes are collapsible boxes which hide additional information from the user. They can be added with the `details` liquid tag:
-
-{% details Click here to know more %}
-Additional details, where math $$ 2x - 1 $$ and `code` is rendered correctly.
-{% enddetails %}
-
---- -->
-
-<!-- ## Layouts
-
-The main text column is referred to as the body.
-It is the assumed layout of any direct descendants of the `d-article` element.
-
-<div class="fake-img l-body">
-  <p>.l-body</p>
-</div>
-
-For images you want to display a little larger, try `.l-page`:
-
-<div class="fake-img l-page">
-  <p>.l-page</p>
-</div>
-
-All of these have an outset variant if you want to poke out from the body text a little bit.
-For instance:
-
-<div class="fake-img l-body-outset">
-  <p>.l-body-outset</p>
-</div>
-
-<div class="fake-img l-page-outset">
-  <p>.l-page-outset</p>
-</div>
-
-Occasionally you’ll want to use the full browser width.
-For this, use `.l-screen`.
-You can also inset the element a little from the edge of the browser by using the inset variant.
-
-<div class="fake-img l-screen">
-  <p>.l-screen</p>
-</div>
-<div class="fake-img l-screen-inset">
-  <p>.l-screen-inset</p>
-</div>
-
-The final layout is for marginalia, asides, and footnotes.
-It does not interrupt the normal flow of `.l-body` sized text except on mobile screen sizes.
-
-<div class="fake-img l-gutter">
-  <p>.l-gutter</p>
-</div>
-
---- -->
-
-
-
-
-<!-- ## Other Typography?
-
-Emphasis, aka italics, with *asterisks* (`*asterisks*`) or *underscores* (`_underscores_`).
-
-Strong emphasis, aka bold, with **asterisks** or **underscores**.
-
-Combined emphasis with **asterisks and *underscores***.
-
-Strikethrough uses two tildes. ~~Scratch this.~~
-
-1. First ordered list item
-2. Another item
-   ⋅⋅\* Unordered sub-list.
-3. Actual numbers don't matter, just that it's a number
-   ⋅⋅1. Ordered sub-list
-4. And another item.
-
-⋅⋅⋅You can have properly indented paragraphs within list items. Notice the blank line above, and the leading spaces (at least one, but we'll use three here to also align the raw Markdown).
-
-⋅⋅⋅To have a line break without a paragraph, you will need to use two trailing spaces.⋅⋅
-⋅⋅⋅Note that this line is separate, but within the same paragraph.⋅⋅
-⋅⋅⋅(This is contrary to the typical GFM line break behaviour, where trailing spaces are not required.)
-
-- Unordered list can use asterisks
-
-- Or minuses
-
-- Or pluses
-
-[I'm an inline-style link](https://www.google.com)
-
-[I'm an inline-style link with title](https://www.google.com "Google's Homepage")
-
-[I'm a reference-style link][Arbitrary case-insensitive reference text]
-
-[You can use numbers for reference-style link definitions][1]
-
-Or leave it empty and use the [link text itself].
-
-URLs and URLs in angle brackets will automatically get turned into links.
-<http://www.example.com> or <http://www.example.com> and sometimes
-example.com (but not on Github, for example).
-
-Some text to show that the reference links can follow later.
-
-[arbitrary case-insensitive reference text]: https://www.mozilla.org
-[1]: http://slashdot.org
-[link text itself]: http://www.reddit.com
-
-Here's our logo (hover to see the title text):
-
-Inline-style:
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
-
-Reference-style:
-![alt text][logo]
-
-[logo]: https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 2"
-
-Inline `code` has `back-ticks around` it.
-
-```javascript
-var s = "JavaScript syntax highlighting";
-alert(s);
-```
-
-```python
-s = "Python syntax highlighting"
-print s
-```
-
-```
-No language indicated, so no syntax highlighting.
-But let's throw in a <b>tag</b>.
-```
-
-Colons can be used to align columns.
-
-| Tables        |      Are      |  Cool |
-| ------------- | :-----------: | ----: |
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      |   centered    |   $12 |
-| zebra stripes |   are neat    |    $1 |
-
-There must be at least 3 dashes separating each header cell.
-The outer pipes (|) are optional, and you don't need to make the
-raw Markdown line up prettily. You can also use inline Markdown.
-
-| Markdown | Less      | Pretty     |
-| -------- | --------- | ---------- |
-| *Still*  | `renders` | **nicely** |
-| 1        | 2         | 3          |
-
-> Blockquotes are very handy in email to emulate reply text.
-> This line is part of the same quote.
-
-Quote break.
-
-> This is a very long line that will still be quoted properly when it wraps. Oh boy let's keep writing to make sure this is long enough to actually wrap for everyone. Oh, you can *put* **Markdown** into a blockquote.
-
-Here's a line for us to start with.
-
-This line is separated from the one above by two newlines, so it will be a *separate paragraph*.
-
-This line is also a separate paragraph, but...
-This line is only separated by a single newline, so it's a separate line in the *same paragraph*. -->
