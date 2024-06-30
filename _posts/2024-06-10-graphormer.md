@@ -110,7 +110,7 @@ In a sequence modeling task, Attention captures the semantic correlations betwee
 The goal of this encoding is to capture the most important nodes in the graph.
 Let's take an example.
 Say we want to compare airports and find which one is the largest.
-We need a common metric to compare them, so we take the sum of the total daily incoming and outgoing flights, giving us the busiest airports. This is what the algorithm is doing on a logical level to identify the 'busiest' nodes.
+We need a common metric to compare them, so we take the sum of the total daily incoming and outgoing flights, giving us the busiest airports. This is what the algorithm is doing logically to identify the 'busiest' nodes.
 Additionally, the learnable vectors allow the Graphormer to 'map' out the nodes. All this culminates in better performance for graph-based tasks such as molecule generation.
 
 To understand how this works, let's cover a few terms. 
@@ -123,14 +123,14 @@ Now we can understand the Centrality Encoding, which is given as:
 
 $$h_{i}^{(0)} = x_{i} + z^{-}_{deg^{-}(v_{i})} + z^{+}_{deg^{+}(v_{i})}$$
 
-lets analyse this term by term:
+Let's analyse this term by term:
 
 - $$h_{i}^{(0)}$$ - Representation ($$h$$) of vertice i ($$v_{i}$$) at the 0th layer (first input)
 - $$x_{i}$$ - Feature vector of vertice i ($$v_{i}$$)
 - $$z^{-}_{deg^{-}(v_{i})}$$ - Learnable embedding vector ($$z$$) of the indegree ($$deg^{-}$$) of vertice i ($$v_{i}$$)
 - $$z^{+}_{deg^{+}(v_{i})}$$ - Learnable embedding vector ($$z$$) of the outdegree ($$deg^{+}$$) of vertice i ($$v_{i}$$)
 
-This is an excerpt of the the code used to to compute the Centrality Encoding
+This is an excerpt of the code used to compute the Centrality Encoding
 
 ```py
 self.in_degree_encoder = nn.Embedding(num_in_degree, hidden_dim, padding_idx=0) 
@@ -151,11 +151,11 @@ node_feature = (node_feature + self.in_degree_encoder(in_degree) + self.out_degr
 
 
 There are several methods for encoding the position information of the tokens in a sequence.
-In a graph however, there is a problem. Graphs consist of nodes (analogous to tokens), connected with edges in a non-linear, multi-dimensional space. There’s no inherent notion of an “ordering” or a “sequence” in its structure, but as with positional information, it’ll be helpful if we inject some sort of structural information when we process the graph. 
+In a graph, however, there is a problem. Graphs consist of nodes (analogous to tokens) connected with edges in a non-linear, multi-dimensional space. There’s no inherent notion of an “ordering” or a “sequence” in its structure, but as with positional information, it’ll be helpful if we inject some sort of structural information when we process the graph. 
 
 <!-- A naive solution would be to learn the encodings themselves. Another would be to perform some operation on the graph structure, such as a random walk, or components from the feature matrix. The intuition is to perform an operation on the graph to extract some “structural” information.  -->
 
-The authors propose a novel encoding, called *Spatial Encoding.* The idea is a simple combination of learnable encodings and walk-based methods mentioned earlier: take as input a pair of nodes (analogous to tokens) and output a scalar value as a function of the shortest-path-distance (SPD) between the nodes. This scalar value is then added to the element corresponding to the operation between the two nodes in the Query-Key product matrix. 
+The authors propose a novel encoding called *Spatial Encoding.* The idea is a simple combination of learnable encodings and walk-based methods mentioned earlier: take as input a pair of nodes (analogous to tokens) and output a scalar value as a function of the shortest-path-distance (SPD) between the nodes. This scalar value is then added to the element corresponding to the operation between the two nodes in the Query-Key product matrix. 
 
 $$
 A_{ij} = \frac{(h_i W_Q)(h_j W_K)^T}{\sqrt{d}} + b_{\phi(v_i, v_j)}
@@ -283,71 +283,17 @@ We first list down the three important facts from the paper and then discuss the
 2. Graphormer is better than architectures that are limited by the 1-WL test. (so <b>all</b> traditional GNNs!)
 3. With appropriate weights, <b>every node</b> representation in the output can be MEAN-READOUT.
 
-### Fact 1 and 2
 
-The [spatial-encoding](link_to_spatial_eqn) provides the model with important geometric information . Observe that with an appropriate $$b_{\phi(v_i, v_j)}$$ the model can <b>find (learn)</b> neighbours for any $$v_i$$ and thus easily implement <b>mean-statistics (GCN!)</b>.By knowing the degree (some form of [centrality-encoding](link_to_centrality_eqn)), mean-statistics can be transformed to sum-statistics; it (indirectly) follows that, different and complicated statistics can be learned by different heads, which lead to varied representations, and allow GraphSAGE, GIN or GCN to be modelled as a Graphormer.
+The [spatial-encoding](link_to_spatial_eqn) provides the model with important geometric information . Observe that with an appropriate $$b_{\phi(v_i, v_j)}$$ the model can <b>find (learn)</b> neighbours for any $$v_i$$ and thus easily implement <b>mean-statistics (GCN!)</b>. By knowing the degree (some form of [centrality-encoding](link_to_centrality_eqn)), mean-statistics can be transformed to sum-statistics; it (indirectly) follows that, different and complicated statistics can be learned by different heads, which lead to varied representations, and allow GraphSAGE, GIN or GCN to be modelled as a Graphormer.
 
 Fact 2 follows from Fact 1, as GIN is anyways the most powerful traditional GNN, which can theoretically distinguish all graphs distinguishable by the 1-WL test, now as it is just a special case of Graphormer, the latter can do the same (& more!).
 
-The Proofs for Fact 1 are really easy to follow, but feel free to skip them.
-{% details Proof(s) for Fact 1 %}
-For each type of aggregation, we provide simple function and weight definitions that achieve it,
 
-- <b>Mean Aggregate</b> :
-  - Set $$ b_{\phi(v_i, v_j)} = 0 $$ when $$\phi(v_i, v_j) = 1$$ and $$-\infty$$ otherwise,
-  - Set $$ W_Q = 0, W_K = 0$$ and let $$ W_V = I$$ (Identity matrix), using these,
-  - $$ h^{(l)}_{v_i} = \sum_{v_j \in N(v_i)} softmax(A_{ij}) * (W_v * h^{(l-1)}_{v_j}) \implies h^{(l)}_{v_i} = \frac{1}{|N(v_i)|}*\sum_{v_j \in N(v_i)} h^{(l-1)}_{v_j} $$
-- <b>Sum Aggregate</b> :
-  - For this, we just need to get the mean aggregate and then multiply by $$ \|N(v_i)\| $$,
-  - Loosely, the degree can be extracted from a [centrality-encoding](link_to_centrality_eqn) by an attention head, and then the FFN can multiply this to the learned mean aggregate, the latter part is not so loose, because it is a direct consequence of the universal approximation theorem.
-- <b>Max Aggregate</b> :
-  - For this one we assume that if we have $$t$$ dimensions in our hidden state, we <i>also</i> have t heads.
-  - The proof is such that each Head will extract the maximum from neighbours, clearly, to only keep immediate neighbours around, we can use the same formulation for $$b$$ and $$\phi$$ as in the mean aggregate.
-  - Using $$W_K = e_t$$ (t-th unit vector), $$W_K = e_t$$ and $$W_Q = 0$$ (Identity matrix), we can get a pretty good approximation to the max aggregate. To get the full deal however, we need a <i>hard-max</i> instead of the <i>soft-max</i> being used; to accomplish this we finally consider the bias in the query layer (i.e., something like `nn.Linear(in_dim, out_dim, use_bias=True)`), set it to $$T \cdot I$$ with a high enough $$T$$ (temperature), this will make the soft-max behave like a hard-max.
-{% enddetails %}
-
-For Fact 2, we explain the example from the paper, along with explicitly providing the final WL representation. Again, feel free to skip this part.
-{% details Example for Fact 2 %}
-First we need to fix some notation for the WL test, briefly, it can be expressed as -
-
-$$ c^{(k+1)}(v) = HASH(c^{(k)}(v), \{c^{(k)}(u)\}_{u \in N(v)} )$$
-
-where $$c^{(k)}(v)$$ is the $$k^{th}$$ iteration representation (color for convinience) of node $$v$$ and importantly $$HASH$$ is an <i>injective</i> hash function. Additionally, all nodes with the same color have the same feature vector
-
-Given this, consider the following graphs -
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-    </div>
-    <div class="col-sm-6 mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/2024-06-10-graphormer/wl-test.gif" class="img-fluid rounded z-depth-1" %}
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-    </div>
-</div>
-
-The hashing process converges in one iteration itself, now the 1-WL test would count number of colors and that vector would act as the final graph representation, which for both of the graphs will be $$ [0, 0, 4, 2] $$ (i.e., $$ [count(a), count(b), count(x), count(y)] $$), even though they are different, the 1-WL test fails to distinguish them. There are several such cases and so traditional GNNs are fairly limited in their expressivity.
-
-However for the graphormer, Shortest Path Distances (SPD) directly affects attention weights (because the paper uses SPD as $$\phi(v_i, v_j)$$), and if we look at the SPD sets for the two types of nodes (red and blue) in both the graphs, (we have ordered according to the BFS traversal by top left red node, though any ordering would suffice)
-
-- Left graph -
-  - Red nodes - $$ \{ 0, 1, 1, 2, 2, 3 \} $$
-  - Blue nodes - $$ \{1, 0, 2, 1, 1, 2\} $$
-- Right graph -
-  - Red nodes - $$ \{0, 1, 1, 2, 3, 3\} $$
-  - Blue nodes - $$ \{1, 0, 1, 1, 2, 2\} $$
-
-What is important is not that red and blue nodes have a different SPD set, <u><i>but that these two types of nodes have different SPD sets across the two graphs</i></u>, this signal can help the model distinguish the two graphs and is the reason why Graphormer is better than 1-WL test limited architectures.
-{% enddetails %}
-
-### Fact 3
-
-The proof behind Fact 3 follows if you have checked the proof of [Fact1][link to facts 1 and 2]. Nevertheless, what is more important is the power it lends to the model, this fact implies that Graphormer allows the flow of <i>Global</i> information within the network (in addition to Local). This truly sets the network apart from traditional GNNs which can only aggregate local information upto a fixed radius (or depth).
+Nevertheless, what is more important is the power it lends to the model, this fact implies that Graphormer allows the flow of <i>Global</i> information within the network (in addition to Local). This truly sets the network apart from traditional GNNs which can only aggregate local information upto a fixed radius (or depth).
 
 Importantly, traditional GNNs are <i>designed</i> to prevent this type of a flow as with their architecture this would lead to over smoothening, however, the clever design around $$[VNode]$$ prevents this from happening in Graphormer. This is verified empirically and proved ahead, but intuitively the addition of a supernode along with Attention and the learnable $$b_{\phi(v_i, v_j)}$$ already facilitate for this, the $$[VNode]$$ can relay global information and the attention mechanism can selectively choose from there. If this explanation is not enough a concrete proof of the fact follows,
 
-{% details Proof for Fact 3 %}
-Setting $$W_Q = W_K = 0$$, and the bias terms in both to be $$T \cdot 1$$ (where T is temperature), as well as, setting $$W_V = I$$ (Identity matrix), with a large enough $$T$$ (much larger than the scale of $$b_{\phi(v_i, v_j)}$$, so that $$T^2 1 1^T$$ can dominate), we can get MEAN-READOUT on all nodes. Note that while this proof doesn't require $$[VNode]$$, it should be noted that, the $$[VNode]$$ is very important to establish a <b>balance</b> between this completely global flow and the local flow. As in a normal setting, with the $$T$$ not being too large, the only way for global information is through the $$[VNode]$$, as the $$b_{\phi(v_i, v_j)}$$ would most likely limit information from nodes that are very far.
-{% enddetails %}
+
 
 [link to facts 1 and 2]: #fact-1-and-2
 
