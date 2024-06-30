@@ -162,11 +162,11 @@ A_{ij} = \frac{(h_i W_Q)(h_j W_K)^T}{\sqrt{d}} + b_{\phi(v_i, v_j)}
 $$
 
 
-The above equation shows the modified computation of the Query-Key Product matrix. Notice that the additional term $$b_{\phi(v_i, v_j)}$$  is a learnable scalar value and acts like a bias term. Since this strucutral information is independent of which layer of our model is using it, we share this value across all layers. 
+The above equation shows the modified computation of the Query-Key Product matrix. Notice that the additional term $$b_{\phi(v_i, v_j)}$$  is a learnable scalar value and acts like a bias term. Since this structural information is independent of which layer of our model is using it, we share this value across all layers. 
 
 The benefits of using such an encoding are: 
-1. Our receptive field is effectively increased, as we are no longer limited to the information from our neighbours, as what happens in conventional message-passing networks.
-2. The model figures out the best way to adaptively attend to the structural information. For example - if the scalar valued function is a decreasing function for a given node, we know that the nodes closer to our node are more important than the farther ones.
+1. Our receptive field has effectively increased, as we are no longer limited to the information from our neighbours, as is what happens in conventional message-passing networks.
+2. The model determines the best way to adaptively attend to the structural information. For example - if the scalar valued function is a decreasing function for a given node, we know that the nodes closer to our node are more important than the farther ones.
 
 
 ---
@@ -179,7 +179,7 @@ Initially, node features $$(h_i, h_j)$$ and edge features $$(x_{e_n})$$ from the
 
 $$ c_{ij} = \frac{1}{N} \sum_{n=1}^{N} x_{e_n} (w^E_n)^T $$
 
-This is then incorporated as the edge features into the attention score between nodes via a bias-like term. However, you may question why are these encodings being added to the attention scores as such. When considering where to incorporate these features into the attention calculation, it’s essential that the chosen approach carries over to all layers. After incorporating the edge and spatial encodings, the value of $$A_{ij}$$ is now:
+This is then incorporated as the edge features into the attention score between nodes via a bias-like term. After incorporating the edge and spatial encodings, the value of $$A_{ij}$$ is now:
 
 $$ A_{ij} = \frac{(h_i W_Q)(h_j W_K)^T}{\sqrt{d}} + b_{\phi(v_i,v_j)} + c_{ij} $$
 
@@ -188,7 +188,7 @@ This ensures that edge features directly contribute to the attention score betwe
 ---
 ### VNode
 
-The \[VNode\] (or a Virtual Node) is arguably one of the most important contributions from the work. It is an artificial node which is connected to <b>all</b> other nodes. The authors cite this paper<d-cite key="gilmer2017neuralmessagepassingquantum"></d-cite> as an empirical motivation, but a better intuition behind the concept is as a generalization of the \[CLS\] token widely used in NLP and Vision. 
+The \[VNode\] (or a Virtual Node) is arguably one of the most important contributions from the work. It is an artificial node that is connected to <b>all</b> other nodes. The authors cite this paper<d-cite key="gilmer2017neuralmessagepassingquantum"></d-cite> as an empirical motivation, but a better intuition behind the concept is as a generalization of the \[CLS\] token widely used in NLP and Vision. 
 <!-- The sharp reader will notice that this has an important implication on $b$ and $\phi$, because the \[VNode\] is connected to every node, -->
 
 $$
@@ -209,7 +209,7 @@ But as this is not a <b>physical connection</b>, and to provide the model with t
 
 
 
-\[CLS\] tokens are often employed as "summary" tokens for text and provide a global context to the model; With graphs and text being different modalities, the \[VNode\] also helps in <b>relaying</b> global information to distant or non-connected clusters in a graph, this is significantly important to the model's expressivity, as this information might otherwise never propagate. (This is the intuition behind the upcoming proofs, and has been verified empirically). Infact the \[VNode\] becomes a learnable and dataset-specfic READOUT function!
+\[CLS\] tokens are often employed as "summary" tokens for text and provide a global context to the model. With graphs and text being different modalities, the \[VNode\] also helps in <b>relaying</b> global information to distant or non-connected clusters in a graph. This is significantly important to the model's expressivity, as this information might otherwise never propagate. (This is the intuition behind the upcoming proofs and has been verified empirically). In fact, the \[VNode\] becomes a learnable and dataset-specific READOUT function!
 
 <!-- As we pointed out, \[CLS\] tokens are used for varied downstream tasks, in a similar way, \[VNode\] can be (and is) used as the final representation of the Graph, i.e., this becomes a learnable and dataset-specfic READOUT function! -->
 
@@ -229,7 +229,7 @@ This is can be implemented as follows:
 ```
 <!-- </d-code> -->
 
-We again emphasize that the information-relay point of view is much more important to the model than the summary-token view, the design choice of one \[VNode\] per head reflects that.
+We again emphasize that the information-relay point of view is much more important to the model than the summary-token view. The design choice of one \[VNode\] per head reflects that.
 
 ---
 
@@ -241,14 +241,13 @@ These are the three main facts from the paper,
 2. Graphormer is better than architectures that are limited by the 1-WL test. (so <b>all</b> traditional GNNs!)
 3. With appropriate weights, <b>every node</b> representation in the output can be MEAN-READOUT.
 
+The [spatial-encoding](link_to_spatial_eqn) provides the model with important geometric information. Observe that with an appropriate $$b_{\phi(v_i, v_j)}$$ the model can <b>find (learn)</b> neighbours for any $$v_i$$ and thus easily implement <b>mean-statistics (GCN!)</b>. By knowing the degree (some form of [centrality-encoding](link_to_centrality_eqn)), mean-statistics can be transformed to sum-statistics; it (indirectly) follows that various statistics can be learned by different heads, which leads to varied representations, and allow GraphSAGE, GIN or GCN to be modeled as a Graphormer.
 
-The [spatial-encoding](link_to_spatial_eqn) provides the model with important geometric information. Observe that with an appropriate $$b_{\phi(v_i, v_j)}$$ the model can <b>find (learn)</b> neighbours for any $$v_i$$ and thus easily implement <b>mean-statistics (GCN!)</b>. By knowing the degree (some form of [centrality-encoding](link_to_centrality_eqn)), mean-statistics can be transformed to sum statistics; it (indirectly) follows that different and complicated statistics can be learned by different heads, which leads to varied representations, and allow GraphSAGE, GIN or GCN to be modeled as a Graphormer.
+Fact 2 follows from Fact 1, with GIN being the most powerful traditional GNN, which can theoretically identify all graphs distinguishable by the 1-WL test, as it is now a special case of Graphormer. The latter can do the same (& more!).
 
-Fact 2 follows Fact 1, GIN being the most powerful traditional GNN, which can theoretically distinguish all graphs distinguishable by the 1-WL test. Now, as it is just a special case of Graphormer, the latter can do the same (& more!).
+More importantly, Fact 3 implies that Graphormer allows the flow of <i>Global</i> (and Local) information within the network. This truly sets the network apart from traditional GNNs, which can only aggregate local information up to a fixed radius (or depth).
 
-Nevertheless, what is more important is the power it lends to the model, this fact implies that Graphormer allows the flow of <i>Global</i> information within the network (in addition to Local). This truly sets the network apart from traditional GNNs, which can only aggregate local information to a fixed depth.
-
-Importantly, traditional GNNs are <i>designed</i> to prevent this type of a flow as with their architecture this would lead to over smoothening, however, the clever design around $$[VNode]$$ prevents this from happening in Graphormer. This can be verified empirically, but intuitively, the addition of a supernode along with Attention and the learnable $$b_{\phi(v_i, v_j)}$$ already facilitate this, the $$[VNode]$$ can relay global information and the attention mechanism can selectively choose from there. 
+Traditional GNNs are <i>designed</i> to prevent this type of flow, as with their architecture, this would lead to over-smoothening. However, the clever design around $$[VNode]$$ prevents this from happening in Graphormer. The addition of a supernode along with Attention and the learnable $$b_{\phi(v_i, v_j)}$$ facilitate this, the $$[VNode]$$ can relay global information, and the attention mechanism can selectively choose from there.
 
 ---
 ### Experiments
@@ -282,8 +281,6 @@ Let's first take a look at GROVER<d-cite key="rong2020selfsupervisedgraphtransfo
 
 The authors further fine-tune GROVER on MolHIV and MolPCBA to achieve competitive performance along with supplying additional molecular features such as morgan fingerprints and other 2D features. Note that the Random Forest model fitted on these features alone outperforms the GNN model, showing the huge boost in performance granted by the same.
 
-However, Graphormer manages to outperform it consistently on the benchmarks without even using the additional features (known to boost performance), which showcases it increases the expressiveness of complex information.
-
 Table 2: Comparison between Graphormer and GROVER on MolHIV
 
 | method | # param. | AUC (%) |
@@ -293,9 +290,9 @@ Table 2: Comparison between Graphormer and GROVER on MolHIV
 | GROVER (LARGE)| 107.7M | 80.32±0.14 |
 | Graphormer-FLAG | 47.0M | 80.51±0.53 |
 
+However, as evident in Table 2, Graphormer manages to outperform it consistently on the benchmarks without even using the additional features (known to boost performance), which showcases it increases the expressiveness of complex information.
 
-
-
+In conclusion, the Graphormer presents a novel way of applying Transformers to graph representation using the three structural encodings. While it has demonstrated strong performance across various benchmark datasets, significant progress has been made since the original paper. Structure-Aware Transformer <d-cite key="chen2022structureawaretransformergraphrepresentation"></d-cite> improves on the initial Transformer by incorporating structural information by extracting subgraph representations. DeepGraph <d-cite key="zhao2023layersbeneficialgraphtransformers"></d-cite> explores the benefits of deeper graph transformers by enhancing global attention with substructure tokens and local attention. Despite the success of these architectures, some challenges still remain; for example, the quadratic complexity of the self-attention module limits its use on large graphs. Therefore, future development of efficient Graphormer is necessary.
 
 
 
