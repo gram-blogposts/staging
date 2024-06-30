@@ -274,11 +274,11 @@ Notably, Graphormers did not encounter over-smoothing issues, with both training
 
 Further experiments for graph-level prediction tasks were performed on datasets from popular leaderboards like [OGBG](https://ogb.stanford.edu/docs/graphprop/#ogbg-mol) (MolPCBA, MolHIV) and [benchmarking-GNNs](https://paperswithcode.com/paper/benchmarking-graph-neural-networks) (ZINC) which also showed Graphormers consistently outperforming top-performing GNNs.
 
-By using the ensemble with [ExpC](https://arxiv.org/abs/2012.07219), Graphormer was able to reach a 0.1200 MAE and win the graph-level track in the OGB Large-Scale Challenge.
+By using the ensemble with ExpC<d-cite key="yang2020breakingexpressivebottlenecksgraph"></d-cite>, Graphormer was able to reach a 0.1200 MAE and win the graph-level track in the OGB Large-Scale Challenge.
 
 ### Comparison against State-of-the-Art Molecular Representation Models
 
-Let's first take a look at [GROVER](https://arxiv.org/abs/2007.02835), a transformer-based GNN boasting 100 million parameters and pre-trained on a massive dataset of 10 million unlabeled molecules.
+Let's first take a look at GROVER<d-cite key="rong2020selfsupervisedgraphtransformerlargescale"></d-cite>, a transformer-based GNN boasting 100 million parameters and pre-trained on a massive dataset of 10 million unlabeled molecules.
 
 The authors further fine-tune GROVER on MolHIV and MolPCBA to achieve competitive performance along with supplying additional molecular features such as morgan fingerprints and other 2D features. Note that the Random Forest model fitted on these features alone outperforms the GNN model, showing the huge boost in performance granted by the same.
 
