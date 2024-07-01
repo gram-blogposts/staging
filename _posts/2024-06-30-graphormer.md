@@ -14,7 +14,7 @@ authors:
     affiliations:
       name: Anonymized
 
-bibliography: graphormer/2024-06-30-graphormer.bib
+bibliography: 2024-06-30-graphormer.bib
 
 toc:
   # - name: Introduction & Motivation
