@@ -1,7 +1,7 @@
 ---
 layout: distill
 title: Do Transformers Really Perform Bad for Graph Representation?
-description: A first-principles blog post to understanding the Graphormer.
+description: A first-principles blog post to understand the Graphormer.
 tags: graph representation learning
 giscus_comments: true
 date: 2024-06-30
