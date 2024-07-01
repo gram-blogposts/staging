@@ -2,7 +2,7 @@
 layout: distill
 title: Do Transformers Really Perform Bad for Graph Representation?
 description: A first-principles blog post to understanding the Graphormer.
-tags: distill formatting
+tags: graph representation learning
 giscus_comments: true
 date: 2024-06-30
 featured: true
@@ -14,7 +14,7 @@ authors:
     affiliations:
       name: Anonymized
 
-bibliography: distill-template/2018-12-22-distill.bib
+bibliography: graphormer/2024-06-30-graphormer.bib
 
 toc:
   # - name: Introduction & Motivation
@@ -36,7 +36,7 @@ toc:
         - name: Fact 1 and 2
         - name: Fact 3
   - name: Results
-  - name: Extra?
+
 
 # Below is an example of injecting additional post-specific styles.
 # If you use this post as a template, delete this _styles block.
@@ -93,7 +93,7 @@ This is where Graphormer and its various novelties come in. Graphormer introduce
 <!-- ![ [Source](https://sebastianraschka.com/blog/2023/self-attention-from-scratch.html)](Spatial%20Encoding%20d515dd50b6354ab19b8310fab3005464/Untitled.png) -->
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/2024-06-10-graphormer/Untitled.png" class="img-fluid rounded z-depth-1" %}
+        {% include figure.liquid loading="eager" path="assets/img/2024-06-30-graphormer/Untitled.png" class="img-fluid rounded z-depth-1" %}
     </div>
 </div>
 <div class="caption">
@@ -199,7 +199,7 @@ $$
     <div class="col-sm mt-3 mt-md-0"> <!--Dummy divs to take up space, need to do this because height, width tags don't work with the given image class-->
     </div>
     <div class="col-sm-6 mt-3 mt-md-0"> <!-- Note  this is a trick to make the image small keep it center but also not too small (using -6)-->
-        {% include figure.liquid loading="eager" path="assets/img/2024-06-10-graphormer/vnode3.png" class="img-fluid rounded z-depth-1" %}
+        {% include figure.liquid loading="eager" path="assets/img/2024-06-30-graphormer/vnode3.png" class="img-fluid rounded z-depth-1" %}
     </div>
     <div class="col-sm mt-3 mt-md-0">
     </div>
