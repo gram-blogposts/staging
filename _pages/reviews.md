@@ -17,3 +17,4 @@ Click on the following links to see them:
 * [Do Transformers Really Perform Bad for Graph Representation?]({% post_url 2024-06-30-graphormer %})
 * [Equivariant Diffusion for Molecule Generation in 3D using Consistency Models]({% post_url 2024-06-30-equivariant_diffusion %})
 * [Accelerating Equivariant Graph Neural Networks with JAX]({% post_url 2024-06-30-egnn-jax %})
+* [Applications of TopoX to Topological Deep Learning]({% post_url 2024-06-30-smpn %})
