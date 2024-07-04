@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-04T17:59:01+03:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-04T18:01:36+03:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
 </subtitle><entry><title type="html">Accelerating Equivariant Graph Neural Networks with JAX</title><link href="http://localhost:4000/blog/2024/egnn-jax/" rel="alternate" type="text/html" title="Accelerating Equivariant Graph Neural Networks with JAX" /><published>2024-06-30T00:00:00+03:00</published><updated>2024-06-30T00:00:00+03:00</updated><id>http://localhost:4000/blog/2024/egnn-jax</id><content type="html" xml:base="http://localhost:4000/blog/2024/egnn-jax/"><![CDATA[<h2 id="introduction">Introduction</h2>
 
 <p>This blogpost serves as a tutorial for the fast and scalable training of Equivariant Neural Networks, which are slower to train due to the handling of more complex data. We propose leveraging JAX’s capabilities to address these challenges. In this work, we analyze the benefits of utilizing JAX and provide a detailed breakdown of the steps needed to achieve a fully JIT-compatible framework. This approach not only enhances the performance of Neural Networks but also opens the door for future research in developing fully equivariant transformers using JAX.</p>
@@ -2951,29 +2951,31 @@ However, we consider it good style to mention author last names if you discuss s
 The number of the footnote will be automatically generated.<d-footnote>This will become a hoverable footnote.</d-footnote></p>
 
 <hr />
+<!-- 
+## Code Blocks
 
-<h2 id="code-blocks">Code Blocks</h2>
+Syntax highlighting is provided within `<d-code>` tags.
+An example of inline code snippets: `<d-code language="html">let x = 10;</d-code>`.
+For larger blocks of code, add a `block` attribute:
 
-<p>Syntax highlighting is provided within <code class="language-plaintext highlighter-rouge">&lt;d-code&gt;</code> tags.
-An example of inline code snippets: <code class="language-plaintext highlighter-rouge">&lt;d-code language="html"&gt;let x = 10;&lt;/d-code&gt;</code>.
-For larger blocks of code, add a <code class="language-plaintext highlighter-rouge">block</code> attribute:</p>
-
-<d-code block="" language="javascript">
+<d-code block language="javascript">
   var x = 25;
   function(x) {
     return x * x;
   }
 </d-code>
 
-<p><strong>Note:</strong> <code class="language-plaintext highlighter-rouge">&lt;d-code&gt;</code> blocks do not look good in the dark mode.
-You can always use the default code-highlight using the <code class="language-plaintext highlighter-rouge">highlight</code> liquid tag:</p>
+**Note:** `<d-code>` blocks do not look good in the dark mode.
+You can always use the default code-highlight using the `highlight` liquid tag:
+
 
 <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">x</span> <span class="o">=</span> <span class="mi">25</span><span class="p">;</span>
 <span class="kd">function</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span> <span class="p">{</span>
 <span class="k">return</span> <span class="nx">x</span> <span class="err">\</span><span class="o">*</span> <span class="nx">x</span><span class="p">;</span>
 <span class="p">}</span></code></pre></figure>
 
-<hr />
+
+--- -->
 
 <h2 id="interactive-plots">Interactive Plots</h2>
 

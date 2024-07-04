@@ -407,29 +407,31 @@ However, we consider it good style to mention author last names if you discuss s
 The number of the footnote will be automatically generated.<d-footnote>This will become a hoverable footnote.</d-footnote></p>
 
 <hr>
+<!-- 
+## Code Blocks
 
-<h2 id="code-blocks">Code Blocks</h2>
+Syntax highlighting is provided within `<d-code>` tags.
+An example of inline code snippets: `<d-code language="html">let x = 10;</d-code>`.
+For larger blocks of code, add a `block` attribute:
 
-<p>Syntax highlighting is provided within <code class="language-plaintext highlighter-rouge">&lt;d-code&gt;</code> tags.
-An example of inline code snippets: <code class="language-plaintext highlighter-rouge">&lt;d-code language="html"&gt;let x = 10;&lt;/d-code&gt;</code>.
-For larger blocks of code, add a <code class="language-plaintext highlighter-rouge">block</code> attribute:</p>
-
-<d-code block="" language="javascript">
+<d-code block language="javascript">
   var x = 25;
   function(x) {
     return x * x;
   }
 </d-code>
 
-<p><strong>Note:</strong> <code class="language-plaintext highlighter-rouge">&lt;d-code&gt;</code> blocks do not look good in the dark mode.
-You can always use the default code-highlight using the <code class="language-plaintext highlighter-rouge">highlight</code> liquid tag:</p>
+**Note:** `<d-code>` blocks do not look good in the dark mode.
+You can always use the default code-highlight using the `highlight` liquid tag:
+
 
 <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">x</span> <span class="o">=</span> <span class="mi">25</span><span class="p">;</span>
 <span class="kd">function</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span> <span class="p">{</span>
 <span class="k">return</span> <span class="nx">x</span> <span class="err">\</span><span class="o">*</span> <span class="nx">x</span><span class="p">;</span>
 <span class="p">}</span></code></pre></figure>
 
-<hr>
+
+--- -->
 
 <h2 id="interactive-plots">Interactive Plots</h2>
 
