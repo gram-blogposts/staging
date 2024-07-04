@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-04T17:53:59+03:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-04T17:59:01+03:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
 </subtitle><entry><title type="html">Accelerating Equivariant Graph Neural Networks with JAX</title><link href="http://localhost:4000/blog/2024/egnn-jax/" rel="alternate" type="text/html" title="Accelerating Equivariant Graph Neural Networks with JAX" /><published>2024-06-30T00:00:00+03:00</published><updated>2024-06-30T00:00:00+03:00</updated><id>http://localhost:4000/blog/2024/egnn-jax</id><content type="html" xml:base="http://localhost:4000/blog/2024/egnn-jax/"><![CDATA[<h2 id="introduction">Introduction</h2>
 
 <p>This blogpost serves as a tutorial for the fast and scalable training of Equivariant Neural Networks, which are slower to train due to the handling of more complex data. We propose leveraging JAX’s capabilities to address these challenges. In this work, we analyze the benefits of utilizing JAX and provide a detailed breakdown of the steps needed to achieve a fully JIT-compatible framework. This approach not only enhances the performance of Neural Networks but also opens the door for future research in developing fully equivariant transformers using JAX.</p>
@@ -3006,13 +3006,13 @@ To generate the plot that you see above, you can use the following code snippet:
 
 <hr />
 
-<h2 id="details-boxes">Details boxes</h2>
+<!-- ## Details boxes
 
-<p>Details boxes are collapsible boxes which hide additional information from the user. They can be added with the <code class="language-plaintext highlighter-rouge">details</code> liquid tag:</p>
+Details boxes are collapsible boxes which hide additional information from the user. They can be added with the `details` liquid tag:
 
 <details><summary>Click here to know more</summary>
 <p>Additional details, where math \(2x - 1\) and <code class="language-plaintext highlighter-rouge">code</code> is rendered correctly.</p>
-</details>
+</details> -->
 
 <hr />
 
