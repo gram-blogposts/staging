@@ -1,5 +1,431 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-04T15:02:20+03:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
-</subtitle><entry><title type="html">a distill-style blog post</title><link href="http://localhost:4000/blog/2021/distill/" rel="alternate" type="text/html" title="a distill-style blog post" /><published>2021-05-22T00:00:00+03:00</published><updated>2021-05-22T00:00:00+03:00</updated><id>http://localhost:4000/blog/2021/distill</id><content type="html" xml:base="http://localhost:4000/blog/2021/distill/"><![CDATA[<h2 id="equations">Equations</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-04T15:38:32+03:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+</subtitle><entry><title type="html">Do Transformers Really Perform Bad for Graph Representation?</title><link href="http://localhost:4000/blog/2024/graphormer/" rel="alternate" type="text/html" title="Do Transformers Really Perform Bad for Graph Representation?" /><published>2024-06-30T00:00:00+03:00</published><updated>2024-06-30T00:00:00+03:00</updated><id>http://localhost:4000/blog/2024/graphormer</id><content type="html" xml:base="http://localhost:4000/blog/2024/graphormer/"><![CDATA[<!-- abcd -->
+
+<h2 id="introduction">Introduction</h2>
+<p>The Transformer architecture has revolutionized sequence modelling. Its versatility is demonstrated by its application in various domains, from natural language processing to computer vision to even reinforcement learning. With its strong ability to learn rich representations across domains, it seems natural that the power of the transformer can be adapted to graphs.</p>
+
+<p>The main challenge with applying a transformer to graph data is that there is no obvious sequence-based representation of graphs. Graphs are commonly represented by adjacency matrices or lists, which lack inherent order and are thus unsuitable for transformers.</p>
+
+<p>The primary reason for finding a sequence-based representation of a graph is to combine the advantages of a transformer (such as its high scalability) with the ability of graphs to capture non-sequential and multidimensional relationships. Graph Neural Networks (GNNs) employ various constraints during training, such as enforcing valency limits when generating molecules. However, choosing such constraints may not be as straightforward for other problems. With Graphormer, we can apply these very constraints in a simpler manner, analogous to applying a causal mask in a transformer. This can also aid in discovering newer ways to apply constraints in GNNs by presenting existing concepts in an intuitive manner.</p>
+
+<p>Graphormer introduces Centrality Encoding to capture the node importance, Spatial Encoding to capture the structural relations, and Edge Encoding to capture the edge features. In addition to this, Graphormer makes other architectures easier to implement by making various existing architecture special cases of Graphormer, with the performance to boot.</p>
+
+<hr />
+
+<h2 id="preliminaries">Preliminaries</h2>
+
+<ul>
+  <li><strong>Graph Neural Networks (GNNs)</strong>: Consider a graph \(G = \{V, E\}\) where \(V = \{v_1, v_2, \cdots, v_n\}\) and \(n = |V|\) is the number of nodes. Each node \(v_i\) has a feature vector \(x_i\). Modern GNNs update node representations iteratively by aggregating information from neighbours. The representation of node \(v_i\) at layer \(l\) is \(h^{(l)}_i\), with \(h_i^{(0)} = x_i\). The aggregation and combination at layer \(l\) are defined as: 
+\(a_{i}^{(l)}=\text{AGGREGATE}^{(l)}\left(\left\{h_{j}^{(l-1)}: j \in \mathcal{N}(v_i)\right\}\right)\) 
+\(h_{i}^{(l)}=\text{COMBINE}^{(l)}\left(h_{i}^{(l-1)}, a_{i}^{(l)}\right)\) 
+where \(\mathcal{N}(v_i)\) is the set of first or higher-order neighbours of \(v_i\). Common aggregation functions include MEAN, MAX, and SUM. The COMBINE function fuses neighbor information into the node representation. For graph-level tasks, a READOUT function aggregates node features \(h_i^{(L)}\) from the final iteration into a graph representation \(h_G\):
+\(h_{G}=\operatorname{READOUT}\left(\left\{h_{i}^{(L)} \mid v_i \in G \right\}\right)\)
+READOUT can be a simple summation or a more complex pooling function.</li>
+</ul>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="-480.webp 480w,-800.webp 800w,-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+    <div class="col-sm-6 mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-graphormer/gnn-480.webp 480w,/assets/img/2024-06-30-graphormer/gnn-800.webp 800w,/assets/img/2024-06-30-graphormer/gnn-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-graphormer/gnn.gif" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="-480.webp 480w,-800.webp 800w,-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+</div>
+<div class="caption">
+    A message-passing neural network. Note how the node states flow from outer to inner layers, with pooling at each step to update states.<d-cite key="GoogleResearch"></d-cite>
+</div>
+
+<ul>
+  <li><strong>Transformer</strong>: The Transformer architecture comprises layers with two main components: a self-attention module and a position-wise feed-forward network (FFN). Let \(H = [h_1^\top, \cdots, h_n^\top]^\top\in ℝ^{n\times d}\) be the input to the self-attention module, where \(d\) is the hidden dimension and \(h_i\in ℝ^{1\times d}\) is the hidden representation at position \(i\). The input \(H\) is projected using matrices \(W_Q\inℝ^{d\times d_K}, W_K\inℝ^{d\times d_K}\), and \(W_V\inℝ^{d\times d_V}\) to obtain representations \(Q, K, V\). Self-attention is computed as:
+\(Q = HW_Q,\ K = HW_K,\ V = HW_V,\ A = \frac{QK^\top}{\sqrt{d_K}},\ Attn(H) = \text{softmax}(A)V\)
+where \(A\) captures the similarity between queries and keys. This self-attention mechanism allows the model to understand relevant information in the sequence comprehensively.</li>
+</ul>
+
+<!-- For simplicity of illustration, we consider the single-head self-attention and assume $$d_K = d_V = d$$. The extension to the multi-head attention is standard and straightforward, and we omit bias terms for simplicity. xxxx One of the main properties of the Transformer that makes it so effective in processing sequences is its ability to model long-range dependencies and contextual information with its receptive field. Specifically, each token in the input sequence can interact with (or pay “attention” to) every other token in the sequence when transforming its representation xxxx. -->
+
+<!-- ![ [Source](https://sebastianraschka.com/blog/2023/self-attention-from-scratch.html)](Spatial%20Encoding%20d515dd50b6354ab19b8310fab3005464/Untitled.png) -->
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="-480.webp 480w,-800.webp 800w,-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+    <div class="col-sm-6 mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-graphormer/head-view-480.webp 480w,/assets/img/2024-06-30-graphormer/head-view-800.webp 800w,/assets/img/2024-06-30-graphormer/head-view-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-graphormer/head-view.gif" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="-480.webp 480w,-800.webp 800w,-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+</div>
+<div class="caption">
+    An illustration of the attention mechanism. Notice how each word(or token) can attend to different parts of the sequence, forward or backward.<d-cite key="Vig2024"></d-cite>.
+</div>
+
+<!-- An illustration of attention mechanism at play for a translation task. Notice how each word(or token) can attend to different parts of the sequence, forward or backward. [Source](https://sebastianraschka.com/blog/2023/self-attention-from-scratch.html) -->
+
+<hr />
+<h2 id="graphormer">Graphormer</h2>
+<h3 id="centrality-encoding">Centrality Encoding</h3>
+
+<p>In a sequence modelling task, Attention captures the semantic correlations between the nodes (tokens).
+The goal of this encoding is to capture the most important nodes in the graph.
+Let’s take an example.
+Say we want to compare airports and find which one is the largest.
+We need a common metric to compare them, so we take the sum of the total daily incoming and outgoing flights, giving us the busiest airports. This is what the algorithm is doing logically to identify the ‘busiest’ nodes.
+Additionally, the learnable vectors allow the Graphormer to ‘map’ out the nodes. All this culminates in better performance for graph-based tasks such as molecule generation.</p>
+
+<p>This is the Centrality Encoding equation, given as:</p>
+
+\[h_{i}^{(0)} = x_{i} + z^{-}_{deg^{-}(v_{i})} + z^{+}_{deg^{+}(v_{i})}\]
+
+<p>Let’s analyse this term by term:</p>
+
+<ul>
+  <li>\(h_{i}^{(0)}\) - Representation (\(h\)) of vertice i (\(v_{i}\)) at the 0th layer (first input)</li>
+  <li>\(x_{i}\) - Feature vector of vertice i (\(v_{i}\))</li>
+  <li>\(z^{-}_{deg^{-}(v_{i})}\) - Learnable embedding vector (\(z\)) of the indegree (\(deg^{-}\)) of vertice i (\(v_{i}\))</li>
+  <li>\(z^{+}_{deg^{+}(v_{i})}\) - Learnable embedding vector (\(z\)) of the outdegree (\(deg^{+}\)) of vertice i (\(v_{i}\))</li>
+</ul>
+
+<p>This is an excerpt of the code used to compute the Centrality Encoding</p>
+
+<div class="language-py highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">self</span><span class="p">.</span><span class="n">in_degree_encoder</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Embedding</span><span class="p">(</span><span class="n">num_in_degree</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">padding_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> 
+<span class="n">self</span><span class="p">.</span><span class="n">out_degree_encoder</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Embedding</span><span class="p">(</span><span class="n">num_out_degree</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">padding_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="c1"># Intial node feature computation.
+</span><span class="n">node_feature</span> <span class="o">=</span> <span class="p">(</span><span class="n">node_feature</span> <span class="o">+</span> <span class="n">self</span><span class="p">.</span><span class="nf">in_degree_encoder</span><span class="p">(</span><span class="n">in_degree</span><span class="p">)</span> <span class="o">+</span> <span class="n">self</span><span class="p">.</span><span class="nf">out_degree_encoder</span><span class="p">(</span><span class="n">out_degree</span><span class="p">))</span>
+</code></pre></div></div>
+
+<!-- num_in_degree is the indegree and hidden_dim is the size of the embedding vector - the Embedding function call converts this number (indegree) to a learnable vector of size hidden_dim, which is then added to the node_feature. A similar procedure is done with num_out_degree, resulting in the implementation of Equation 5. -->
+
+<!-- <put simple explanation first then equations and code> - talk about graph based example -->
+
+<hr />
+
+<h3 id="spatial-encoding">Spatial Encoding</h3>
+
+<p>There are several methods for encoding the position information of the tokens in a sequence.
+In a graph, however, there is a problem. Graphs consist of nodes (analogous to tokens) connected with edges in a non-linear, multi-dimensional space. There’s no inherent notion of an “ordering” or a “sequence” in its structure, but as with positional information, it’ll be helpful if we inject some sort of structural information when we process the graph.</p>
+
+<!-- A naive solution would be to learn the encodings themselves. Another would be to perform some operation on the graph structure, such as a random walk, or components from the feature matrix. The intuition is to perform an operation on the graph to extract some “structural” information.  -->
+
+<p>The authors propose a novel encoding called <em>Spatial Encoding</em>. Take a pair of nodes (analogous to tokens) as input and output a scalar value as a function of the shortest path distance (SPD) between the nodes. This scalar value is then added to the element corresponding to the operation between the two nodes in the Query-Key product matrix.</p>
+
+\[A_{ij} = \frac{(h_i W_Q)(h_j W_K)^T}{\sqrt{d}} + b_{\phi(v_i, v_j)}\]
+
+<p>The above equation shows the modified computation of the Query-Key Product matrix. Notice that the additional term \(b_{\phi(v_i, v_j)}\)  is a learnable scalar value and acts like a bias term. Since this structural information is independent of which layer of our model is using it, we share this value across all layers.</p>
+
+<p>The benefits of using such an encoding are:</p>
+<ol>
+  <li>Our receptive field has effectively increased, as we are no longer limited to the information from our neighbours, as is what happens in conventional message-passing networks.</li>
+  <li>The model determines the best way to adaptively attend to the structural information. For example, if the scalar valued function is a decreasing function for a given node, we know that the nodes closer to our node are more important than the ones farther away.</li>
+</ol>
+
+<hr />
+
+<h3 id="edge-encoding">Edge Encoding</h3>
+
+<p>Graphormer’s edge encoding method significantly enhances the way the model incorporates structural features from graph edges into its attention mechanism. The prior approaches either add edge features to node features or use them during aggregation, propagating the edge information only to associated nodes. Graphormer’s approach ensures that edges play a vital role in the overall node correlation.</p>
+
+<p>Initially, node features \((h_i, h_j)\) and edge features \((x_{e_n})\) from the shortest path between nodes are processed. For each pair of nodes \((v_i, v_j)\), the edge features on the shortest path \(SP_{ij}\) are averaged after being weighted by learnable embeddings \((w^E_n)\), this results in the edge encoding \(c_{ij}\):</p>
+
+\[c_{ij} = \frac{1}{N} \sum_{n=1}^{N} x_{e_n} (w^E_n)^T\]
+
+<p>This is then incorporated as the edge features into the attention score between nodes via a bias-like term. After incorporating the edge and spatial encodings, the value of \(A_{ij}\) is now:</p>
+
+\[A_{ij} = \frac{(h_i W_Q)(h_j W_K)^T}{\sqrt{d}} + b_{\phi(v_i,v_j)} + c_{ij}\]
+
+<p>This ensures that edge features directly contribute to the attention score between any two nodes, allowing for a more nuanced and comprehensive utilization of edge information. The impact is significant, and it greatly improves the performance, as proven empirically in the Experiments section.</p>
+
+<hr />
+<h3 id="vnode">VNode</h3>
+
+<p>The \([VNode]\) (or a Virtual Node) is arguably one of the most important contributions from the work. It is an artificial node that is connected to <b>all</b> other nodes. The authors cite this paper<d-cite key="gilmer2017neuralmessagepassingquantum"></d-cite> as an empirical motivation, but a better intuition behind the concept is as a generalization of the [CLS] token widely used in NLP and Vision. 
+<!-- The sharp reader will notice that this has an important implication on $b$ and $\phi$, because the $$[VNode]$$ is connected to every node, --></p>
+
+\[\phi([VNode], v) = 1, \forall v \in G\]
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0"> <!--Dummy divs to take up space, need to do this because height, width tags don't work with the given image class-->
+    </div>
+    <div class="col-sm-6 mt-3 mt-md-0"> <!-- Note  this is a trick to make the image small keep it center but also not too small (using -6)-->
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-graphormer/vnode3-480.webp 480w,/assets/img/2024-06-30-graphormer/vnode3-800.webp 800w,/assets/img/2024-06-30-graphormer/vnode3-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-graphormer/vnode3.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+    </div>
+</div>
+
+<p>Since this is not a <b>physical connection</b>, \(b_{\phi([VNode], v)}\) is set to be a <b>distinct</b> learnable vector (for all \(v\)) to provide the model with this important geometric information.</p>
+
+<p>[CLS] tokens are often employed as “summary” tokens for text and provide a global context to the model. With graphs and text being different modalities, the \([VNode]\) also helps in <b>relaying</b> global information to distant or non-connected clusters in a graph. This is significantly important to the model’s expressivity, as this information might otherwise never propagate. In fact, the \([VNode]\) becomes a learnable and dataset-specific READOUT function.</p>
+
+<!-- As we pointed out, \[CLS\] tokens are used for varied downstream tasks, in a similar way, $$[VNode]$$ can be (and is) used as the final representation of the Graph, i.e., this becomes a learnable and dataset-specfic READOUT function! -->
+
+<p>This can be implemented as follows:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="c1"># Initialize the VNode
+</span>    <span class="n">self</span><span class="p">.</span><span class="n">v_node</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Embedding</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">)</span> <span class="c1"># one per head (different from CLS)
+</span>    <span class="bp">...</span>
+    <span class="c1"># During forward pass (suppose VNode is the first node)
+</span>    <span class="bp">...</span>
+    <span class="n">headed_emb</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">v_node</span><span class="p">.</span><span class="n">weight</span><span class="p">.</span><span class="nf">view</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">self</span><span class="p">.</span><span class="n">num_heads</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">graph_attn</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">graph_attn</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">headed_emb</span>
+        <span class="c1">#(n_graph, n_heads, n_nodes + 1, n_nodes + 1)
+</span>    <span class="n">graph_attn</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">graph_attn</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">headed_emb</span>
+    <span class="bp">...</span>
+</code></pre></div></div>
+
+<p>Again, we emphasise that the information-relay point of view is much more important to the model than the summary-token view. The design choice of one \([VNode]\) per head reflects that.</p>
+
+<hr />
+
+<h2 id="theoretical-aspects-of-expressivity">Theoretical aspects of expressivity</h2>
+
+<p>These are the three main facts from the paper,</p>
+
+<ol>
+  <li>With appropriate weights and \(\phi\), GCN<d-cite key="kipf2017semisupervisedclassificationgraphconvolutional"></d-cite>, GraphSAGE<d-cite key="hamilton2018inductiverepresentationlearninglarge"></d-cite>, and GIN<d-cite key="xu2019powerfulgraphneuralnetworks"></d-cite> are all <b>special cases</b> of a Graphormer.</li>
+  <li>Graphormer is better than architectures that are limited by the 1-WL test. (so <b>all</b> traditional GNNs!)</li>
+  <li>With appropriate weights, <b>every node</b> representation in the output can be MEAN-READOUT.</li>
+</ol>
+
+<p>The <a href="#spatial-encoding">spatial encoding</a> provides the model with important geometric information. Observe that with an appropriate \(b_{\phi(v_i, v_j)}\), the model can <b>find (learn)</b> neighbours for any \(v_i\) and thus easily implement <b>mean-statistics (GCN!)</b>. By knowing the degree (some form of <a href="#centrality-encoding">centrality encoding</a>), mean-statistics can be transformed into sum-statistics; it (indirectly) follows that various statistics can be learned by different heads, which leads to varied representations and allows GraphSAGE, GIN or GCN to be modeled as a Graphormer.</p>
+
+<p>Fact 2 follows from Fact 1, with GIN being the most powerful traditional GNN, which can theoretically identify all graphs distinguishable by the 1-WL test, as it is now a special case of Graphormer. The latter can do the same (&amp; more!).</p>
+
+<p>More importantly, Fact 3 implies that Graphormer allows the flow of <i>Global</i> (and Local) information within the network. This truly sets the network apart from traditional GNNs, which can only aggregate local information up to a fixed radius (or depth).</p>
+
+<p>Traditional GNNs are <i>designed</i> to prevent this type of flow, as with their architecture, this would lead to over-smoothening. However, the clever design around \([VNode]\) prevents this from happening in Graphormer. The addition of a supernode along with Attention and the learnable \(b_{\phi(v_i, v_j)}\) facilitate this, the \([VNode]\) can relay global information, and the attention mechanism can selectively choose from there.</p>
+
+<hr />
+<h2 id="experiments">Experiments</h2>
+
+<p>The researchers conducted comprehensive experiments to evaluate Graphormer’s performance against state-of-the-art models like GCN<d-cite key="kipf2017semisupervisedclassificationgraphconvolutional"></d-cite>, GIN<d-cite key="xu2019powerfulgraphneuralnetworks"></d-cite>, DeeperGCN<d-cite key="li2020deepergcnneedtraindeeper"></d-cite>, and the Transformer-based GT<d-cite key="dwivedi2021generalizationtransformernetworksgraphs"></d-cite>.</p>
+
+<p>Two variants of Graphormer, <em>Graphormer</em> (L=12, d=768) and a smaller <em>GraphormerSMALL</em> (L=6, d=512), were evaluated on the <a href="https://ogb.stanford.edu/docs/lsc/">OGB-LSC</a> quantum chemistry regression challenge (PCQM4M-LSC), one of the largest graph-level prediction dataset with over 3.8 million graphs.</p>
+
+<p>The results, as shown in Table 1, demonstrate Graphormer’s significant performance improvements over previous top-performing models such as GIN-VN, DeeperGCN-VN, and GT.</p>
+
+<p>Table 1: Results on PCQM4M-LSC</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Model</th>
+      <th>Parameters</th>
+      <th>Train MAE</th>
+      <th>Validate MAE</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>GIN-VN</td>
+      <td>6.7M</td>
+      <td>0.1150</td>
+      <td>0.1395</td>
+    </tr>
+    <tr>
+      <td>DeeperGCN-VN</td>
+      <td>25.5M</td>
+      <td>0.1059</td>
+      <td>0.1398</td>
+    </tr>
+    <tr>
+      <td>GT</td>
+      <td>0.6M</td>
+      <td>0.0944</td>
+      <td>0.1400</td>
+    </tr>
+    <tr>
+      <td>GT-Wide</td>
+      <td>83.2M</td>
+      <td>0.0955</td>
+      <td>0.1408</td>
+    </tr>
+    <tr>
+      <td>GraphormerSMALL</td>
+      <td>12.5M</td>
+      <td>0.0778</td>
+      <td>0.1264</td>
+    </tr>
+    <tr>
+      <td>Graphormer</td>
+      <td>47.1M</td>
+      <td>0.0582</td>
+      <td>0.1234</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Notably, Graphormer did not encounter over-smoothing issues, with both training and validation errors continuing to decrease as model depth and width increased, thereby going beyond the <a href="https://web.stanford.edu/class/cs224w/slides/06-theory.pdf#page=46">1-WL test</a>. Additionally, Graph Transformer (GT) showed no performance gain despite a significant increase in parameters from GT to GT-Wide, highlighting Graphormer’s scaling capabilities.</p>
+
+<p>Further experiments for graph-level prediction tasks were performed on datasets from popular leaderboards like <a href="https://ogb.stanford.edu/docs/graphprop/#ogbg-mol">OGBG</a> (MolPCBA, MolHIV) and <a href="https://paperswithcode.com/paper/benchmarking-graph-neural-networks">benchmarking-GNNs</a> (ZINC), which also showed Graphormer consistently outperforming top-performing GNNs.</p>
+
+<p>By using the ensemble with ExpC<d-cite key="yang2020breakingexpressivebottlenecksgraph"></d-cite>, Graphormer was able to reach a 0.1200 MAE and win the graph-level track in the OGB Large-Scale Challenge.</p>
+
+<h3 id="comparison-against-state-of-the-art-molecular-representation-models">Comparison against State-of-the-Art Molecular Representation Models</h3>
+
+<p>Let’s first take a look at GROVER<d-cite key="rong2020selfsupervisedgraphtransformerlargescale"></d-cite>, a transformer-based GNN boasting 100 million parameters and pre-trained on a massive dataset of 10 million unlabeled molecules.</p>
+
+<p>The authors further fine-tune GROVER on MolHIV and MolPCBA to achieve competitive performance along with supplying additional molecular features such as morgan fingerprints and other 2D features. Note that the Random Forest model fitted on these features alone outperforms the GNN model, showing the huge boost in performance granted by the same.</p>
+
+<p>Table 2: Comparison between Graphormer and GROVER on MolHIV</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Method</th>
+      <th># param.</th>
+      <th>AUC (%)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Morgan Finger Prints + Random Forest</td>
+      <td>230K</td>
+      <td>80.60±0.10</td>
+    </tr>
+    <tr>
+      <td>GROVER</td>
+      <td>48.8M</td>
+      <td>79.33±0.09</td>
+    </tr>
+    <tr>
+      <td>GROVER (LARGE)</td>
+      <td>107.7M</td>
+      <td>80.32±0.14</td>
+    </tr>
+    <tr>
+      <td>Graphormer-FLAG</td>
+      <td>47.0M</td>
+      <td>80.51±0.53</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>However, as evident in Table 2, Graphormer manages to outperform it consistently on the benchmarks without even using the additional features (known to boost performance), which showcases it increases the expressiveness of complex information.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Graphormer presents a novel way of applying Transformers to graph representation using the three structural encodings. While it has demonstrated strong performance across various benchmark datasets, significant progress has been made since the original paper. Structure-Aware Transformer <d-cite key="chen2022structureawaretransformergraphrepresentation"></d-cite> improves on the initial Transformer by incorporating structural information by extracting subgraph representations. DeepGraph <d-cite key="zhao2023layersbeneficialgraphtransformers"></d-cite> explores the benefits of deeper graph transformers by enhancing global attention with substructure tokens and local attention. Despite the success of these architectures, some challenges still remain; for example, the quadratic complexity of the self-attention module limits its use on large graphs. Therefore, the future development of efficient sequence-based graph-processing networks and the imposing of such constraints for geometric learning are open research areas.</p>]]></content><author><name>Anonymized</name></author><category term="graph" /><category term="representation" /><category term="learning" /><summary type="html"><![CDATA[A first-principles blog post to understand the Graphormer.]]></summary></entry><entry><title type="html">a distill-style blog post</title><link href="http://localhost:4000/blog/2021/distill/" rel="alternate" type="text/html" title="a distill-style blog post" /><published>2021-05-22T00:00:00+03:00</published><updated>2021-05-22T00:00:00+03:00</updated><id>http://localhost:4000/blog/2021/distill</id><content type="html" xml:base="http://localhost:4000/blog/2021/distill/"><![CDATA[<h2 id="equations">Equations</h2>
 
 <p>This theme supports rendering beautiful math in inline and display modes using <a href="https://www.mathjax.org/">MathJax 3</a> engine.
 You just need to surround your math expression with <code class="language-plaintext highlighter-rouge">$$</code>, like <code class="language-plaintext highlighter-rouge">$$ E = mc^2 $$</code>.
