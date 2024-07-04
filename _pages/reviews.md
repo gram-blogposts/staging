@@ -15,3 +15,4 @@ Click on the following links to see them:
 
 * [Distill Template]({% post_url 2018-12-22-distill %})
 * [Do Transformers Really Perform Bad for Graph Representation?]({% post_url 2024-06-30-graphormer %})
+* [Equivariant Diffusion for Molecule Generation in 3D using Consistency Models]({% post_url 2024-06-30-equivariant_diffusion %})
