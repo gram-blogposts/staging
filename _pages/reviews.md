@@ -19,3 +19,4 @@ Click on the following links to see them:
 * [Accelerating Equivariant Graph Neural Networks with JAX]({% post_url 2024-06-30-egnn-jax %})
 * [Applications of TopoX to Topological Deep Learning]({% post_url 2024-06-30-smpn %})
 * [Learning Embedding Spaces with Metrics via Contrastive Learning]({% post_url 2024-06-13-contrast-learning %})
+* [Cancer Immunotherapy Design with Geometric Deep Learning]({% post_url 2024-06-30-Cancer-Immunotherapy-with-AI %})

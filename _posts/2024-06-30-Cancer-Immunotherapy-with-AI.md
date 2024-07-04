@@ -1,3 +1,21 @@
+---
+layout: distill
+title: Cancer Immunotherapy Design with Geometric Deep Learning
+description: Cancer Immunotherapy Design with Geometric Deep Learning
+tags: distill formatting
+giscus_comments: false
+date: 2024-06-13
+featured: true
+
+authors:
+  - name: Anonymous
+    url: "https://Anonymous"
+    affiliations:
+      name: Anonymous
+
+bibliography: 2024-06-30-Cancer-Immunotherapy-with-AI.bib
+---
+
 # Cancer Immunotherapy Design with Geometric Deep Learning
 
 Cancer remains one of the most formidable challenges in medicine, but recent advancements in immunotherapy and artificial intelligence (AI) are opening new frontiers in treatment. This blog post explores the intersection of cancer immunotherapy and AI.
