@@ -151,18 +151,52 @@ Whenever both $\rho_{in}$ and $\rho_{out}$ can be decomposed into smaller buildi
 
 The desirability of equivariance in a network depends on the amount of equivariance possessed by the data of interest. To this end, *relaxed* G-CNN is built on top of a regular G-CNN using a modified (relaxed) kernel consisting of a linear combination of standard G-CNN kernels. Consider $G := \mathbb{Z}^n \rtimes H$. Then, *relaxed* G-equivariant group convolution is defined as:
 
+<!---
 $$
-(\psi *^R_{G} f)(g) = \sum_{h \in G}\psi(g,h)f(h) = \sum_{h \in G}\sum_{l=1}^L w_l(h) \psi_l(g^{-1}h)f(h)
+(\psi \tilde{*}_{G} f)(g) = \sum_{h \in G}\psi(g,h)f(h) = \sum_{h \in G}\sum_{l=1}^L w_l(h) \psi_l(g^{-1}h)f(h)
 $$
 
-$G$-equivariance of the group convolution arises from kernel $\psi$'s dependence on the composite variable $g^{-1}h$, rather than on both variables $g$ and $h$ separately. This property is broken in relaxed kernels, leading to a loss of equivariance.
+$$
+(\psi \tilde{*}_{G} f)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h') \psi(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')
+$$
+-->
+
+$$
+(\psi \tilde{*}_{G} f)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h') \sum_{l=1}^L w_l(h) \psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')
+$$
+
+or equivalently as a linear combination of regular group convolutions with different kernels:
+
+$$
+\begin{aligned}
+(\psi \tilde{*}_{G} f)(\mathbf{x}, h) &= \sum_{l=1}^L w_l(h) \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h')  \psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')\\
+ &= \sum_{l=1}^L w_l(h) [(\psi_l *_{G} f)(\mathbf{x}, h)]
+\end{aligned}
+$$
+
+This second formulation makes for a more interpretable visualization, as one can see in the following figure. There, one can observe how a network might learn to downweight the feature maps corresponding to 180 degree rotations, thus breaking rotational equivariance and allowing for different processing of images picturing 6s and 9s. 
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" path="assets/img/2024-06-30-relaxed-equivariance/rgconv.png" class="img-fluid rounded z-depth-1"%}
+    </div>
+</div>
+<div class="caption">
+A visual example of a relaxed lifting convolution. 
+</div>
+
+
+<!---
+ $G$-equivariance of the group convolution arises from kernel $\psi$'s dependence on the composite variable $g^{-1}h$, rather than on both variables $g$ and $h$ separately. This property is broken in relaxed kernels, leading to a loss of equivariance.
 
 Therefore, using relaxed group convolutions allows the network to relax strict symmetry constraints, offering greater flexibility at the cost of reduced equivariance.
+-->
 
 #### Relaxed steerable G-CNN
 Relaxed steerable G-CNN modified steerable G-CNN in a similar manner. Again, let the kernel in convolution be a linear combination of other kernels, such that the weights used depend on the variable of integration, leading to loss of equivariance.
 
-$$(\psi *_{\mathbb{Z}^2}^R f) (x) = \sum_{y \in \mathbb{Z}^2} \sum_{l=1}^L (w_l(y) ⊙ \psi_l(y))f(x+y)$$
+$$(\psi \tilde{*}_{\mathbb{Z}^2} f) (x) = \sum_{y \in \mathbb{Z}^2} \sum_{l=1}^L (w_l(y) ⊙ \psi_l(y))f(x+y)$$
+
 
 [Wang et al., (2022)](#References) introduces a regularization term to impose equivariance on both relaxed models mentioned above. However, we do not use this regularization in our experiments.
 
