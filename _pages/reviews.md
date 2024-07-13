@@ -20,3 +20,4 @@ Click on the following links to see them:
 * [Learning Embedding Spaces with Metrics via Contrastive Learning]({% post_url 2024-06-13-contrast-learning %})
 * [Cancer Immunotherapy Design with Geometric Deep Learning]({% post_url 2024-06-30-Cancer-Immunotherapy-with-AI %})
 * [Equivariant Neural Fields - continuous representations grounded in geometry]({% post_url 2024-06-15-equivariant-neural-fields %})
+* [Correct, Incorrect and Extrinsic Equivariance?]({% post_url 2024-07-07-extrinsic %})

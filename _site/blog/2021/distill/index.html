@@ -407,31 +407,29 @@ However, we consider it good style to mention author last names if you discuss s
 The number of the footnote will be automatically generated.<d-footnote>This will become a hoverable footnote.</d-footnote></p>
 
 <hr>
-<!-- 
-## Code Blocks
 
-Syntax highlighting is provided within `<d-code>` tags.
-An example of inline code snippets: `<d-code language="html">let x = 10;</d-code>`.
-For larger blocks of code, add a `block` attribute:
+<h2 id="code-blocks">Code Blocks</h2>
 
-<d-code block language="javascript">
+<p>Syntax highlighting is provided within <code class="language-plaintext highlighter-rouge">&lt;d-code&gt;</code> tags.
+An example of inline code snippets: <code class="language-plaintext highlighter-rouge">&lt;d-code language="html"&gt;let x = 10;&lt;/d-code&gt;</code>.
+For larger blocks of code, add a <code class="language-plaintext highlighter-rouge">block</code> attribute:</p>
+
+<d-code block="" language="javascript">
   var x = 25;
   function(x) {
     return x * x;
   }
 </d-code>
 
-**Note:** `<d-code>` blocks do not look good in the dark mode.
-You can always use the default code-highlight using the `highlight` liquid tag:
-
+<p><strong>Note:</strong> <code class="language-plaintext highlighter-rouge">&lt;d-code&gt;</code> blocks do not look good in the dark mode.
+You can always use the default code-highlight using the <code class="language-plaintext highlighter-rouge">highlight</code> liquid tag:</p>
 
 <figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">x</span> <span class="o">=</span> <span class="mi">25</span><span class="p">;</span>
 <span class="kd">function</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span> <span class="p">{</span>
 <span class="k">return</span> <span class="nx">x</span> <span class="err">\</span><span class="o">*</span> <span class="nx">x</span><span class="p">;</span>
 <span class="p">}</span></code></pre></figure>
 
-
---- -->
+<hr>
 
 <h2 id="interactive-plots">Interactive Plots</h2>
 
@@ -464,13 +462,13 @@ To generate the plot that you see above, you can use the following code snippet:
 
 <hr>
 
-<!-- ## Details boxes
+<h2 id="details-boxes">Details boxes</h2>
 
-Details boxes are collapsible boxes which hide additional information from the user. They can be added with the `details` liquid tag:
+<p>Details boxes are collapsible boxes which hide additional information from the user. They can be added with the <code class="language-plaintext highlighter-rouge">details</code> liquid tag:</p>
 
 <details><summary>Click here to know more</summary>
 <p>Additional details, where math \(2x - 1\) and <code class="language-plaintext highlighter-rouge">code</code> is rendered correctly.</p>
-</details> -->
+</details>
 
 <hr>
 
