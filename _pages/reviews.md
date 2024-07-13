@@ -22,3 +22,4 @@ Click on the following links to see them:
 * [Equivariant Neural Fields - continuous representations grounded in geometry]({% post_url 2024-06-15-equivariant-neural-fields %})
 * [Correct, Incorrect and Extrinsic Equivariance?]({% post_url 2024-07-07-extrinsic %})
 * [Effect of equivariance on training dynamics]({% post_url 2024-06-30-relaxed-equivariance %})
+* [Towards Equivariant Adaptation of Large Pretrained Models]({% post_url 2024-07-11-towards-equivariant-adaptation %})
