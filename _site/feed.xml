@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-13T20:28:44+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-14T14:18:13+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
 </subtitle><entry><title type="html">Towards Equivariant Adaptation of Large Pretrained Models</title><link href="http://localhost:4000/blog/2024/towards-equivariant-adaptation/" rel="alternate" type="text/html" title="Towards Equivariant Adaptation of Large Pretrained Models" /><published>2024-07-11T00:00:00+02:00</published><updated>2024-07-11T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/towards-equivariant-adaptation</id><content type="html" xml:base="http://localhost:4000/blog/2024/towards-equivariant-adaptation/"><![CDATA[<p>Deep learning has witnessed tremendous growth in the past decade. Still, as we strive for more nuanced understanding and performance improvements, one challenge emerges clearly: how do we ensure our models understand data transformations? Enter equivariance, an idea that can help our networks maintain consistent behaviour with data transformations. But with the rise of large pretrained models, how do we make them equivariant without changing their architecture or retraining the model from scratch with data augmentation? In this blogpost, we delve into ideas presented
 in the paper “Equivariant Adaptation of Large Pretrained Models”<d-cite key="mondal2023equivariant"></d-cite> to answer this question.</p>
 
@@ -1482,13 +1482,11 @@ f(g \cdot x)=f(x)
 
 <p>Concretly, let \(\mathcal{P}(S)\) be the powerset of \(S\) and another set \(\mathcal{K} \subset \mathcal{P}(S)\), then \(\mathcal{K}\) is an ASC if for every \(X \in \mathcal{K}\) and every non-empty \(Y \subseteq X\) it holds that \(Y \in \mathcal{K}\). Also, we define \(\mid\mathcal{K}\mid\) to be the highest cardinality of a simplex in an ASC minus 1. If the rank is \(r\) then it holds \(\forall X \in \mathcal{K}: r \geq \mid X \mid\).</p>
 
-<!-- 
-## Geometric realization
+<h2 id="geometric-realization">Geometric realization</h2>
 
-Although an ASC is a purely combinatorial object, it always entails a **geometric realization**. For the case of $$r=1$$ then it can be represented as a graph. A **simplicial complex** is the geometric realization of an ASC, constructed out of the underlying geometric of the points in $$ \mathcal{K}$$. As such, they can be constructed using the set of verticies $$ V $$ of a graph as disjoint points in space or even taking a graph $$ G = (V, E) $$ where $$ V $$ is the set of 0-cells and $$ E $$ is the set of 1-cells. Transforming a set of points to a simplicial complex is called **lifting**. 
- 
-As an example, we may consider the clique lifting procedure. A *clique* $$ C \subseteq V $$, such that $$ C $$ is complete. In other words, there is an edge between every pair of vertices. In this lifting procedure each clique will become an r-cell and have it's own set of neighbours. Note that the time complexity of this lift is $$ \mathcal{O}(3^{n/3}) $$
--->
+<p>Although an ASC is a purely combinatorial object, it always entails a <strong>geometric realization</strong>. For the case of \(r=1\) then it can be represented as a graph. A <strong>simplicial complex</strong> is the geometric realization of an ASC, constructed out of the underlying geometric of the points in \(\mathcal{K}\). As such, they can be constructed using the set of verticies \(V\) of a graph as disjoint points in space or even taking a graph \(G = (V, E)\) where \(V\) is the set of 0-cells and \(E\) is the set of 1-cells. Transforming a set of points to a simplicial complex is called <strong>lifting</strong>.</p>
+
+<p>As an example, we may consider the clique lifting procedure. A <em>clique</em> \(C \subseteq V\), such that \(C\) is complete. In other words, there is an edge between every pair of vertices. In this lifting procedure each clique will become an r-cell and have it’s own set of neighbours. Note that the time complexity of this lift is \(\mathcal{O}(3^{n/3})\)</p>
 
 <h2 id="higher-order-neighbourhoods">Higher-order neighbourhoods</h2>
 <p>To define proximite relations such as graph adjacencies in \(r\)-simplex we establish some definitions. We will work with only two types of adjacencies as they have proven to be as expressive as using all of them. First, let \(\sigma\) and \(\tau\) be two simplices, we say that \(\sigma \text{ is on the bound of } \tau\) as \(\sigma \prec \tau\) and: 1) \(\sigma \subset \tau\), 2) \(\nexists \delta: \sigma  \subset \delta \subset \tau\)</p>
@@ -1586,13 +1584,14 @@ h_{\mathcal{K}} = \bigoplus_{i=0}^{r} \underset{\sigma \in \mathcal{K}, |\sigma|
 \end{equation}\]
 
 <hr />
+
 <h1 id="the-new-standard-topox">The new standard: TopoX</h1>
 
 <p>TopoX is a suite of Python packages that aim to provide a standard for developments in TDL. It encompases TopoModelX, TopoNetX, TopoEmbeddX and now TopoBenchmarX. Each of them having functionalities according to their name in the topological domain. Next, we ilustrate the development process and reproduction of <d-cite key="eijkelboom2023n"></d-cite> in the TopoX suite. Additionally, as a base project we use the <a href="https://github.com/pyt-team/challenge-icml-2024">ICML TDL Challenge 2024</a> for development, which structures all these packages together to be used in the development cycle. Additionally, we use the Pytorch Geometric QM9 dataset as it contains graph data.</p>
 
 <h2 id="building-structure">Building structure</h2>
 
-<p>The first thing we are concerned with is the <strong>lifting</strong> of our initial graph or set of points. To perform that task we will make use of GHUDI <d-cite key="gudhi:urm"></d-cite>, a Python library with many methods mainly used for Topological Data Analysis. Additionally, we add the option to fully connect all the \(0\)-simplex.</p>
+<p>The first thing we are concerned with is the <strong>lifting</strong> of our initial graph or set of points. To perform that task we will make use of GHUDI <d-cite key="gudhi:urm"></d-cite>, a Python library with many methods mainly used for Topological Data Analysis. Additionally, we add the option to fully connect all the \(0\)-simplex per the implementation of <d-cite key="eijkelboom2023n"></d-cite></p>
 
 <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">rips_lift</span><span class="p">(</span><span class="n">graph</span><span class="p">:</span> <span class="n">torch_geometric</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">Data</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dis</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">fc_nodes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SimplicialComplex</span><span class="p">:</span>
     <span class="n">x_0</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">graph</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">graph</span><span class="p">.</span><span class="n">pos</span>
@@ -1653,119 +1652,17 @@ h_{\mathcal{K}} = \bigoplus_{i=0}^{r} \underset{\sigma \in \mathcal{K}, |\sigma|
 
         <span class="k">return</span> <span class="n">lifted_topology</span></code></pre></figure>
 
-<p>Now we have to do a quick detour to talk about <strong>mini-batching</strong></p>
-
-<h2 id="mini-batching-detour">Mini-batching detour</h2>
-
-<p>To be brief in PyG a dataset compromising graphs is concatenated into one big graph that is represented by a block-diagonal matrix. There is a detailed explanation <a href="https://pytorch-geometric.readthedocs.io/en/latest/advanced/batching.html">here</a>.</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">SimplexData</span><span class="p">(</span><span class="n">torch_geometric</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">Data</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__inc__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="sh">'</span><span class="s">adjacency</span><span class="sh">'</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
-            <span class="n">rank</span> <span class="o">=</span> <span class="nf">int</span><span class="p">(</span><span class="n">key</span><span class="p">.</span><span class="nf">split</span><span class="p">(</span><span class="sh">'</span><span class="s">_</span><span class="sh">'</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-            <span class="k">return</span> <span class="n">torch</span><span class="p">.</span><span class="nf">tensor</span><span class="p">([</span><span class="nf">getattr</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="sa">f</span><span class="sh">'</span><span class="s">x_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">'</span><span class="p">).</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)])</span>
-            <span class="c1">#return torch.tensor([[getattr(self, f'x_{rank}').size(0)], [getattr(self, f'x_{rank}').size(0)]])
-</span>        <span class="k">elif</span> <span class="sh">'</span><span class="s">incidence</span><span class="sh">'</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
-            <span class="n">rank</span> <span class="o">=</span> <span class="nf">int</span><span class="p">(</span><span class="n">key</span><span class="p">.</span><span class="nf">split</span><span class="p">(</span><span class="sh">'</span><span class="s">_</span><span class="sh">'</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">torch</span><span class="p">.</span><span class="nf">tensor</span><span class="p">([</span><span class="nf">getattr</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="sa">f</span><span class="sh">'</span><span class="s">x_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">'</span><span class="p">).</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)])</span>
-            <span class="k">return</span> <span class="n">torch</span><span class="p">.</span><span class="nf">tensor</span><span class="p">([[</span><span class="nf">getattr</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="sa">f</span><span class="sh">'</span><span class="s">x_</span><span class="si">{</span><span class="n">rank</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="sh">'</span><span class="p">).</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)],</span> <span class="p">[</span><span class="nf">getattr</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="sa">f</span><span class="sh">'</span><span class="s">x_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">'</span><span class="p">).</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)]])</span>
-        <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="sh">'</span><span class="s">x_0</span><span class="sh">'</span> <span class="ow">or</span> <span class="n">key</span> <span class="o">==</span> <span class="sh">'</span><span class="s">x_idx_0</span><span class="sh">'</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">torch</span><span class="p">.</span><span class="nf">tensor</span><span class="p">([</span><span class="nf">getattr</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="sa">f</span><span class="sh">'</span><span class="s">x_0</span><span class="sh">'</span><span class="p">).</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)])</span>
-        <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="sh">'</span><span class="s">x_1</span><span class="sh">'</span> <span class="ow">or</span> <span class="n">key</span> <span class="o">==</span> <span class="sh">'</span><span class="s">x_idx_1</span><span class="sh">'</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">torch</span><span class="p">.</span><span class="nf">tensor</span><span class="p">([</span><span class="nf">getattr</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="sa">f</span><span class="sh">'</span><span class="s">x_0</span><span class="sh">'</span><span class="p">).</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)])</span>
-        <span class="k">elif</span> <span class="n">key</span> <span class="o">==</span> <span class="sh">'</span><span class="s">x_2</span><span class="sh">'</span> <span class="ow">or</span> <span class="n">key</span> <span class="o">==</span> <span class="sh">'</span><span class="s">x_idx_2</span><span class="sh">'</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">torch</span><span class="p">.</span><span class="nf">tensor</span><span class="p">([</span><span class="nf">getattr</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="sa">f</span><span class="sh">'</span><span class="s">x_0</span><span class="sh">'</span><span class="p">).</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)])</span>
-        <span class="k">elif</span> <span class="sh">'</span><span class="s">index</span><span class="sh">'</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">self</span><span class="p">.</span><span class="n">num_nodes</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nf">super</span><span class="p">().</span><span class="nf">__inc__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__cat_dim__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="sh">'</span><span class="s">adjacency</span><span class="sh">'</span> <span class="ow">in</span> <span class="n">key</span> <span class="ow">or</span> <span class="sh">'</span><span class="s">incidence</span><span class="sh">'</span> <span class="ow">in</span> <span class="n">key</span> <span class="ow">or</span> <span class="sh">'</span><span class="s">index</span><span class="sh">'</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
-            <span class="k">return</span> <span class="mi">1</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="mi">0</span></code></pre></figure>
-
-<h2 id="piecing-it-all-together">Piecing it all together</h2>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">SimplicialVietorisRipsLifting</span><span class="p">(</span><span class="n">Graph2SimplicialLifting</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">self</span><span class="p">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span>
-
-    <span class="k">def</span> <span class="nf">lift_topology</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">torch_geometric</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">Data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="n">simplicial_complex</span> <span class="o">=</span> <span class="nf">rips_lift</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">self</span><span class="p">.</span><span class="n">complex_dim</span><span class="p">,</span> <span class="n">self</span><span class="p">.</span><span class="n">delta</span><span class="p">)</span>
-
-        <span class="n">feature_dict</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nf">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">x</span><span class="p">):</span>
-            <span class="n">feature_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
-
-        <span class="n">simplicial_complex</span><span class="p">.</span><span class="nf">set_simplex_attributes</span><span class="p">(</span><span class="n">feature_dict</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sh">'</span><span class="s">features</span><span class="sh">'</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">self</span><span class="p">.</span><span class="nf">_get_lifted_topology</span><span class="p">(</span><span class="n">simplicial_complex</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_get_lifted_topology</span><span class="p">(</span>
-        <span class="n">self</span><span class="p">,</span> <span class="n">simplicial_complex</span><span class="p">:</span> <span class="n">SimplicialComplex</span><span class="p">,</span> <span class="n">graph</span><span class="p">:</span> <span class="n">nx</span><span class="p">.</span><span class="n">Graph</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="n">lifted_topology</span> <span class="o">=</span> <span class="nf">get_complex_connectivity</span><span class="p">(</span>
-            <span class="n">simplicial_complex</span><span class="p">,</span> <span class="n">self</span><span class="p">.</span><span class="n">complex_dim</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="n">self</span><span class="p">.</span><span class="n">signed</span>
-        <span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">simplicial_complex</span><span class="p">.</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">lifted_topology</span><span class="p">[</span><span class="sa">f</span><span class="sh">'</span><span class="s">adjacency_</span><span class="si">{</span><span class="n">r</span><span class="si">}</span><span class="sh">'</span><span class="p">]</span> <span class="o">=</span> <span class="n">lifted_topology</span><span class="p">[</span><span class="sa">f</span><span class="sh">'</span><span class="s">adjacency_</span><span class="si">{</span><span class="n">r</span><span class="si">}</span><span class="sh">'</span><span class="p">].</span><span class="nf">to_dense</span><span class="p">().</span><span class="nf">nonzero</span><span class="p">().</span><span class="nf">t</span><span class="p">().</span><span class="nf">contiguous</span><span class="p">()</span>
-            <span class="n">lifted_topology</span><span class="p">[</span><span class="sa">f</span><span class="sh">'</span><span class="s">incidence_</span><span class="si">{</span><span class="n">r</span><span class="si">}</span><span class="sh">'</span><span class="p">]</span> <span class="o">=</span> <span class="n">lifted_topology</span><span class="p">[</span><span class="sa">f</span><span class="sh">'</span><span class="s">incidence_</span><span class="si">{</span><span class="n">r</span><span class="si">}</span><span class="sh">'</span><span class="p">].</span><span class="nf">to_dense</span><span class="p">().</span><span class="nf">nonzero</span><span class="p">().</span><span class="nf">t</span><span class="p">().</span><span class="nf">contiguous</span><span class="p">()</span>
-
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">simplicial_complex</span><span class="p">.</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">lifted_topology</span><span class="p">[</span><span class="sa">f</span><span class="sh">'</span><span class="s">x_idx_</span><span class="si">{</span><span class="n">r</span><span class="si">}</span><span class="sh">'</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">tensor</span><span class="p">(</span><span class="n">simplicial_complex</span><span class="p">.</span><span class="nf">skeleton</span><span class="p">(</span><span class="n">r</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="p">.</span><span class="nb">int</span><span class="p">)</span>
-
-        <span class="n">lifted_topology</span><span class="p">[</span><span class="sh">"</span><span class="s">x_0</span><span class="sh">"</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">stack</span><span class="p">(</span>
-            <span class="nf">list</span><span class="p">(</span><span class="n">simplicial_complex</span><span class="p">.</span><span class="nf">get_simplex_attributes</span><span class="p">(</span><span class="sh">"</span><span class="s">features</span><span class="sh">"</span><span class="p">,</span> <span class="mi">0</span><span class="p">).</span><span class="nf">values</span><span class="p">())</span>
-        <span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">lifted_topology</span>
-   <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">torch_geometric</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">Data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch_geometric</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">Data</span><span class="p">:</span>
-        <span class="n">initial_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">.</span><span class="nf">to_dict</span><span class="p">()</span>
-        <span class="n">lifted_topology</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">lift_topology</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">lifted_topology</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">feature_lifting</span><span class="p">(</span><span class="n">lifted_topology</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nc">SimplexData</span><span class="p">(</span><span class="o">**</span><span class="n">initial_data</span><span class="p">,</span> <span class="o">**</span><span class="n">lifted_topology</span><span class="p">)</span></code></pre></figure>
-
-<p>The only thing missing is to define our prefered <code class="language-plaintext highlighter-rouge">feature_lifting</code>.</p>
+<p>Note that we transform the <strong>adjacency</strong> and <strong>incidence</strong> matricies to their <em>edge_index</em> form by using <code class="language-plaintext highlighter-rouge">nonzero().t().contigous()</code>. This is to be able to perform mini-batching during training.</p>
 
 <h2 id="giving-meaning-to-structure">Giving meaning to structure</h2>
 
 <p>Now that we have a higher-order topological space, there is only one thing we are missing. <em>What should the embeddings of the \(r\)-simplex higher than \(0\) be ?</em></p>
 
-<p>Authors in <d-cite key="eijkelboom2023n"></d-cite> perform an element-wise mean of the components of lower \(r\)-simplex, however other alternative are also experimentally tried. The following definition comes in place of the <code class="language-plaintext highlighter-rouge">lift_features</code> as can be found in the example <code class="language-plaintext highlighter-rouge">ProjectionSum</code>.</p>
+<p>There is still the question of what a good feature lifting technique constitues and what information should it take from the underlying representation. Authors in <d-cite key="eijkelboom2023n"></d-cite> perform an element-wise mean of the components of lower \(r\)-simplex, however other alternative are also experimentally tried. As an example, take a simplex \(\sigma = \{a, b, c\}\) where \(a,b,c \in R^d\) and denote the feature embedding of \(\sigma\) with \(\sigma_f\). Then, given that simplices on the boundry are given by the powerset such that \(\tau_1 = \{a, b\}, \tau_2=\{b, c\}, \tau_3=\{a, c\}\) and \(\forall i \in \{1, 2, 3\} : \tau_i \prec \sigma\) and \(\delta_1=\{a\}, \delta_2=\{b\}\) we have that \({\tau_1}_f = mean({\delta_1}_f, {\delta_2}_f)\) and \(\sigma_f = mean({\tau_1}_f, {\tau_2}_f, {\tau_3}_f)\). More generally,</p>
 
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">lift_features</span><span class="p">(</span>
-        <span class="n">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">torch_geometric</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">Data</span> <span class="o">|</span> <span class="nb">dict</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch_geometric</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">Data</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="n">max_dim</span> <span class="o">=</span> <span class="nf">max</span><span class="p">([</span><span class="nf">int</span><span class="p">(</span><span class="n">key</span><span class="p">.</span><span class="nf">split</span><span class="p">(</span><span class="sh">"</span><span class="s">_</span><span class="sh">"</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">.</span><span class="nf">keys</span><span class="p">()</span> <span class="k">if</span> <span class="sh">"</span><span class="s">incidence</span><span class="sh">"</span> <span class="ow">in</span> <span class="n">key</span><span class="p">])</span>
+\[\sigma_f = \{  mean({\tau_1}_f, {\tau_2}_f, \cdot \cdot \cdot, {\tau_i}_f ) \in \tau \; | \; \tau \prec \sigma \wedge \nexists \delta:   \tau \prec \delta \prec \sigma \}\]
 
-
-        <span class="n">simplex_test_dict</span> <span class="o">=</span> <span class="nf">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">max_dim</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">z</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="c1"># For the k-component point in the i-simplices where k &lt;= i
-</span>            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-                <span class="c1"># Get the k-node indices of the i-simplices (i.e. the k-components of the i-simplices)
-</span>                <span class="n">z_i_idx</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="sa">f</span><span class="sh">'</span><span class="s">x_idx_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="sh">'</span><span class="p">][:,</span> <span class="n">k</span><span class="p">]</span>
-                <span class="c1"># Get the node embeddings for the k-components of the i-simplices
-</span>                <span class="n">z_i</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="sh">'</span><span class="s">x_0</span><span class="sh">'</span><span class="p">][</span><span class="n">z_i_idx</span><span class="p">]</span>
-                <span class="n">z</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="n">z_i</span><span class="p">)</span>
-            <span class="n">z</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">stack</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-            <span class="c1"># Mean along the simplex dimension
-</span>            <span class="n">z</span> <span class="o">=</span> <span class="n">z</span><span class="p">.</span><span class="nf">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-            <span class="c1"># Assign to each i-simplex the corresponding feature
-</span>            <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">embedding</span> <span class="ow">in</span> <span class="nf">enumerate</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
-                <span class="n">simplex_test_dict</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="nf">append</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="n">l</span><span class="p">])</span>
-
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">simplex_test_dict</span><span class="p">.</span><span class="nf">items</span><span class="p">():</span>
-            <span class="n">data</span><span class="p">[</span><span class="sa">f</span><span class="sh">'</span><span class="s">x_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="sh">'</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">stack</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span></code></pre></figure>
-
-<p>Below is a visualization of the embedding process.</p>
+<p>where given the definition of a simplex it can be show that a given \(\sigma\) will have \(card(\sigma)\) of size \(card(\sigma)-1\) subsets, whose embeddings can be averaged down recursively to the lowest level of embeddings provided by the dataset. As part of our contribution, we leverage TopoX to make this calculations faster by vectorizing this part of this process.</p>
 
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
@@ -1790,332 +1687,30 @@ h_{\mathcal{K}} = \bigoplus_{i=0}^{r} \underset{\sigma \in \mathcal{K}, |\sigma|
     </div>
 </div>
 
-<h2 id="the-network">The network</h2>
-<p>An overall image is presented here</p>
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        
-
-<figure>
-  <picture>
-    <!-- Auto scaling with imagemagick -->
-    <!--
-      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
-      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
-    -->
-    
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-smpn/arch-480.webp 480w,/assets/img/2024-06-30-smpn/arch-800.webp 800w,/assets/img/2024-06-30-smpn/arch-1400.webp 1400w," sizes="95vw" type="image/webp" />
-    
-    <img src="/assets/img/2024-06-30-smpn/arch.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
-  </picture>
-
-  
-</figure>
-
-    </div>
-</div>
-
-<h3 id="defining-a-layer">Defining a layer</h3>
-
-<p>We are using the definitions we stated previously and setting a convolutional kernel for the two types of communication: 1) \(r\)-simplex to \(r\)-simplex and \((r-1)\)-simplex to \(r\)-simplex. They will come to be named <code class="language-plaintext highlighter-rouge">convs_same_rank</code> and <code class="language-plaintext highlighter-rouge">convs_low_to_high</code>.</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
-        <span class="n">self</span><span class="p">,</span>
-        <span class="n">channels</span><span class="p">,</span>
-        <span class="n">max_rank</span><span class="p">,</span>
-        <span class="n">n_inv</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span> <span class="c1"># Number of invariances from r-simplex to r-simplex
-</span>        <span class="n">aggr_func</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="sh">"</span><span class="s">mean</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">sum</span><span class="sh">"</span><span class="p">]</span> <span class="o">=</span> <span class="sh">"</span><span class="s">sum</span><span class="sh">"</span><span class="p">,</span>
-        <span class="n">update_func</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="sh">"</span><span class="s">relu</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">sigmoid</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">tanh</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">silu</span><span class="sh">"</span><span class="p">]</span> <span class="o">|</span> <span class="bp">None</span> <span class="o">=</span> <span class="sh">"</span><span class="s">sigmoid</span><span class="sh">"</span><span class="p">,</span>
-        <span class="n">aggr_update_func</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="sh">"</span><span class="s">relu</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">sigmoid</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">tanh</span><span class="sh">"</span><span class="p">,</span> <span class="sh">"</span><span class="s">silu</span><span class="sh">"</span><span class="p">]</span> <span class="o">|</span> <span class="bp">None</span> <span class="o">=</span> <span class="sh">"</span><span class="s">sigmoid</span><span class="sh">"</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">()</span>
-        <span class="n">self</span><span class="p">.</span><span class="n">channels</span> <span class="o">=</span> <span class="n">channels</span>
-        <span class="n">self</span><span class="p">.</span><span class="n">max_rank</span> <span class="o">=</span> <span class="n">max_rank</span>
-        
-        <span class="c1"># convolutions within the same rank
-</span>        <span class="n">self</span><span class="p">.</span><span class="n">convs_same_rank</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">nn</span><span class="p">.</span><span class="nc">ModuleDict</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">"</span><span class="p">:</span> 
-                    <span class="nc">EConv</span><span class="p">(</span>
-                        <span class="n">in_channels</span><span class="o">=</span><span class="n">channels</span><span class="p">,</span>
-                        <span class="n">weight_channels</span><span class="o">=</span><span class="n">n_inv</span><span class="p">[</span><span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">"</span><span class="p">][</span><span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">"</span><span class="p">],</span> <span class="c1">#from r-simplex to r-simplex
-</span>                        <span class="n">out_channels</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                        <span class="n">with_linear_transform_1</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                        <span class="n">with_linear_transform_2</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                        <span class="n">with_weighted_message</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                        <span class="n">update_func</span><span class="o">=</span><span class="n">update_func</span><span class="p">,</span>
-                    <span class="p">)</span>
-
-                <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">max_rank</span><span class="p">)</span> <span class="c1"># Same rank conv up to r-1
-</span>            <span class="p">}</span>
-        <span class="p">)</span>
-
-        <span class="c1"># convolutions from lower to higher rank
-</span>        <span class="n">self</span><span class="p">.</span><span class="n">convs_low_to_high</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">nn</span><span class="p">.</span><span class="nc">ModuleDict</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">"</span><span class="p">:</span> 
-                    <span class="nc">EConv</span><span class="p">(</span>
-                        <span class="n">in_channels</span><span class="o">=</span><span class="n">channels</span><span class="p">,</span>
-                        <span class="n">weight_channels</span><span class="o">=</span><span class="n">n_inv</span><span class="p">[</span><span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="sh">"</span><span class="p">][</span><span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">"</span><span class="p">],</span> <span class="c1">#from r-1-simplex to r-simplex
-</span>                        <span class="n">out_channels</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                        <span class="n">with_linear_transform_1</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                        <span class="n">with_linear_transform_2</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                        <span class="n">with_weighted_message</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                        <span class="n">update_func</span><span class="o">=</span><span class="n">update_func</span><span class="p">,</span>
-                    <span class="p">)</span>
-
-                <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_rank</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-            <span class="p">}</span>
-        <span class="p">)</span>
-        <span class="c1"># aggregation functions
-</span>        <span class="n">self</span><span class="p">.</span><span class="n">scatter_aggregations</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">nn</span><span class="p">.</span><span class="nc">ModuleDict</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">"</span><span class="p">:</span> <span class="nc">ScatterAggregation</span><span class="p">(</span>
-                    <span class="n">aggr_func</span><span class="o">=</span><span class="n">aggr_func</span><span class="p">,</span> 
-                    <span class="n">update_func</span><span class="o">=</span><span class="n">aggr_update_func</span>
-                <span class="p">)</span>
-                <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">max_rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="p">}</span>
-        <span class="p">)</span></code></pre></figure>
-
-<p>Finally, we define \(\phi_m\) which will be the MLP over the message update.</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python">        <span class="c1"># Perform an update over the received
-</span>        <span class="c1"># messages by each other layer
-</span>        <span class="n">self</span><span class="p">.</span><span class="n">update</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">nn</span><span class="p">.</span><span class="nc">ModuleDict</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">max_rank</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">factor</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="k">for</span> <span class="n">target_dict</span> <span class="ow">in</span> <span class="n">n_inv</span><span class="p">.</span><span class="nf">values</span><span class="p">():</span>
-                <span class="k">for</span> <span class="n">target_rank</span> <span class="ow">in</span> <span class="n">target_dict</span><span class="p">.</span><span class="nf">keys</span><span class="p">():</span>
-                    <span class="n">factor</span> <span class="o">+=</span> <span class="nf">int</span><span class="p">(</span><span class="n">target_rank</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="nf">str</span><span class="p">(</span><span class="n">rank</span><span class="p">))</span>
-            <span class="n">self</span><span class="p">.</span><span class="n">update</span><span class="p">[</span><span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">"</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Sequential</span><span class="p">(</span>
-                <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">factor</span><span class="o">*</span><span class="n">channels</span><span class="p">,</span> <span class="n">channels</span><span class="p">),</span>
-                <span class="n">nn</span><span class="p">.</span><span class="nc">SiLU</span><span class="p">(),</span>
-                <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">channels</span><span class="p">)</span>
-                <span class="p">)</span></code></pre></figure>
-
-<p>Now, on the forward pass. We will receive information of features, incidences, adjacencies and the invariances for both of these relationships as well. The steps are the following</p>
-
-<ul>
-  <li>Same rank convolutions, where we build a message</li>
-  <li>Low to high rank convolutions</li>
-  <li>Concat the embeddings for the \(r\)-simplex that have received messages from different hierarchies</li>
-  <li>Pass the embeddings over \(\phi_m\)</li>
-  <li>Add residual connections</li>
-</ul>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">adjacencies</span><span class="p">,</span> <span class="n">incidences</span><span class="p">,</span> <span class="n">invariances_r_r</span><span class="p">,</span> <span class="n">invariances_r_r_minus_1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]:</span>
-        <span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">features</span><span class="p">.</span><span class="nf">items</span><span class="p">():</span>
-            <span class="nf">assert</span><span class="p">(</span><span class="ow">not</span> <span class="n">torch</span><span class="p">.</span><span class="nf">isnan</span><span class="p">(</span><span class="n">feature</span><span class="p">).</span><span class="nf">any</span><span class="p">())</span>
-            <span class="nf">assert</span><span class="p">(</span><span class="ow">not</span> <span class="n">torch</span><span class="p">.</span><span class="nf">isinf</span><span class="p">(</span><span class="n">feature</span><span class="p">).</span><span class="nf">any</span><span class="p">())</span>
-        <span class="n">aggregation_dict</span> <span class="o">=</span> <span class="p">{}</span> 
-
-        <span class="n">h</span> <span class="o">=</span> <span class="p">{}</span>
-
-        <span class="c1"># Same rank convolutions
-</span>        <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">max_rank</span><span class="p">):</span>
-            <span class="c1"># Get the convolution operation for the same rank
-</span>            <span class="n">conv</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">convs_same_rank</span><span class="p">[</span><span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">"</span><span class="p">]</span>
-
-            <span class="n">rank_str</span> <span class="o">=</span> <span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">"</span>
-            <span class="n">x_source</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="n">rank_str</span><span class="p">]</span>
-            <span class="n">x_target</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="n">rank_str</span><span class="p">]</span>
-
-            <span class="n">edge_index</span> <span class="o">=</span> <span class="n">adjacencies</span><span class="p">[</span><span class="n">rank_str</span><span class="p">]</span>
-            <span class="n">x_weights</span> <span class="o">=</span> <span class="n">invariances_r_r</span><span class="p">[</span><span class="n">rank_str</span><span class="p">]</span>
-
-            <span class="c1"># print(rank, x_source.size(), x_target.size(), x_weights.size(), edge_index.size())
-</span>
-            <span class="n">send_idx</span><span class="p">,</span> <span class="n">recv_idx</span> <span class="o">=</span> <span class="n">edge_index</span>
-
-            <span class="c1"># Run the convolution
-</span>            <span class="n">message</span> <span class="o">=</span> <span class="nf">conv</span><span class="p">(</span><span class="n">x_source</span><span class="p">,</span> <span class="n">edge_index</span><span class="p">,</span> <span class="n">x_weights</span><span class="p">,</span> <span class="n">x_target</span><span class="p">)</span>
-
-            <span class="nf">assert</span><span class="p">(</span><span class="n">message</span><span class="p">.</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="n">recv_idx</span><span class="p">.</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-            <span class="nf">assert</span><span class="p">(</span><span class="ow">not</span> <span class="n">torch</span><span class="p">.</span><span class="nf">isnan</span><span class="p">(</span><span class="n">message</span><span class="p">).</span><span class="nf">any</span><span class="p">())</span>
-            <span class="nf">assert</span><span class="p">(</span><span class="ow">not</span> <span class="n">torch</span><span class="p">.</span><span class="nf">isinf</span><span class="p">(</span><span class="n">message</span><span class="p">).</span><span class="nf">any</span><span class="p">())</span>
-
-            <span class="n">message_aggr</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">scatter_aggregations</span><span class="p">[</span><span class="n">rank_str</span><span class="p">](</span><span class="n">message</span><span class="p">,</span> <span class="n">recv_idx</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">target_dim</span><span class="o">=</span><span class="n">x_target</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-            <span class="n">aggregation_dict</span><span class="p">[</span><span class="n">rank_str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="sh">"</span><span class="s">message</span><span class="sh">"</span><span class="p">:</span> <span class="p">[</span><span class="n">message_aggr</span><span class="p">],</span>
-                <span class="sh">"</span><span class="s">recv_idx</span><span class="sh">"</span><span class="p">:</span> <span class="n">recv_idx</span><span class="p">,</span>
-            <span class="p">}</span>
-
-        <span class="c1"># Low to high convolutions starting from rank 1 and looking
-</span>        <span class="c1"># backward to convolute
-</span>        <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">self</span><span class="p">.</span><span class="n">max_rank</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">conv</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">convs_low_to_high</span><span class="p">[</span><span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">"</span><span class="p">]</span>
-
-            <span class="n">rank_str</span> <span class="o">=</span> <span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">"</span>
-            <span class="n">rank_minus_1_str</span> <span class="o">=</span> <span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="sh">"</span>
-
-            <span class="n">x_source</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="n">rank_minus_1_str</span><span class="p">]</span>
-            <span class="n">x_target</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="n">rank_str</span><span class="p">]</span>
-            <span class="n">x_weights</span> <span class="o">=</span> <span class="n">invariances_r_r_minus_1</span><span class="p">[</span><span class="n">rank_str</span><span class="p">]</span>
-            <span class="n">edge_index</span> <span class="o">=</span> <span class="n">incidences</span><span class="p">[</span><span class="n">rank_str</span><span class="p">]</span>
-
-            <span class="n">send_idx</span><span class="p">,</span> <span class="n">recv_idx</span> <span class="o">=</span> <span class="n">edge_index</span>
-
-            <span class="c1"># Run the convolution
-</span>            <span class="n">message</span> <span class="o">=</span> <span class="nf">conv</span><span class="p">(</span><span class="n">x_source</span><span class="p">,</span> <span class="n">edge_index</span><span class="p">,</span> <span class="n">x_weights</span><span class="p">,</span> <span class="n">x_target</span><span class="p">)</span>
-            <span class="n">message_aggr</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">scatter_aggregations</span><span class="p">[</span><span class="n">rank_str</span><span class="p">](</span><span class="n">message</span><span class="p">,</span> <span class="n">recv_idx</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">target_dim</span><span class="o">=</span><span class="n">x_target</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-            <span class="nf">assert</span><span class="p">(</span><span class="n">message</span><span class="p">.</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="n">recv_idx</span><span class="p">.</span><span class="nf">size</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-
-            <span class="c1"># Aggregate the message
-</span>            <span class="k">if</span> <span class="n">rank_str</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">aggregation_dict</span><span class="p">:</span>
-                <span class="n">aggregation_dict</span><span class="p">[</span><span class="n">rank_str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="sh">"</span><span class="s">message</span><span class="sh">"</span><span class="p">:</span> <span class="p">[</span><span class="n">message_aggr</span><span class="p">],</span>
-                    <span class="sh">"</span><span class="s">recv_idx</span><span class="sh">"</span><span class="p">:</span> <span class="n">recv_idx</span><span class="p">,</span>
-                <span class="p">}</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">aggregation_dict</span><span class="p">[</span><span class="n">rank_str</span><span class="p">][</span><span class="sh">'</span><span class="s">message</span><span class="sh">'</span><span class="p">].</span><span class="nf">append</span><span class="p">(</span><span class="n">message_aggr</span><span class="p">)</span> 
-                <span class="sh">'''</span><span class="s">
-                aggregation_dict[rank_str] = {
-                    </span><span class="sh">"</span><span class="s">message</span><span class="sh">"</span><span class="s">: [prev_msg, message],
-                    #</span><span class="sh">"</span><span class="s">recv_idx</span><span class="sh">"</span><span class="s">: torch.cat((aggregation_dict[rank][</span><span class="sh">"</span><span class="s">recv_idx</span><span class="sh">"</span><span class="s">], recv_idx)),
-                    for prev_msg in aggregation_dict[rank_str][</span><span class="sh">"</span><span class="s">message</span><span class="sh">"</span><span class="s">]
-                }
-                </span><span class="sh">'''</span>
-
-        <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">max_rank</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-            <span class="c1"># Check for ranks not receiving any messages
-</span>            <span class="n">rank_str</span> <span class="o">=</span> <span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">"</span>
-            <span class="k">if</span> <span class="n">rank_str</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">aggregation_dict</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="n">message</span> <span class="o">=</span> <span class="n">aggregation_dict</span><span class="p">[</span><span class="n">rank_str</span><span class="p">][</span><span class="sh">"</span><span class="s">message</span><span class="sh">"</span><span class="p">]</span>
-            <span class="n">recv_idx</span> <span class="o">=</span> <span class="n">aggregation_dict</span><span class="p">[</span><span class="n">rank_str</span><span class="p">][</span><span class="sh">"</span><span class="s">recv_idx</span><span class="sh">"</span><span class="p">]</span>
-            <span class="n">x_target</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="n">rank_str</span><span class="p">]</span>
-
-            <span class="c1"># Aggregate the message
-</span>            <span class="c1">#h[rank_str] = self.scatter_aggregations[rank_str](message, recv_idx, dim=0, target_dim=x_target.shape[0])
-</span>
-        <span class="c1"># Update over the final embeddings with another MLP
-</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">features</span><span class="p">.</span><span class="nf">items</span><span class="p">():</span>
-            <span class="n">feat_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">feature</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">msg_i</span> <span class="ow">in</span> <span class="n">aggregation_dict</span><span class="p">[</span><span class="n">rank</span><span class="p">][</span><span class="sh">"</span><span class="s">message</span><span class="sh">"</span><span class="p">]:</span>
-                <span class="n">feat_list</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="n">msg_i</span><span class="p">)</span>
-            <span class="n">h</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">cat</span><span class="p">(</span><span class="n">feat_list</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
-        <span class="n">h</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">rank</span><span class="p">:</span> <span class="n">self</span><span class="p">.</span><span class="n">update</span><span class="p">[</span><span class="n">rank</span><span class="p">](</span><span class="n">feature</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">h</span><span class="p">.</span><span class="nf">items</span><span class="p">()</span>
-        <span class="p">}</span>
-
-        <span class="c1"># Residual connection
-</span>        <span class="n">x</span> <span class="o">=</span> <span class="p">{</span><span class="n">rank</span><span class="p">:</span> <span class="n">feature</span> <span class="o">+</span> <span class="n">h</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span> <span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">features</span><span class="p">.</span><span class="nf">items</span><span class="p">()}</span>
-
-        <span class="k">return</span> <span class="n">x</span></code></pre></figure>
-
-<h3 id="all-together">All together</h3>
-
-<p>Piecing it all together, our modules look like this.</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">in_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">hidden_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_layers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">inv_dims</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span> 
-        <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">()</span>
-
-        <span class="n">self</span><span class="p">.</span><span class="n">max_dim</span> <span class="o">=</span> <span class="n">max_dim</span>
-        <span class="n">self</span><span class="p">.</span><span class="n">feature_embedding</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">hidden_channels</span><span class="p">)</span>
-
-        <span class="n">self</span><span class="p">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">ModuleList</span><span class="p">(</span>
-            <span class="p">[</span><span class="nc">EMPSNLayer</span><span class="p">(</span><span class="n">hidden_channels</span><span class="p">,</span> <span class="n">self</span><span class="p">.</span><span class="n">max_dim</span><span class="p">,</span> <span class="n">aggr_func</span><span class="o">=</span><span class="sh">"</span><span class="s">sum</span><span class="sh">"</span><span class="p">,</span> <span class="n">update_func</span><span class="o">=</span><span class="sh">"</span><span class="s">silu</span><span class="sh">"</span><span class="p">,</span> <span class="n">aggr_update_func</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">n_inv</span><span class="o">=</span><span class="n">inv_dims</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">n_layers</span><span class="p">)]</span>
-        <span class="p">)</span>
-
-        <span class="c1"># Pre-pooling operation
-</span>        <span class="n">self</span><span class="p">.</span><span class="n">pre_pool</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">ModuleDict</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">rank</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">max_dim</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">self</span><span class="p">.</span><span class="n">pre_pool</span><span class="p">[</span><span class="sa">f</span><span class="sh">"</span><span class="s">rank_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="sh">"</span><span class="p">]</span><span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Sequential</span><span class="p">(</span>
-                <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">hidden_channels</span><span class="p">,</span> <span class="n">hidden_channels</span><span class="p">),</span>
-                <span class="n">nn</span><span class="p">.</span><span class="nc">SiLU</span><span class="p">(),</span>
-                <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">hidden_channels</span><span class="p">,</span> <span class="n">hidden_channels</span><span class="p">)</span>
-            <span class="p">)</span>
-
-        <span class="c1"># Post-pooling operation over all dimensions
-</span>        <span class="c1"># and final classification
-</span>        <span class="n">self</span><span class="p">.</span><span class="n">post_pool</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="nc">Sequential</span><span class="p">(</span>
-            <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">((</span><span class="n">max_dim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">hidden_channels</span><span class="p">,</span> <span class="n">hidden_channels</span><span class="p">),</span>
-            <span class="n">nn</span><span class="p">.</span><span class="nc">SiLU</span><span class="p">(),</span>
-            <span class="n">nn</span><span class="p">.</span><span class="nc">Linear</span><span class="p">(</span><span class="n">hidden_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">)</span>
-        <span class="p">)</span></code></pre></figure>
-
-<p>In the first line we call <code class="language-plaintext highlighter-rouge">decompose_batch</code> which grabs the batch object and returns the features, the adjacencies and also calculates the invariances for a given batch. Then we proceed running through the network.</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span><span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
-        <span class="n">features</span><span class="p">,</span> <span class="n">edge_index_adj</span><span class="p">,</span> <span class="n">edge_index_inc</span><span class="p">,</span> <span class="n">inv_r_r</span><span class="p">,</span> <span class="n">inv_r_minus_1_r</span><span class="p">,</span> <span class="n">x_batch</span> <span class="o">=</span> <span class="nf">decompose_batch</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">self</span><span class="p">.</span><span class="n">max_dim</span><span class="p">)</span>
-
-        <span class="n">x</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">rank</span><span class="p">:</span> <span class="n">self</span><span class="p">.</span><span class="nf">feature_embedding</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span> 
-            <span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">features</span><span class="p">.</span><span class="nf">items</span><span class="p">()</span>
-        <span class="p">}</span>
-        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">self</span><span class="p">.</span><span class="n">layers</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="nf">layer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">edge_index_adj</span><span class="p">,</span> <span class="n">edge_index_inc</span><span class="p">,</span> <span class="n">inv_r_r</span><span class="p">,</span> <span class="n">inv_r_minus_1_r</span><span class="p">)</span>
-
-        <span class="c1"># read out
-</span>        <span class="n">x</span> <span class="o">=</span> <span class="p">{</span><span class="n">rank</span><span class="p">:</span> <span class="n">self</span><span class="p">.</span><span class="n">pre_pool</span><span class="p">[</span><span class="n">rank</span><span class="p">](</span><span class="n">feature</span><span class="p">)</span> <span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">x</span><span class="p">.</span><span class="nf">items</span><span class="p">()}</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="p">{</span><span class="n">rank</span><span class="p">:</span> <span class="nf">global_add_pool</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">rank</span><span class="p">],</span> <span class="n">batch</span><span class="o">=</span><span class="n">x_batch</span><span class="p">[</span><span class="n">rank</span><span class="p">])</span> <span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">x</span><span class="p">.</span><span class="nf">items</span><span class="p">()}</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">cat</span><span class="p">(</span><span class="nf">tuple</span><span class="p">([</span><span class="n">feature</span> <span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">x</span><span class="p">.</span><span class="nf">items</span><span class="p">()]),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">post_pool</span><span class="p">(</span><span class="n">state</span><span class="p">)</span> <span class="c1"># Classifier across 19 variables 
-</span>        <span class="n">out</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">squeeze</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">out</span></code></pre></figure>
+<hr />
 
 <h1 id="experiments">Experiments</h1>
 
-<p>We performed the experiments using both the Alpha Complex Lifting and the Vietoris-Rips Complex Lifting. The figure below show the MAE for validation and training on a random subsample of 1000 molecules. The figure below shows that the overall performance of the Alpha Complex is lower that the Vietoris-Rips complex for this task. We assume this is likely due to the fact that Alpha complex creates fewer (higher order) simplices, which might lead to a worse outcome, especially on this dataset.</p>
+<p>We performed experiments with the implementation in the TopoX framework. Additionally, we vectorized and improved the following sections: 1) the lifting procedure now results in a smaller file size and the vectorization of the feature embeddings and adjancency/incidence matrix calculation with the help of TopoX is faster, 2) the computation of the invariants was organized and some opeartions were further vectorized.</p>
 
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        
+<p>Next, we present the comparison of lifting times of the whole QM9 dataset, the size of the pre-processed file (after lifting) and the time it takes to run a forward pass.</p>
 
-<figure>
-  <picture>
-    <!-- Auto scaling with imagemagick -->
-    <!--
-      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
-      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
-    -->
-    
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-smpn/train_mae_topox-480.webp 480w,/assets/img/2024-06-30-smpn/train_mae_topox-800.webp 800w,/assets/img/2024-06-30-smpn/train_mae_topox-1400.webp 1400w," sizes="95vw" type="image/webp" />
-    
-    <img src="/assets/img/2024-06-30-smpn/train_mae_topox.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
-  </picture>
+<h2 id="lifting-times">Lifting times</h2>
 
-  
-</figure>
+<p>The lifting procedure has two challenging areas which were optimized: 1) calculation of the adjacency and incidence relationships for which we rely on TopoX and 2) feature lifting which we manually optimzed. In total, we were able to bring down the lifting time from 4 hours to about 1 hour on the same hardware. Next we show the lifting time of each graph in the dataset and the total lifting time comparison.</p>
 
-    </div>
-</div>
+<h2 id="file-size">File size</h2>
+<p>The size of the preprocessed dataset after the lifting also reduced in size. This is due to the way incidences and adjacencies are stored. Instead of having the invariance information directly, we can just store the relationships such as boundries and upper adjacencies and the embeddings which makes it enough. We could have also stored these as sparse tensors, however handling the mini-batching proved cumbersome on that representation. Ultimately, we reduced the size from 8.7G to 6.3G.</p>
 
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        
+<h2 id="forward-pass">Forward pass</h2>
 
-<figure>
-  <picture>
-    <!-- Auto scaling with imagemagick -->
-    <!--
-      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
-      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
-    -->
-    
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-smpn/validation_mae_topox-480.webp 480w,/assets/img/2024-06-30-smpn/validation_mae_topox-800.webp 800w,/assets/img/2024-06-30-smpn/validation_mae_topox-1400.webp 1400w," sizes="95vw" type="image/webp" />
-    
-    <img src="/assets/img/2024-06-30-smpn/validation_mae_topox.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
-  </picture>
+<p>One of the bottlenecks of these models is the amount of time they take to train for an epoch. The original version took close to 70 hours in the cluster we had access to. Some of this time is related to the amount of messages that are passed and some to the calculation of the invariances, something which has to be done each forward pass. We managed to optimize this calculation and thus speed up the execution of the model in about 50%. Taking the average of the forward passes resulted in the following images.</p>
 
-  
-</figure>
-
-    </div>
-</div>
+<hr />
 
 <h1 id="conclusions">Conclusions</h1>
 
-<p>In this post, we have investigated the novel development suite for Topological Deep Learning and how it can be used to tackle a particular problem. We go over concepts in <strong>geometric deep learning</strong> and show why they work and how can we leverage topological representations to better learn in message passing networks. The usage of the unified TopoX framework allows for ease of development and standarization in regards of the reproducibility. As this framework grows, ease of development in TDL should follow. Additionally, we the work of <d-cite key="eijkelboom2023n"></d-cite> and explore the performance on the Alpha Complex. Given the computing limitations for executing these models, our experiments fall short of complete. However, it remains useful to further explore ways in which to optimize this models, given the pontential expressivity they achieve.</p>]]></content><author><name>Anonymous</name></author><category term="TDL" /><summary type="html"><![CDATA[Studying the properties of message passing accross TNNs using the TopoX Suite]]></summary></entry><entry><title type="html">Equivariant Diffusion for Molecule Generation in 3D using Consistency Models</title><link href="http://localhost:4000/blog/2024/equivariant_diffusion/" rel="alternate" type="text/html" title="Equivariant Diffusion for Molecule Generation in 3D using Consistency Models" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/equivariant_diffusion</id><content type="html" xml:base="http://localhost:4000/blog/2024/equivariant_diffusion/"><![CDATA[<h2 id="introduction">Introduction</h2>
+<p>In this post, we have investigated the novel development suite for Topological Deep Learning and how it can be used to tackle a particular problem. We go over concepts in <strong>geometric deep learning</strong> and show why they work and how can we leverage topological representations to better learn in message passing networks. The usage of the unified TopoX framework allows for ease of development and standarization in regards of the reproducibility. Additionally, optimization for computationally heavy procedures such as the ones inherent to TDL is more straightforward. As this framework grows, ease of development in TDL should follow. Additionally, we replicate the work of <d-cite key="eijkelboom2023n"></d-cite>. Based on our tests we were not able to reach the reported results, however we took the original repository and replicated the implementation in TopoX, thus we cannot know the particular configurations which achieve the presented results.</p>]]></content><author><name>Anonymous</name></author><category term="TDL" /><summary type="html"><![CDATA[Studying the properties of message passing accross TNNs using the TopoX Suite]]></summary></entry><entry><title type="html">Equivariant Diffusion for Molecule Generation in 3D using Consistency Models</title><link href="http://localhost:4000/blog/2024/equivariant_diffusion/" rel="alternate" type="text/html" title="Equivariant Diffusion for Molecule Generation in 3D using Consistency Models" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/equivariant_diffusion</id><content type="html" xml:base="http://localhost:4000/blog/2024/equivariant_diffusion/"><![CDATA[<h2 id="introduction">Introduction</h2>
 
 <p>In this blog post, we discuss the paper <a href="https://arxiv.org/abs/2203.17003">“Equivariant Diffusion for Molecule Generation in 3D”</a> <d-cite key="hoogeboom2022equivariant"></d-cite>, 
 which first introduced 3D molecule generation using diffusion models. Their Equivariant Diffusion Model (EDM) also
