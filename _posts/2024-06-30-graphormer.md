@@ -1,6 +1,6 @@
 ---
 layout: distill
-title: Do Transformers Really Perform Bad for Graph Representation?
+title: "Grasping Graphormer : Assessing Transformer Performance for Graph Representation"
 description: A first-principles blog post to understand the Graphormer.
 tags: graph representation learning
 giscus_comments: true
@@ -9,10 +9,36 @@ featured: true
 
 
 authors:
-  - name: Anonymized
-    url: "https://en.wikipedia.org/wiki/Anonymized"
+  - name: Tejas Agarwal
+    url: "https://tej-55.github.io/"
     affiliations:
-      name: Anonymized
+      name: SAiDL, Goa, India
+
+  - name: Karan Bania
+    url: "https://karannb.github.io/"
+    affiliations:
+      name: SAiDL, Goa, India
+
+  - name: Yash Bhisikar
+    url: "https://yashrb24.github.io/"
+    affiliations:
+      name: SAiDL, Goa, India
+
+  - name: Ankita Bisoi
+    url: ""
+    affiliations:
+      name: SAiDL, Goa, India
+
+  - name: Harshvardhan Mestha
+    url: "https://harshvardhan-mestha.github.io/"
+    affiliations:
+      name: SAiDL, Goa, India
+
+  - name: Sarang S
+    url: "https://sarangs.pages.dev/"
+    affiliations:
+      name: SAiDL, Goa, India
+
 
 bibliography: 2024-06-30-graphormer.bib
 
@@ -54,7 +80,6 @@ _styles: >
     font-size: 16px;
   }
 ---
-
 
 
 
