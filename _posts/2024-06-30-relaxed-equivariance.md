@@ -94,7 +94,7 @@ Inspired by the aforementioned observations, this blog post aims to answer the q
 
 We tackle these subquestions by analyzing trained models to investigate their training dynamics.
 
-In view of space constraint, in this blogpost, we omit our reproducibility study and refer the readers to [our extended blog post](https://github.com/dgcnz/dl2/blob/main/blogpost.md). Nevertheless, our reproducibility studies corroborated the following claims:
+In view of space constraint, in this blogpost, we omit our reproducibility study and refer the readers to [our extended blog post](https://github.com/dgcnz/relaxed-equivariance-dynamics/blob/main/blogpost.md). Nevertheless, our reproducibility studies corroborated the following claims:
 1. Relaxed steerable G-CNN outperforms steerable G-CNN (fully equivariant network) on fully rotationally equivariant data as shown in the experiment on the super resolution dataset in <d-cite key="wang2023relaxed"></d-cite>.
 2. Relaxed G-CNN outperforms G-CNN on non-fully rotationally equivariant data as shown in the experiment on the smoke plume dataset in <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite>.
 
@@ -261,7 +261,7 @@ This definition is an adaptation from the one in <d-cite key="zhao2024improvingc
 
 #### Hessian Eigenvalue 
 
-Finally, the Hessian eigenvalue spectrum (<d-cite key="park2022visiontransformerswork"></d-cite>) sheds light on both the efficiency and efficacy of neural network training. Negative Hessian eigenvalues indicate a non-convex loss landscape, which can disturb the optimization process, whereas very large eigenvalues indicate training instability, sharp minima and consequently poor generalization.
+Finally, the Hessian eigenvalue spectrum <d-cite key="park2022visiontransformerswork"></d-cite> sheds light on both the efficiency and efficacy of neural network training. Negative Hessian eigenvalues indicate a non-convex loss landscape, which can disturb the optimization process, whereas very large eigenvalues indicate training instability, sharp minima and consequently poor generalization.
 
 ## Results
 In this section, we study how equivariance imposed on a network influences the convexity of the loss landscape and generalization, answering all the subquestions posed in [Introduction](#Introduction). 
@@ -372,3 +372,9 @@ We reproduced and extended the relevant findings in <d-cite key="wang2023relaxed
 We furthermore investigated the authors' speculation that this superior performance could be due to relaxed models having enhanced training dynamics. Our experiments empirically support this hypothesis, showing that relaxed models exhibit lower validation error, a flatter loss landscape around the final weights, and smaller Hessian eigenvalues, all of which are indicators of improved training dynamics and better generalization.
 
 Our results suggest that replacing fully equivariant networks with relaxed equivariant networks could be advantageous in all application domains where some level of model equivariance is desired, including those where full equivariance is beneficial. For future research, we should investigate different versions of the relaxed model to find out which hyperparameters, like the number of filter banks, correlate with sharpness. Additionally, the method should be applied to different types of data to see if the same observations can be made there.
+
+## Code
+
+- [Code and experiments for this blog](https://github.com/dgcnz/relaxed-equivariance-dynamics)
+- [`gconv`, a PyTorch library for (relaxed) regular GCNNs](https://github.com/dgcnz/gconv)
+- [JHTDB 🤗 HuggingFace Dataset](https://huggingface.co/datasets/dl2-g32/jhtdb)
