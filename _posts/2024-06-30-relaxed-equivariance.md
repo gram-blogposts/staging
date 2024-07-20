@@ -174,7 +174,7 @@ $$
 \end{aligned}
 $$
 
-This second formulation makes for a more interpretable visualization, as one can see in the following figure. There, one can observe how a network might learn to downweight the feature maps corresponding to 180 degree rotations, thus breaking rotational equivariance and allowing for different processing of images picturing 6s and 9s. 
+This second formulation makes for a more interpretable visualization, as one can see in the following figure. There, one can observe how a network might learn to downweight the feature maps corresponding to 180 degree rotations, thus breaking rotational equivariance and allowing for different processing of images picturing 6s and 9s. Note that $e$ in this image refers to the identity group element. 
 
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
@@ -259,8 +259,8 @@ In this section, we study how equivariance imposed on a network influences the c
 
 ### Smoke Plume with full Equivariance
 
+First, we examine the training, validation and test RMSE for the Steerable G-CNN (E2CNN) <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite> and Relaxed Steerable G-CNN (Rsteer) <d-cite key="weiler2021generale2equivariantsteerablecnns"></d-cite> models on the fully equivariant Smoke Plume dataset.
 
-First, we examine the training, validation and test RMSE for the E2CNN and Rsteer models on the fully equivariant Smoke Plume dataset. 
 <table>
   <tr>
     <td>
@@ -296,11 +296,11 @@ Figure 10 shows that the rsteer model has much lower sharpness of the loss lands
 <table>
   <tr>
     <td>
-      <img src="https://hackmd.io/_uploads/rJJQKAyNC.png" alt="Epoch 3" style="max-width: 100%;">
+      <img src="C:\Nesta\Master AI\jaar 1\RecSYS\code repo\relaxed-equivariance-blog\assets\img\2024-06-30-relaxed-equivariance\correct_hession3.png" alt="Epoch 3" style="max-width: 100%;">
       <p align="center">Figure 9: Hessian spectra at an early epoch for rsteer and E2CNN models</p>
     </td>
     <td>
-      <img src="https://hackmd.io/_uploads/S1jQF0JN0.png" alt="Epoch best" style="max-width: 100%;">
+      <img src="C:\Nesta\Master AI\jaar 1\RecSYS\code repo\relaxed-equivariance-blog\assets\img\2024-06-30-relaxed-equivariance\correct_hessian50.png" alt="Epoch best" style="max-width: 100%;">
       <p align="center">Figure 10: Hessian spectra at the best epoch for rsteer and E2CNN models</p>
     </td>
   </tr>
