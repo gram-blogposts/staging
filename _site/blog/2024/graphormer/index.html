@@ -421,9 +421,8 @@ The aggregation and combination at layer \(l\) are defined as:
 where \(\mathcal{N}(v_i)\) is the set of first or higher-order neighbours of \(v_i\). 
 Common aggregation functions include MEAN, MAX, and SUM. 
 The COMBINE function fuses neighbor information into the node representation. 
-For graph-level tasks, a READOUT function aggregates node features \(h_i^{(L)}\) from the final iteration into a graph representation \(h_G\):
-\(h_{G}=\operatorname{READOUT}\left(\left\{h_{i}^{(L)} \mid v_i \in G \right\}\right)\)
-READOUT can be a simple summation or a more complex pooling function.</li>
+In general, a READOUT function is any function of the final-layer node representations from a GNN that we can use as a graph-level representation. So \(h_G = \text{READOUT}(\{h_i^{(L)}\})\) is a graph-level representation. 
+A MEAN-READOUT is a simple example of a READOUT function, where the graph-level representation is the mean of the node representations.</li>
 </ul>
 
 <div class="row mt-3">
@@ -571,6 +570,72 @@ This self-attention mechanism allows the model to understand relevant informatio
 <hr>
 
 <h2 id="graphormer">Graphormer</h2>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="-480.webp 480w,-800.webp 800w,-1400.webp 1400w," sizes="95vw" type="image/webp"></source>
+    
+    <img src="" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();">
+  </picture>
+
+  
+</figure>
+
+    </div>
+    <div class="col-sm-9 mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-graphormer/arch-480.webp 480w,/assets/img/2024-06-30-graphormer/arch-800.webp 800w,/assets/img/2024-06-30-graphormer/arch-1400.webp 1400w," sizes="95vw" type="image/webp"></source>
+    
+    <img src="/assets/img/2024-06-30-graphormer/arch.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();">
+  </picture>
+
+  
+</figure>
+
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="-480.webp 480w,-800.webp 800w,-1400.webp 1400w," sizes="95vw" type="image/webp"></source>
+    
+    <img src="" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();">
+  </picture>
+
+  
+</figure>
+
+    </div>
+</div>
+<div class="caption">
+    Diagram of the Graphormer Architechture.<d-cite key="ying2021transformersreallyperformbad"></d-cite>
+</div>
+
 <h3 id="centrality-encoding">Centrality Encoding</h3>
 
 <p>In a sequence modelling task, Attention captures the semantic correlations between the nodes (tokens).
@@ -580,7 +645,7 @@ Let’s take an example.
 Say we want to compare airports and find which one is the largest.
 We need a common metric to compare them, so we take the sum of the total daily incoming and outgoing flights, giving us the busiest airports. 
 This is what the algorithm is doing logically to identify the ‘busiest’ nodes.
-Similary, these learnable vectors help the model to flag these important nodes in the graph.
+Similarly, these learnable vectors help the model to flag these important nodes in the graph.
 All this culminates in better performance for graph-based tasks such as molecule generation.</p>
 
 <p>This is the Centrality Encoding equation, given as:</p>
@@ -614,15 +679,14 @@ Graphs consist of nodes (analogous to tokens) connected with edges in a non-line
 There’s no inherent notion of an “ordering” or a “sequence” in its structure, but as with positional information, it’ll be helpful if we inject some sort of structural information when we process the graph.</p>
 
 <p>The authors propose a novel encoding called <em>Spatial Encoding</em>. 
-Take a pair of nodes (analogous to tokens) as input and output a scalar value as a function of the shortest path distance (SPD) between the nodes. 
+Take a pair of nodes (analogous to tokens) as input and output a scalar value as a function, \(\phi(v_i, v_j)\). The authors choose \(\phi(v_i, v_j)\) to be shortest path distance (SPD) between the nodes. 
 This scalar value is then added to the element corresponding to the operation between the two nodes in the Query-Key product matrix.</p>
 
 \[A_{ij} = \frac{(h_i W_Q)(h_j W_K)^T}{\sqrt{d}} + b_{\phi(v_i, v_j)}\]
 
 <p>The above equation shows the modified computation of the Query-Key Product matrix. 
-Notice that the additional term \(b_{\phi(v_i, v_j)}\) is a learnable scalar value and acts like a bias term. 
-Since this structural information is independent of which layer of our model is using it, we share this value across all layers. 
-In implementation, the \(\phi(v_i, v_j)\) holds the shortest path distance between nodes \(v_i\) and \(v_j\), and \(b_{\phi(v_i, v_j)}\) is just an embedding look-up.</p>
+Notice that the additional term \(b_{\phi(v_i, v_j)}\) a learnable scalar value, is just an embedding look-up, and acts like a bias term.
+Since this structural information is independent of which layer of our model is using it, we share this value across all layers.</p>
 
 <p>The benefits of using such an encoding are:</p>
 <ol>
@@ -656,10 +720,10 @@ The impact is significant, and it greatly improves the performance, as proven em
 
 <h3 id="vnode">VNode</h3>
 
-<p>The \([VNode]\) (or a Virtual Node) is arguably one of the most important contributions from the work. 
+<p>The [VNode] (or a Virtual Node) is arguably one of the most important contributions from the work. 
 It is an artificial node that is connected to <b>all</b> other nodes. 
 The authors cite this paper<d-cite key="gilmer2017neuralmessagepassingquantum"></d-cite> as an empirical motivation, but a better intuition behind the concept is as a generalization of the [CLS] token widely used in NLP and Vision. 
-This has an important implication on $b$ and $\phi$, because the \([VNode]\) is connected to every node,</p>
+This has an important implication on \(b\) and \(\phi\), because the [VNode] is connected to every node,</p>
 
 \[\phi([VNode], v) = 1, \forall v \in G\]
 
@@ -697,8 +761,8 @@ This has an important implication on $b$ and $\phi$, because the \([VNode]\) is 
 <p>In implementation, NLP models have a distinct learnable embedding vector (along with other token embeddings in the mebedding matrix) and append this to the start of every training example, and the final layer representation of this token is used for the task (e.g. sentiment analysis, harmful-ness prediction, etc.).
 With enough task-specific (downstream) data the [CLS] token can learn to extract task-relevant information from the data, without having to train the model again!</p>
 </details>
-<p>With graphs and text being different modalities, the \([VNode]\) also helps in <b>relaying</b> global information to distant or non-connected clusters in a graph. 
-This is significantly important to the model’s expressivity, as this information might otherwise never propagate. In fact, the \([VNode]\) becomes a learnable and dataset-specific READOUT function.</p>
+<p>With graphs and text being different modalities, the [VNode] also helps in <b>relaying</b> global information to distant or non-connected clusters in a graph. 
+This is significantly important to the model’s expressivity, as this information might otherwise never propagate. In fact, the [VNode] becomes a learnable and dataset-specific READOUT function.</p>
 
 <p>This can be implemented as follows:</p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="c1"># Initialize the VNode
@@ -713,8 +777,7 @@ This is significantly important to the model’s expressivity, as this informati
     <span class="p">...</span>
 </code></pre></div></div>
 
-<p>Again, we emphasise that the information-relay point of view is much more important to the model than the summary-token view. 
-The design choice of one \([VNode]\) per head reflects that, as if it were to be used just as a summary token, one would suffice; here each head can encode different global information.</p>
+<p>Again, we emphasise that the information-relay point of view is much more important to the model than the summary-token view. The design choice of one [VNode] per head enables each head to encode different global information.</p>
 
 <hr>
 
@@ -739,27 +802,18 @@ The latter can do the same (&amp; more!).</p>
 This truly sets the network apart from traditional GNNs, which can only aggregate local information up to a fixed radius (or depth).</p>
 
 <p>Traditional GNNs are <i>designed</i> to prevent this type of flow, as with their architecture, this would lead to over-smoothening. 
-However, the clever design around \([VNode]\) prevents this from happening in Graphormer. 
-The addition of a supernode along with Attention and the learnable \(b_{\phi(v_i, v_j)}\) facilitate this, the \([VNode]\) can relay global information, and the attention mechanism can selectively choose from there.</p>
+However, the clever design around [VNode] prevents this from happening in Graphormer. 
+The addition of a supernode along with Attention and the learnable \(b_{\phi(v_i, v_j)}\) facilitate this, the [VNode] can relay global information, and the attention mechanism can selectively choose from there.</p>
 
-<details><summary>READOUT fucntions and Global information</summary>
-<p>In general, a READOUT function is any function of the final-layer node representations from a GNN that we can use as a graph-level representation.
-So</p>
-
-\[h_G = \text{READOUT}(\{h_i^{(L)}\})\]
-
-<p>is a graph-level representation. 
-A MEAN-READOUT is a simple example of a READOUT function, where the graph-level representation is the mean of the node representations.
-As this involves aggregation over all nodes, this is a global operation.
-Gievn that Fact 3 implies that every node representation can be MEAN-READOUT, this means that the model can learn to selectively propagate global information using the \([VNode]\).</p>
-</details>
+<p>Operations such as MEAN_READOUT involve aggregation over all nodes, making it a global operation.
+Given that Fact 3 implies that every node representation can be MEAN-READOUT, this means that the model can learn to selectively propagate global information using the [VNode].</p>
 
 <details><summary>The WL Test and an example for Fact 2</summary>
 <p>First we need to fix some notation for the WL test, briefly, it can be expressed as -</p>
 
 \[c^{(k+1)}(v) = HASH(c^{(k)}(v), \{c^{(k)}(u)\}_{u \in N(v)} )\]
 
-<p>where $c^{(k)}(v)$ is the $k^{th}$ iteration representation (color for convinience) of node $v$ and importantly $HASH$ is an <i>injective</i> hash function. 
+<p>where \(c^{(k)}(v)\) is the \(k^{th}\) iteration representation (color for convinience) of node \(v\) and importantly \(HASH\) is an <i>injective</i> hash function. 
 Additionally, all nodes with the same color have the same feature vector</p>
 
 <p>Given this, consider the following graphs -</p>
@@ -790,10 +844,10 @@ Additionally, all nodes with the same color have the same feature vector</p>
     </div>
 </div>
 
-<p>The hashing process converges in one iteration itself, now the 1-WL test would count number of colors and that vector would act as the final graph representation, which for both of the graphs will be $ [0, 0, 4, 2] $ (i.e., $ [count(a), count(b), count(x), count(y)] $), even though they are different, the 1-WL test fails to distinguish them. 
+<p>The hashing process converges in one iteration itself, now the 1-WL test would count number of colors and that vector would act as the final graph representation, which for both of the graphs will be \([0, 0, 4, 2]\) (i.e., \([count(a), count(b), count(x), count(y)]\)), even though they are different, the 1-WL test fails to distinguish them. 
 There are several such cases and so traditional GNNs are fairly limited in their expressivity.</p>
 
-<p>However for the graphormer, Shortest Path Distances (SPD) directly affects attention weights (because the paper uses SPD as $\phi(v_i, v_j)$), and if we look at the SPD sets for the two types of nodes (red and blue) in both the graphs, (we have ordered according to the BFS traversal by top left red node, though any ordering would suffice)</p>
+<p>However for the graphormer, Shortest Path Distances (SPD) directly affects attention weights (because the paper uses SPD as \(\phi(v_i, v_j)\)), and if we look at the SPD sets for the two types of nodes (red and blue) in both the graphs, (we have ordered according to the BFS traversal by top left red node, though any ordering would suffice)</p>
 
 <ul>
   <li>Left graph -
@@ -875,7 +929,7 @@ There are several such cases and so traditional GNNs are fairly limited in their
 </table>
 
 <p>Notably, As pointed out in the <a href="#vnode">VNode</a> section, Graphormer does not encounter over-smoothing issues, with both training and validation errors continuing to decrease as model depth and width increased. 
-Additionally, Graph Transformer (GT) showed no performance gain despite a significant increase in parameters from GT to GT-Wide, highlighting Graphormer’s scaling capabilities.</p>
+Additionally, Graph Transformer (GT) showed no performance gain despite a significant increase in parameters from GT to GT-Wide, highlighting Graphormer’s scaling capabilities. We also observe a strong overfitting (&gt;0.045 difference between train and validate MAE) for Transformer based models. Graphormer’s higher overfitting can be attributed to its special structure, as it can extract more information from the training data.</p>
 
 <p>Further experiments for graph-level prediction tasks were performed on datasets from popular leaderboards like <a href="https://ogb.stanford.edu/docs/graphprop/#ogbg-mol" rel="external nofollow noopener" target="_blank">OGBG</a> (MolPCBA, MolHIV) and <a href="https://paperswithcode.com/paper/benchmarking-graph-neural-networks" rel="external nofollow noopener" target="_blank">benchmarking-GNNs</a> (ZINC), which also showed Graphormer consistently outperforming top-performing GNNs.</p>
 
@@ -922,7 +976,7 @@ Note that the Random Forest model fitted on these features alone outperforms the
   </tbody>
 </table>
 
-<p>However, as evident in Table 2, Graphormer manages to outperform it consistently on the benchmarks without even using the additional features (known to boost performance), which showcases it increases the expressiveness of complex information.</p>
+<p>However, as evident in Table 2, Graphormer manages to offer competitive performance on the benchmarks without even using the additional features (known to boost performance), which showcases it increases the expressiveness of complex information. Additionally the gap in performance can be attributed to the MolHIV dataset, which is too small for Graphormer to extract enough information.</p>
 
 <hr>
 
