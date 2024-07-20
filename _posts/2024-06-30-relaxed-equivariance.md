@@ -4,14 +4,35 @@ title: Effect of equivariance on training dynamics
 description: Can relaxing equivariance help in finding better minima?
 tags: distill formatting
 giscus_comments: true
-date: 2024-06-30
+date: 2024-07-20
 featured: true
 
 authors:
-  - name: Anon
-    url: "anon.com"
+  - name: Diego Canez
+    url: "https://github.com/dgcnz"
     affiliations:
-      name: Anon
+      name: University of Amsterdam
+  - name: Nesta Midavaine
+    url: "https://github.com/Nesta-gitU"
+    affiliations:
+      name: University of Amsterdam
+  - name: Thijs Stessen
+    url: "https://github.com/MeneerTS"
+    affiliations:
+      name: University of Amsterdam
+  - name: Jiapeng Fan
+    url: "https://github.com/JiapengFan"
+    affiliations:
+      name: University of Amsterdam
+  - name: Sebastian Arias
+    url: "https://github.com/SebastianUrielArias"
+    affiliations:
+      name: University of Amsterdam
+  - name: Alejandro Garcia (supervisor)
+    url: "https://github.com/AGarciaCast"
+    affiliations:
+      name: University of Amsterdam
+
 
 bibliography: 2024-06-30-relaxed-equivariance.bib
 
@@ -73,7 +94,7 @@ Inspired by the aforementioned observations, this blog post aims to answer the q
 
 We tackle these subquestions by analyzing trained models to investigate their training dynamics.
 
-In view of space constraint, in this blogpost, we omit our reproducibility study and refer the readers to [our extended blog post](https://github.com/*****/***/blob/main/blogpost.md) (removed for anonimization). Nevertheless, our reproducibility studies corroborated the following claims:
+In view of space constraint, in this blogpost, we omit our reproducibility study and refer the readers to [our extended blog post](https://github.com/dgcnz/relaxed-equivariance-dynamics/blob/main/blogpost.md). Nevertheless, our reproducibility studies corroborated the following claims:
 1. Relaxed steerable G-CNN outperforms steerable G-CNN (fully equivariant network) on fully rotationally equivariant data as shown in the experiment on the super resolution dataset in <d-cite key="wang2023relaxed"></d-cite>.
 2. Relaxed G-CNN outperforms G-CNN on non-fully rotationally equivariant data as shown in the experiment on the smoke plume dataset in <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite>.
 
@@ -97,51 +118,48 @@ NN (T_g x) = T'_g NN (x) & \qquad \qquad \forall g \in G. \\
 $$
 
 
-To build such a network, it is sufficient that each of its layers is equivariant in the same sense. Recall that a CNN achieves equivariance to translations by sharing weights in kernels that are translated across the input in each of its convolution layers. Hence, a G-CNN extends this concept of weight sharing to achieve equivariance w.r.t an arbitrary locally-compact group $G$. 
+To build such a network, it is sufficient that each of its layers is equivariant in the same sense. Recall that a CNN achieves equivariance to translations by sharing weights in kernels that are translated across the input in each of its convolution layers. Hence, a G-CNN extends this concept of weight sharing to achieve equivariance w.r.t an arbitrary locally-compact group $G$.  
+
+For now on we will focus on affine groups, i.e., let $G := \mathbb{Z}^n \rtimes H$, where $H$ can be, for example, the rotation subgroup $SO(n)$ and $\mathbb{Z}^n$, the discrete translation group.
+
+Furthermore, we'll consider an input signal of $c_0$ channels on an $n$-dimensional grid $f_0: \mathbb{Z}^n \rightarrow \mathbb{R}^{c_0}$, e.g. RGB images ($f: \mathbb{Z}^2 \rightarrow \mathbb{R}^3$ ). 
 
 #### Lifting convolution
 
-Consider an input signal $f^0: \mathbb{R}^n \rightarrow \mathbb{R}^c$, where $c$ is the number of channels. When passing it through a G-CNN, from the outset, it undergoes the lifting convolution with kernel $k : \mathbb{R}^n \rightarrow \mathbb{R}^{m \times c}$ on $x \in \mathbb{R}^n$ and $g \in G$:
+The first layer of a G-CNN lifts the input signal $f_0$ to the group $G$ using the kernel $\psi : \mathbb{Z}^n \rightarrow \mathbb{R}^{c_1 \times c_0}$ as follows:
 
-$$(k*_{lifting} f^0)(g) = \int_{y \in \mathbb{R}^n}k(g^{-1}y)f^0(y) dy$$
-
-Suppose $f^1: G \rightarrow \mathbb{R}^m$ is the output signal thereof, which is fed to the next layer.
+$$
+(f_0 \star \psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n} f_0(\mathbf{y}) \psi(h^{-1}(\mathbf{y} - \mathbf{x}))
+$$
+ 
+where $\mathbf{x} \in \mathbb{Z}^n$ and $h \in H$. This yields $f_1: \mathbb{Z}^n \times H \rightarrow \mathbb{R}^{c_1}$ which is fed to the next layer.
 
 #### $G$-equivariant convolution
 
-Now, $f^1$ undergoes $G$-equivariant convolution with a kernel $\psi: G \rightarrow \mathbb{R}^{k \times m}$ on $g \in G$:
+Then, $f_1$ undergoes $G$-equivariant convolution with a kernel $\Psi: G \rightarrow \mathbb{R}^{c_2 \times c_1}$:
 
-$$(\psi *_{G} f^1)(g) = \int_{h \in G}\psi(g^{-1}h)f^1(h)dh$$
-
-For now on we will focus on affine groups, i.e., let $G := \mathbb{R}^n \rtimes H$, where $H$ can be, for example, the rotation subgroup $SO(n)$. Therefore we will have:
-
-
-$$\begin{gathered} 
-(k*_{lifting} f^0)(x, h) = \int_{y \in \mathbb{R}^n}k(h^{-1}(y-x))f^0(y) dy\\
-(\psi *_{G} f^1)(x,h) = \int_{y \in \mathbb{R}^n}\int_{h' \in H}\psi(h^{-1}(y-x), h^{-1}h')f^1(y, h')dh'dy
-\end{gathered}
+$$
+(f_1 \star \Psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n} \sum_{h' \in H} f_1(\mathbf{y}, h') \psi(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1}h')
 $$
 
+where $\mathbf{x} \in \mathbb{Z}^n$ and $h \in H$. This outputs the signal $f_2: \mathbb{Z}^n \times H \rightarrow \mathbb{R}^{c_2}$. This way of convolving is repeated for all subsequent layers until the final aggregation layer, e.g. linear layer, if there is one.
 
-
-This gives the output signal $f^2: \mathbb{R}^n \times H \rightarrow \mathbb{R}^k$. This way of convolving is repeated for all subsequent layers until the final aggregation layer, e.g. linear layer, if there is one.
-
-Note that for *regular* group convolution to be practically feasible, $G$ has to be **finite** or addecuatly supsampled. Some of these limitations can be solved by *steerable* group convolutions.
+Note that for *regular* group convolution to be practically feasible, $G$ has to be **finite** or addecuatly subsampled. Some of these limitations can be solved by *steerable* group convolutions.
 
 #### Steerable G-CNN
 
-First, consider the group representations $\rho_{in}: H \rightarrow \mathbb{R}^{in \times in}$ and $\rho_{out}: H \rightarrow \mathbb{R}^{out \times out}$. To address the aforementioned equivariance problem, $G$-steerable convolution modifies $G$-equivariant convolution with the following three changes:
+First, consider the group representations $\rho_{in}: H \rightarrow \mathbb{R}^{c_\text{in} \times c_\text{in}}$ and $\rho_{out}: H \rightarrow \mathbb{R}^{c_\text{out} \times c_\text{out}}$. To address the aforementioned equivariance problem, $G$-steerable convolution modifies $G$-equivariant convolution with the following three changes:
 
-- The input signal becomes $f: \mathbb{R}^n \rightarrow \mathbb{R}^{in}$.
-- The kernel $\psi: \mathbb{R}^n \rightarrow \mathbb{R}^{out \times in}$ used must satisfy the following constraint for all $h \in H$: $$\psi(hx) = \rho_{out}(h) \psi(x) \rho_{in}(h^{-1})$$
-- Standard convolution only over $\mathbb{R}^n$ and not $G := \mathbb{R}^n \rtimes H$ is performed.
+- The input signal becomes $f: \mathbb{Z}^n \rightarrow \mathbb{R}^{c_\text{in}}$.
+- The kernel $\psi: \mathbb{Z}^n \rightarrow \mathbb{R}^{c_\text{out} \times c_\text{in}}$ used must satisfy the following constraint for all $h \in H$: $$\psi(h\mathbf{x}) = \rho_{out}(h) \psi(\mathbf{x}) \rho_{in}(h^{-1})$$
+- Standard convolution only over $\mathbb{Z}^n$ and not $G := \mathbb{Z}^n \rtimes H$ is performed.
 
 To secure kernel $\psi$ has the mentioned property, we precompute a set of non-learnable basis kernels $(\psi_l)_{l=1}^L$ which do have it, and define all other kernels as weighted combinations of the basis kernels, using learnable weights with the same shape as the kernels.
 
 Therefore, the convolution is of the form:
 
 $$
-(\psi*_{\mathbb{Z}^n}f) (x) = \sum_{y \in \mathbb{Z}^n} \sum_{l=1}^L (w_l ⊙ \psi_l(y))f(x+y)
+(f \star_{\mathbb{Z}^n} \psi) (\mathbf{x}) = \sum_{\mathbf{y} \in \mathbb{Z}^n} \sum_{l=1}^L (w_l ⊙ \psi_l(\mathbf{y}))f(\mathbf{x}+\mathbf{y})
 $$
 
 Whenever both $\rho_{in}$ and $\rho_{out}$ can be decomposed into smaller building blocks called **irreducible representations**, equivariance w.r.t. infinite group $G$ is achieved (see Appendix A.1 of <d-cite key="bekkers2024fastexpressivesenequivariant"></d-cite>).
@@ -149,32 +167,22 @@ Whenever both $\rho_{in}$ and $\rho_{out}$ can be decomposed into smaller buildi
 
 #### Relaxed G-CNN
 
-The desirability of equivariance in a network depends on the amount of equivariance possessed by the data of interest. To this end, *relaxed* G-CNN is built on top of a regular G-CNN using a modified (relaxed) kernel consisting of a linear combination of standard G-CNN kernels. Consider $G := \mathbb{Z}^n \rtimes H$. Then, *relaxed* G-equivariant group convolution is defined as:
-
-<!---
-$$
-(\psi \tilde{*}_{G} f)(g) = \sum_{h \in G}\psi(g,h)f(h) = \sum_{h \in G}\sum_{l=1}^L w_l(h) \psi_l(g^{-1}h)f(h)
-$$
+The desirability of equivariance in a network depends on the amount of equivariance possessed by the data of interest. To this end, *relaxed* G-CNN is built on top of a regular G-CNN using a modified (relaxed) kernel consisting of a linear combination of standard G-CNN kernels $ \\{\Psi_l \\}_1^{L} $. Consider $G := \mathbb{Z}^n \rtimes H$. Then, *relaxed* G-equivariant group convolution is defined as:
 
 $$
-(\psi \tilde{*}_{G} f)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h') \psi(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')
-$$
--->
-
-$$
-(\psi \tilde{*}_{G} f)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h') \sum_{l=1}^L w_l(h) \psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')
+(f \tilde{\star} \Psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f(\mathbf{y}, h') \sum_{l=1}^L w_l(h) \Psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')
 $$
 
 or equivalently as a linear combination of regular group convolutions with different kernels:
 
 $$
 \begin{aligned}
-(\psi \tilde{*}_{G} f)(\mathbf{x}, h) &= \sum_{l=1}^L w_l(h) \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h')  \psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')\\
- &= \sum_{l=1}^L w_l(h) [(\psi_l *_{G} f)(\mathbf{x}, h)]
+(f \tilde{\star} \Psi)(\mathbf{x}, h) &= \sum_{l=1}^L w_l(h) \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f(\mathbf{y}, h')  \Psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')\\
+ &= \sum_{l=1}^L w_l(h) [(f \star_{G} \Psi_l)(\mathbf{x}, h)]
 \end{aligned}
 $$
 
-This second formulation makes for a more interpretable visualization, as one can see in the following figure. There, one can observe how a network might learn to downweight the feature maps corresponding to 180 degree rotations, thus breaking rotational equivariance and allowing for different processing of images picturing 6s and 9s. 
+This second formulation makes for a more interpretable visualization, as one can see in the following figure. There, one can observe how a network might learn to downweight the feature maps corresponding to 180 degree rotations, thus breaking rotational equivariance and allowing for different processing of images picturing 6s and 9s.
 
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
@@ -182,7 +190,8 @@ This second formulation makes for a more interpretable visualization, as one can
     </div>
 </div>
 <div class="caption">
-A visual example of a relaxed lifting convolution (for $L=1$). 
+Visualization of relaxed lifting convolutions ($L=1$) as template matching.
+An input image $f_\text{in}$ contains a pattern $e$ in different orientations, each of which is weighted differently by the model.
 </div>
 
 
@@ -196,7 +205,7 @@ Therefore, using relaxed group convolutions allows the network to relax strict s
 
 Relaxed steerable G-CNN modified steerable G-CNN in a similar manner. Again, let the kernel in convolution be a linear combination of other kernels, such that the weights used depend on the variable of integration, leading to loss of equivariance.
 
-$$(\psi \tilde{*}_{\mathbb{Z}^2} f) (x) = \sum_{y \in \mathbb{Z}^2} \sum_{l=1}^L (w_l(y) ⊙ \psi_l(y))f(x+y)$$
+$$(f \tilde{\star}_{\mathbb{Z}^n} \psi) (\mathbf{x}) = \sum_{\mathbf{y} \in \mathbb{Z}^n} \sum_{l=1}^L (w_l(\mathbf{y}) ⊙ \psi_l(\mathbf{y}))f(\mathbf{x}+\mathbf{y})$$
 
 
 Furthermore, <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite> introduces a regularization term to impose equivariance on both relaxed models mentioned above. In our experiments, however, the best-performing models were those without this term.
@@ -252,15 +261,15 @@ This definition is an adaptation from the one in <d-cite key="zhao2024improvingc
 
 #### Hessian Eigenvalue 
 
-Finally, the Hessian eigenvalue spectrum (<d-cite key="park2022visiontransformerswork"></d-cite>) sheds light on both the efficiency and efficacy of neural network training. Negative Hessian eigenvalues indicate a non-convex loss landscape, which can disturb the optimization process, whereas very large eigenvalues indicate training instability, sharp minima and consequently poor generalization.
+Finally, the Hessian eigenvalue spectrum <d-cite key="park2022visiontransformerswork"></d-cite> sheds light on both the efficiency and efficacy of neural network training. Negative Hessian eigenvalues indicate a non-convex loss landscape, which can disturb the optimization process, whereas very large eigenvalues indicate training instability, sharp minima and consequently poor generalization.
 
 ## Results
 In this section, we study how equivariance imposed on a network influences the convexity of the loss landscape and generalization, answering all the subquestions posed in [Introduction](#Introduction). 
 
 ### Smoke Plume with full Equivariance
 
+First, we examine the training, validation and test RMSE for the Steerable G-CNN (E2CNN) <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite> and Relaxed Steerable G-CNN (Rsteer) <d-cite key="weiler2021generale2equivariantsteerablecnns"></d-cite> models on the fully equivariant Smoke Plume dataset.
 
-First, we examine the training, validation and test RMSE for the E2CNN and Rsteer models on the fully equivariant Smoke Plume dataset. 
 <table>
   <tr>
     <td>
@@ -292,19 +301,32 @@ To understand why relaxed equivariant models outperform fully equivariant ones, 
 
 Figure 10 shows that the rsteer model has much lower sharpness of the loss landscape compared to E2CNN for both checkpoints. This indicates a lower generalization gap, and thus more effective learning. This matches the lower validation RMSE curve we saw earlier.
 
-
+<!---
 <table>
   <tr>
     <td>
-      <img src="https://hackmd.io/_uploads/rJJQKAyNC.png" alt="Epoch 3" style="max-width: 100%;">
+      <img src="assets/img/2024-06-30-relaxed-equivariance/correct_hession3.png" alt="Epoch 3" style="max-width: 100%;">
       <p align="center">Figure 9: Hessian spectra at an early epoch for rsteer and E2CNN models</p>
     </td>
     <td>
-      <img src="https://hackmd.io/_uploads/S1jQF0JN0.png" alt="Epoch best" style="max-width: 100%;">
+      <img src="assets/img/2024-06-30-relaxed-equivariance/correct_hessian50.png" alt="Epoch best" style="max-width: 100%;">
       <p align="center">Figure 10: Hessian spectra at the best epoch for rsteer and E2CNN models</p>
     </td>
   </tr>
 </table>
+-->
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" path="assets/img/2024-06-30-relaxed-equivariance/correct_hession3.png" class="img-fluid rounded z-depth-1" %}
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" path="assets/img/2024-06-30-relaxed-equivariance/correct_hessian50.png" class="img-fluid rounded z-depth-1" %}
+    </div>
+</div>
+<div class="caption">
+    A simple, elegant caption looks good between image rows, after each row, or doesn't have to be there at all.
+</div>
 
 Figures 9 and 10 show Hessian spectra for the same checkpoints as the previous analysis. Regarding loss landscape flatness, both plots indicate that E2CNN has much larger eigenvalues than rsteer, potentially leading to training instability, less flat minima, and poor generalization for E2CNN.
 
@@ -351,38 +373,8 @@ We furthermore investigated the authors' speculation that this superior performa
 
 Our results suggest that replacing fully equivariant networks with relaxed equivariant networks could be advantageous in all application domains where some level of model equivariance is desired, including those where full equivariance is beneficial. For future research, we should investigate different versions of the relaxed model to find out which hyperparameters, like the number of filter banks, correlate with sharpness. Additionally, the method should be applied to different types of data to see if the same observations can be made there.
 
-<!---
-## References
+## Code
 
-[1] Wang, R., Walters, R., & Smidt, T. E. (2023). Relaxed Octahedral Group Convolution for Learning Symmetry Breaking in 3D Physical Systems. arXiv preprint arXiv:2310.02299.
-
-[2] Gruver, N., Finzi, M., Goldblum, M., & Wilson, A. G. (2022). The lie derivative for measuring learned equivariance. arXiv preprint arXiv:2210.02984.
-
-[3] Park, N., & Kim, S. (2022). How do vision transformers work?. arXiv preprint arXiv:2202.06709.
-
-[4] Zhao, B., Gower, R. M., Walters, R., & Yu, R. (2023). Improving Convergence and Generalization Using Parameter Symmetries. arXiv preprint arXiv:2305.13404.
-
-[5] Wang, R., Walters, R., & Yu, R. (2022, June). Approximately equivariant networks for imperfectly symmetric dynamics. In International Conference on Machine Learning (pp. 23078-23091). PMLR.
-
-[6] Holl, P., Koltun, V., Um, K., & Thuerey, N. (2020). phiflow: A differentiable pde solving framework for deep learning via physical simulations. In NeurIPS workshop (Vol. 2).
-
-[7]  Y. Li, E. Perlman, M. Wan, Y. Yang, C. Meneveau, R. Burns, S. Chen, A. Szalay & G. Eyink. "A public turbulence database cluster and applications to study Lagrangian evolution of velocity increments in turbulence". Journal of Turbulence 9, No. 31, 2008.
-
-[8] E. Perlman, R. Burns, Y. Li, and C. Meneveau. "Data Exploration of Turbulence Simulations using a Database Cluster". Supercomputing SC07, ACM, IEEE, 2007.
-
-[9] Super-resolution of Velocity Fields in Three-dimensional Fluid Dynamics: https://huggingface.co/datasets/*******/jhtdb
-
-[10] Weiler, M. and Cesa, G. General E(2)-equivariant steerable CNNs. In Advances in Neural Information Processing Systems (NeurIPS), pp. 14334–14345, 2019b.
-
-[11] Turbulence SuperResolution Replication W&B Report: https://api.wandb.ai/links/*******/hxj68bs1
-
-[12] Equivariance and Training Stability W&B Report: https://api.wandb.ai/links/*******/yu9a85jn
-
-[13] Rotation SmokePlume Replication W&B Report: https://api.wandb.ai/links/*******/hjsmj1u7
-
-[14] `gconv` library for regular group convnets: https://github.com/*****/gconv
-
-[15] Bekkers, E. J., Vadgama, S., Hesselink, R. D., van der Linden, P. A., & Romero, D. W. (2023). Fast, Expressive SE $(n)$ Equivariant Networks through Weight-Sharing in Position-Orientation Space. arXiv preprint arXiv:2310.02970.
-
-[16] M. Cordts, M. Omran, S. Ramos, T. Rehfeld, M. Enzweiler, R. Benenson, U. Franke, S. Roth, and B. Schiele, “The Cityscapes Dataset for Semantic Urban Scene Understanding,” in Proc. of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2016
--->
+- [Code and experiments for this blog](https://github.com/dgcnz/relaxed-equivariance-dynamics)
+- [`gconv`, a PyTorch library for (relaxed) regular GCNNs](https://github.com/dgcnz/gconv)
+- [JHTDB 🤗 HuggingFace Dataset](https://huggingface.co/datasets/dl2-g32/jhtdb)
