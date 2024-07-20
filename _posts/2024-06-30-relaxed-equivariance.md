@@ -168,16 +168,6 @@ Whenever both $\rho_{in}$ and $\rho_{out}$ can be decomposed into smaller buildi
 
 The desirability of equivariance in a network depends on the amount of equivariance possessed by the data of interest. To this end, *relaxed* G-CNN is built on top of a regular G-CNN using a modified (relaxed) kernel consisting of a linear combination of standard G-CNN kernels. Consider $G := \mathbb{Z}^n \rtimes H$. Then, *relaxed* G-equivariant group convolution is defined as:
 
-<!---
-$$
-(\psi \tilde{*}_{G} f)(g) = \sum_{h \in G}\psi(g,h)f(h) = \sum_{h \in G}\sum_{l=1}^L w_l(h) \psi_l(g^{-1}h)f(h)
-$$
-
-$$
-(\psi \tilde{*}_{G} f)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h') \psi(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')
-$$
--->
-
 $$
 (\psi \tilde{*}_{G} f)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h') \sum_{l=1}^L w_l(h) \psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')
 $$
