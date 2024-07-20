@@ -122,30 +122,29 @@ To build such a network, it is sufficient that each of its layers is equivariant
 
 For now on we will focus on affine groups, i.e., let $G := \mathbb{Z}^n \rtimes H$, where $H$ can be, for example, the rotation subgroup $SO(n)$ and $\mathbb{Z}^n$, the discrete translation group.
 
+Furthermore, we'll consider an input signal of $c_0$ channels on an $n$-dimensional grid $f_0: \mathbb{Z}^n \rightarrow \mathbb{R}^{c_0}$, e.g. RGB images ($f: \mathbb{Z}^2 \rightarrow \mathbb{R}^3$ ). 
 
 #### Lifting convolution
 
-Consider an input signal of $c_0$ channels on an $n$-dimensional grid $f_0: \mathbb{Z}^n \rightarrow \mathbb{R}^{c_0}$, e.g. RGB images ($f: \mathbb{Z}^2 \rightarrow \mathbb{R}^3$ ). When passing it through a G-CNN, from the outset, it undergoes the lifting convolution with kernel $\psi : \mathbb{Z}^n \rightarrow \mathbb{R}^{c_1 \times c_0}$ on $x \in \mathbb{Z}^n$ and $h \in H$ as follows:
+The first layer of a G-CNN lifts the input signal $f_0$ to the group $G$ using the kernel $\psi : \mathbb{Z}^n \rightarrow \mathbb{R}^{c_1 \times c_0}$ as follows:
 
 $$
 (f_0 \star \psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n} f_0(\mathbf{y}) \psi(h^{-1}(\mathbf{y} - \mathbf{x}))
 $$
-
-This yields $f_1: \mathbb{Z}^n \times H \rightarrow \mathbb{R}^{c_1}$ which is fed to the next layer.
+ 
+where $\mathbf{x} \in \mathbb{Z}^n$ and $h \in H$. This yields $f_1: \mathbb{Z}^n \times H \rightarrow \mathbb{R}^{c_1}$ which is fed to the next layer.
 
 #### $G$-equivariant convolution
 
-Now, $f_1$ undergoes $G$-equivariant convolution with a kernel $\Psi: G \rightarrow \mathbb{R}^{c_2 \times c_1}$ on $x \in \mathbb{Z}^n$ and $h \in H$:
-
+Then, $f_1$ undergoes $G$-equivariant convolution with a kernel $\Psi: G \rightarrow \mathbb{R}^{c_2 \times c_1}$:
 
 $$
 (f_1 \star \Psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n} \sum_{h' \in H} f_1(\mathbf{y}, h') \psi(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1}h')
 $$
 
+where $\mathbf{x} \in \mathbb{Z}^n$ and $h \in H$. This outputs the signal $f_2: \mathbb{Z}^n \times H \rightarrow \mathbb{R}^{c_2}$. This way of convolving is repeated for all subsequent layers until the final aggregation layer, e.g. linear layer, if there is one.
 
-This gives the output signal $f_2: \mathbb{Z}^n \times H \rightarrow \mathbb{R}^{c_2}$. This way of convolving is repeated for all subsequent layers until the final aggregation layer, e.g. linear layer, if there is one.
-
-Note that for *regular* group convolution to be practically feasible, $G$ has to be **finite** or addecuatly supsampled. Some of these limitations can be solved by *steerable* group convolutions.
+Note that for *regular* group convolution to be practically feasible, $G$ has to be **finite** or addecuatly subsampled. Some of these limitations can be solved by *steerable* group convolutions.
 
 #### Steerable G-CNN
 
@@ -168,22 +167,22 @@ Whenever both $\rho_{in}$ and $\rho_{out}$ can be decomposed into smaller buildi
 
 #### Relaxed G-CNN
 
-The desirability of equivariance in a network depends on the amount of equivariance possessed by the data of interest. To this end, *relaxed* G-CNN is built on top of a regular G-CNN using a modified (relaxed) kernel consisting of a linear combination of standard G-CNN kernels. Consider $G := \mathbb{Z}^n \rtimes H$. Then, *relaxed* G-equivariant group convolution is defined as:
+The desirability of equivariance in a network depends on the amount of equivariance possessed by the data of interest. To this end, *relaxed* G-CNN is built on top of a regular G-CNN using a modified (relaxed) kernel consisting of a linear combination of standard G-CNN kernels $ \\{\Psi_l \\}_1^{L} $. Consider $G := \mathbb{Z}^n \rtimes H$. Then, *relaxed* G-equivariant group convolution is defined as:
 
 $$
-(f \tilde{\star} \psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h') \sum_{l=1}^L w_l(h) \psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')
+(f \tilde{\star} \Psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f(\mathbf{y}, h') \sum_{l=1}^L w_l(h) \Psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')
 $$
 
 or equivalently as a linear combination of regular group convolutions with different kernels:
 
 $$
 \begin{aligned}
-(f \tilde{\star} \psi)(\mathbf{x}, h) &= \sum_{l=1}^L w_l(h) \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h')  \psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')\\
- &= \sum_{l=1}^L w_l(h) [(f \star_{G} \psi_l)(\mathbf{x}, h)]
+(f \tilde{\star} \Psi)(\mathbf{x}, h) &= \sum_{l=1}^L w_l(h) \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f(\mathbf{y}, h')  \Psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')\\
+ &= \sum_{l=1}^L w_l(h) [(f \star_{G} \Psi_l)(\mathbf{x}, h)]
 \end{aligned}
 $$
 
-This second formulation makes for a more interpretable visualization, as one can see in the following figure. There, one can observe how a network might learn to downweight the feature maps corresponding to 180 degree rotations, thus breaking rotational equivariance and allowing for different processing of images picturing 6s and 9s. Note that $e$ in this image refers to the identity group element. 
+This second formulation makes for a more interpretable visualization, as one can see in the following figure. There, one can observe how a network might learn to downweight the feature maps corresponding to 180 degree rotations, thus breaking rotational equivariance and allowing for different processing of images picturing 6s and 9s.
 
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
@@ -191,7 +190,8 @@ This second formulation makes for a more interpretable visualization, as one can
     </div>
 </div>
 <div class="caption">
-A visual example of a relaxed lifting convolution (for $L=1$). 
+Visualization of relaxed lifting convolutions ($L=1$) as template matching.
+An input image $f_\text{in}$ contains a pattern $e$ in different orientations, each of which is weighted differently by the model.
 </div>
 
 
@@ -301,19 +301,32 @@ To understand why relaxed equivariant models outperform fully equivariant ones, 
 
 Figure 10 shows that the rsteer model has much lower sharpness of the loss landscape compared to E2CNN for both checkpoints. This indicates a lower generalization gap, and thus more effective learning. This matches the lower validation RMSE curve we saw earlier.
 
-
+<!---
 <table>
   <tr>
     <td>
-      <img src="C:\Nesta\Master AI\jaar 1\RecSYS\code repo\relaxed-equivariance-blog\assets\img\2024-06-30-relaxed-equivariance\correct_hession3.png" alt="Epoch 3" style="max-width: 100%;">
+      <img src="assets/img/2024-06-30-relaxed-equivariance/correct_hession3.png" alt="Epoch 3" style="max-width: 100%;">
       <p align="center">Figure 9: Hessian spectra at an early epoch for rsteer and E2CNN models</p>
     </td>
     <td>
-      <img src="C:\Nesta\Master AI\jaar 1\RecSYS\code repo\relaxed-equivariance-blog\assets\img\2024-06-30-relaxed-equivariance\correct_hessian50.png" alt="Epoch best" style="max-width: 100%;">
+      <img src="assets/img/2024-06-30-relaxed-equivariance/correct_hessian50.png" alt="Epoch best" style="max-width: 100%;">
       <p align="center">Figure 10: Hessian spectra at the best epoch for rsteer and E2CNN models</p>
     </td>
   </tr>
 </table>
+-->
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" path="assets/img/2024-06-30-relaxed-equivariance/correct_hession3.png" class="img-fluid rounded z-depth-1" %}
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" path="assets/img/2024-06-30-relaxed-equivariance/correct_hessian50.png" class="img-fluid rounded z-depth-1" %}
+    </div>
+</div>
+<div class="caption">
+    A simple, elegant caption looks good between image rows, after each row, or doesn't have to be there at all.
+</div>
 
 Figures 9 and 10 show Hessian spectra for the same checkpoints as the previous analysis. Regarding loss landscape flatness, both plots indicate that E2CNN has much larger eigenvalues than rsteer, potentially leading to training instability, less flat minima, and poor generalization for E2CNN.
 
