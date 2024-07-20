@@ -90,7 +90,7 @@ Inspired by the aforementioned observations, this blog post aims to answer the q
 
 We tackle these subquestions by analyzing trained models to investigate their training dynamics.
 
-In view of space constraint, in this blogpost, we omit our reproducibility study and refer the readers to [our extended blog post](https://github.com/*****/***/blob/main/blogpost.md) (removed for anonimization). Nevertheless, our reproducibility studies corroborated the following claims:
+In view of space constraint, in this blogpost, we omit our reproducibility study and refer the readers to [our extended blog post](https://github.com/dgcnz/dl2/blob/main/blogpost.md) (removed for anonimization). Nevertheless, our reproducibility studies corroborated the following claims:
 1. Relaxed steerable G-CNN outperforms steerable G-CNN (fully equivariant network) on fully rotationally equivariant data as shown in the experiment on the super resolution dataset in <d-cite key="wang2023relaxed"></d-cite>.
 2. Relaxed G-CNN outperforms G-CNN on non-fully rotationally equivariant data as shown in the experiment on the smoke plume dataset in <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite>.
 
