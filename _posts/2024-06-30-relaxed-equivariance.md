@@ -4,14 +4,31 @@ title: Effect of equivariance on training dynamics
 description: Can relaxing equivariance help in finding better minima?
 tags: distill formatting
 giscus_comments: true
-date: 2024-06-30
+date: 2024-07-20
 featured: true
 
 authors:
-  - name: Anon
-    url: "anon.com"
+  - name: Diego Canez
+    url: "https://github.com/dgcnz"
     affiliations:
-      name: Anon
+      name: University of Amsterdam
+  - name: Nesta Midavaine
+    url: "https://github.com/Nesta-gitU"
+    affiliations:
+      name: University of Amsterdam
+  - name: Thijs Stessen
+    url: "https://github.com/MeneerTS"
+    affiliations:
+      name: University of Amsterdam
+  - name: Jiapeng Fan
+    url: "https://github.com/JiapengFan"
+    affiliations:
+      name: University of Amsterdam
+  - name: Sebastian Arias
+    url: "https://github.com/SebastianUrielArias"
+    affiliations:
+      name: University of Amsterdam
+
 
 bibliography: 2024-06-30-relaxed-equivariance.bib
 
