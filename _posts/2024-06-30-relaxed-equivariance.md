@@ -28,6 +28,10 @@ authors:
     url: "https://github.com/SebastianUrielArias"
     affiliations:
       name: University of Amsterdam
+  - name: Alejandro Garcia (supervisor)
+    url: "https://github.com/AGarciaCast"
+    affiliations:
+      name: University of Amsterdam
 
 
 bibliography: 2024-06-30-relaxed-equivariance.bib
@@ -114,51 +118,49 @@ NN (T_g x) = T'_g NN (x) & \qquad \qquad \forall g \in G. \\
 $$
 
 
-To build such a network, it is sufficient that each of its layers is equivariant in the same sense. Recall that a CNN achieves equivariance to translations by sharing weights in kernels that are translated across the input in each of its convolution layers. Hence, a G-CNN extends this concept of weight sharing to achieve equivariance w.r.t an arbitrary locally-compact group $G$. 
+To build such a network, it is sufficient that each of its layers is equivariant in the same sense. Recall that a CNN achieves equivariance to translations by sharing weights in kernels that are translated across the input in each of its convolution layers. Hence, a G-CNN extends this concept of weight sharing to achieve equivariance w.r.t an arbitrary locally-compact group $G$.  
+
+For now on we will focus on affine groups, i.e., let $G := \mathbb{Z}^n \rtimes H$, where $H$ can be, for example, the rotation subgroup $SO(n)$ and $\mathbb{Z}^n$, the discrete translation group.
+
 
 #### Lifting convolution
 
-Consider an input signal $f^0: \mathbb{R}^n \rightarrow \mathbb{R}^c$, where $c$ is the number of channels. When passing it through a G-CNN, from the outset, it undergoes the lifting convolution with kernel $k : \mathbb{R}^n \rightarrow \mathbb{R}^{m \times c}$ on $x \in \mathbb{R}^n$ and $g \in G$:
+Consider an input signal of $c_0$ channels on an $n$-dimensional grid $f_0: \mathbb{Z}^n \rightarrow \mathbb{R}^{c_0}$, e.g. RGB images ($f: \mathbb{Z}^2 \rightarrow \mathbb{R}^3$ ). When passing it through a G-CNN, from the outset, it undergoes the lifting convolution with kernel $\psi : \mathbb{Z}^n \rightarrow \mathbb{R}^{c_1 \times c_0}$ on $x \in \mathbb{Z}^n$ and $h \in H$ as follows:
 
-$$(k*_{lifting} f^0)(g) = \int_{y \in \mathbb{R}^n}k(g^{-1}y)f^0(y) dy$$
+$$
+(f_0 \star \psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n} f_0(\mathbf{y}) \psi(h^{-1}(\mathbf{y} - \mathbf{x}))
+$$
 
-Suppose $f^1: G \rightarrow \mathbb{R}^m$ is the output signal thereof, which is fed to the next layer.
+This yields $f_1: \mathbb{Z}^n \times H \rightarrow \mathbb{R}^{c_1}$ which is fed to the next layer.
 
 #### $G$-equivariant convolution
 
-Now, $f^1$ undergoes $G$-equivariant convolution with a kernel $\psi: G \rightarrow \mathbb{R}^{k \times m}$ on $g \in G$:
-
-$$(\psi *_{G} f^1)(g) = \int_{h \in G}\psi(g^{-1}h)f^1(h)dh$$
-
-For now on we will focus on affine groups, i.e., let $G := \mathbb{R}^n \rtimes H$, where $H$ can be, for example, the rotation subgroup $SO(n)$. Therefore we will have:
+Now, $f_1$ undergoes $G$-equivariant convolution with a kernel $\Psi: G \rightarrow \mathbb{R}^{c_2 \times c_1}$ on $x \in \mathbb{Z}^n$ and $h \in H$:
 
 
-$$\begin{gathered} 
-(k*_{lifting} f^0)(x, h) = \int_{y \in \mathbb{R}^n}k(h^{-1}(y-x))f^0(y) dy\\
-(\psi *_{G} f^1)(x,h) = \int_{y \in \mathbb{R}^n}\int_{h' \in H}\psi(h^{-1}(y-x), h^{-1}h')f^1(y, h')dh'dy
-\end{gathered}
+$$
+(f_1 \star \Psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n} \sum_{h' \in H} f_1(\mathbf{y}, h') \psi(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1}h')
 $$
 
 
-
-This gives the output signal $f^2: \mathbb{R}^n \times H \rightarrow \mathbb{R}^k$. This way of convolving is repeated for all subsequent layers until the final aggregation layer, e.g. linear layer, if there is one.
+This gives the output signal $f_2: \mathbb{Z}^n \times H \rightarrow \mathbb{R}^{c_2}$. This way of convolving is repeated for all subsequent layers until the final aggregation layer, e.g. linear layer, if there is one.
 
 Note that for *regular* group convolution to be practically feasible, $G$ has to be **finite** or addecuatly supsampled. Some of these limitations can be solved by *steerable* group convolutions.
 
 #### Steerable G-CNN
 
-First, consider the group representations $\rho_{in}: H \rightarrow \mathbb{R}^{in \times in}$ and $\rho_{out}: H \rightarrow \mathbb{R}^{out \times out}$. To address the aforementioned equivariance problem, $G$-steerable convolution modifies $G$-equivariant convolution with the following three changes:
+First, consider the group representations $\rho_{in}: H \rightarrow \mathbb{R}^{c_\text{in} \times c_\text{in}}$ and $\rho_{out}: H \rightarrow \mathbb{R}^{c_\text{out} \times c_\text{out}}$. To address the aforementioned equivariance problem, $G$-steerable convolution modifies $G$-equivariant convolution with the following three changes:
 
-- The input signal becomes $f: \mathbb{R}^n \rightarrow \mathbb{R}^{in}$.
-- The kernel $\psi: \mathbb{R}^n \rightarrow \mathbb{R}^{out \times in}$ used must satisfy the following constraint for all $h \in H$: $$\psi(hx) = \rho_{out}(h) \psi(x) \rho_{in}(h^{-1})$$
-- Standard convolution only over $\mathbb{R}^n$ and not $G := \mathbb{R}^n \rtimes H$ is performed.
+- The input signal becomes $f: \mathbb{Z}^n \rightarrow \mathbb{R}^{c_\text{in}}$.
+- The kernel $\psi: \mathbb{Z}^n \rightarrow \mathbb{R}^{c_\text{out} \times c_\text{in}}$ used must satisfy the following constraint for all $h \in H$: $$\psi(h\mathbf{x}) = \rho_{out}(h) \psi(\mathbf{x}) \rho_{in}(h^{-1})$$
+- Standard convolution only over $\mathbb{Z}^n$ and not $G := \mathbb{Z}^n \rtimes H$ is performed.
 
 To secure kernel $\psi$ has the mentioned property, we precompute a set of non-learnable basis kernels $(\psi_l)_{l=1}^L$ which do have it, and define all other kernels as weighted combinations of the basis kernels, using learnable weights with the same shape as the kernels.
 
 Therefore, the convolution is of the form:
 
 $$
-(\psi*_{\mathbb{Z}^n}f) (x) = \sum_{y \in \mathbb{Z}^n} \sum_{l=1}^L (w_l ⊙ \psi_l(y))f(x+y)
+(f \star_{\mathbb{Z}^n} \psi) (\mathbf{x}) = \sum_{\mathbf{y} \in \mathbb{Z}^n} \sum_{l=1}^L (w_l ⊙ \psi_l(\mathbf{y}))f(\mathbf{x}+\mathbf{y})
 $$
 
 Whenever both $\rho_{in}$ and $\rho_{out}$ can be decomposed into smaller building blocks called **irreducible representations**, equivariance w.r.t. infinite group $G$ is achieved (see Appendix A.1 of <d-cite key="bekkers2024fastexpressivesenequivariant"></d-cite>).
@@ -169,15 +171,15 @@ Whenever both $\rho_{in}$ and $\rho_{out}$ can be decomposed into smaller buildi
 The desirability of equivariance in a network depends on the amount of equivariance possessed by the data of interest. To this end, *relaxed* G-CNN is built on top of a regular G-CNN using a modified (relaxed) kernel consisting of a linear combination of standard G-CNN kernels. Consider $G := \mathbb{Z}^n \rtimes H$. Then, *relaxed* G-equivariant group convolution is defined as:
 
 $$
-(\psi \tilde{*}_{G} f)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h') \sum_{l=1}^L w_l(h) \psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')
+(f \tilde{\star} \psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h') \sum_{l=1}^L w_l(h) \psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')
 $$
 
 or equivalently as a linear combination of regular group convolutions with different kernels:
 
 $$
 \begin{aligned}
-(\psi \tilde{*}_{G} f)(\mathbf{x}, h) &= \sum_{l=1}^L w_l(h) \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h')  \psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')\\
- &= \sum_{l=1}^L w_l(h) [(\psi_l *_{G} f)(\mathbf{x}, h)]
+(f \tilde{\star} \psi)(\mathbf{x}, h) &= \sum_{l=1}^L w_l(h) \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h')  \psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')\\
+ &= \sum_{l=1}^L w_l(h) [(f \star_{G} \psi_l)(\mathbf{x}, h)]
 \end{aligned}
 $$
 
@@ -203,7 +205,7 @@ Therefore, using relaxed group convolutions allows the network to relax strict s
 
 Relaxed steerable G-CNN modified steerable G-CNN in a similar manner. Again, let the kernel in convolution be a linear combination of other kernels, such that the weights used depend on the variable of integration, leading to loss of equivariance.
 
-$$(\psi \tilde{*}_{\mathbb{Z}^2} f) (x) = \sum_{y \in \mathbb{Z}^2} \sum_{l=1}^L (w_l(y) ⊙ \psi_l(y))f(x+y)$$
+$$(f \tilde{\star}_{\mathbb{Z}^n} \psi) (\mathbf{x}) = \sum_{\mathbf{y} \in \mathbb{Z}^n} \sum_{l=1}^L (w_l(\mathbf{y}) ⊙ \psi_l(\mathbf{y}))f(\mathbf{x}+\mathbf{y})$$
 
 
 Furthermore, <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite> introduces a regularization term to impose equivariance on both relaxed models mentioned above. In our experiments, however, the best-performing models were those without this term.
