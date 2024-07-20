@@ -367,39 +367,3 @@ We reproduced and extended the relevant findings in <d-cite key="wang2023relaxed
 We furthermore investigated the authors' speculation that this superior performance could be due to relaxed models having enhanced training dynamics. Our experiments empirically support this hypothesis, showing that relaxed models exhibit lower validation error, a flatter loss landscape around the final weights, and smaller Hessian eigenvalues, all of which are indicators of improved training dynamics and better generalization.
 
 Our results suggest that replacing fully equivariant networks with relaxed equivariant networks could be advantageous in all application domains where some level of model equivariance is desired, including those where full equivariance is beneficial. For future research, we should investigate different versions of the relaxed model to find out which hyperparameters, like the number of filter banks, correlate with sharpness. Additionally, the method should be applied to different types of data to see if the same observations can be made there.
-
-<!---
-## References
-
-[1] Wang, R., Walters, R., & Smidt, T. E. (2023). Relaxed Octahedral Group Convolution for Learning Symmetry Breaking in 3D Physical Systems. arXiv preprint arXiv:2310.02299.
-
-[2] Gruver, N., Finzi, M., Goldblum, M., & Wilson, A. G. (2022). The lie derivative for measuring learned equivariance. arXiv preprint arXiv:2210.02984.
-
-[3] Park, N., & Kim, S. (2022). How do vision transformers work?. arXiv preprint arXiv:2202.06709.
-
-[4] Zhao, B., Gower, R. M., Walters, R., & Yu, R. (2023). Improving Convergence and Generalization Using Parameter Symmetries. arXiv preprint arXiv:2305.13404.
-
-[5] Wang, R., Walters, R., & Yu, R. (2022, June). Approximately equivariant networks for imperfectly symmetric dynamics. In International Conference on Machine Learning (pp. 23078-23091). PMLR.
-
-[6] Holl, P., Koltun, V., Um, K., & Thuerey, N. (2020). phiflow: A differentiable pde solving framework for deep learning via physical simulations. In NeurIPS workshop (Vol. 2).
-
-[7]  Y. Li, E. Perlman, M. Wan, Y. Yang, C. Meneveau, R. Burns, S. Chen, A. Szalay & G. Eyink. "A public turbulence database cluster and applications to study Lagrangian evolution of velocity increments in turbulence". Journal of Turbulence 9, No. 31, 2008.
-
-[8] E. Perlman, R. Burns, Y. Li, and C. Meneveau. "Data Exploration of Turbulence Simulations using a Database Cluster". Supercomputing SC07, ACM, IEEE, 2007.
-
-[9] Super-resolution of Velocity Fields in Three-dimensional Fluid Dynamics: https://huggingface.co/datasets/*******/jhtdb
-
-[10] Weiler, M. and Cesa, G. General E(2)-equivariant steerable CNNs. In Advances in Neural Information Processing Systems (NeurIPS), pp. 14334–14345, 2019b.
-
-[11] Turbulence SuperResolution Replication W&B Report: https://api.wandb.ai/links/*******/hxj68bs1
-
-[12] Equivariance and Training Stability W&B Report: https://api.wandb.ai/links/*******/yu9a85jn
-
-[13] Rotation SmokePlume Replication W&B Report: https://api.wandb.ai/links/*******/hjsmj1u7
-
-[14] `gconv` library for regular group convnets: https://github.com/*****/gconv
-
-[15] Bekkers, E. J., Vadgama, S., Hesselink, R. D., van der Linden, P. A., & Romero, D. W. (2023). Fast, Expressive SE $(n)$ Equivariant Networks through Weight-Sharing in Position-Orientation Space. arXiv preprint arXiv:2310.02970.
-
-[16] M. Cordts, M. Omran, S. Ramos, T. Rehfeld, M. Enzweiler, R. Benenson, U. Franke, S. Roth, and B. Schiele, “The Cityscapes Dataset for Semantic Urban Scene Understanding,” in Proc. of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2016
--->
