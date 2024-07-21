@@ -170,15 +170,15 @@ Whenever both $\rho_{in}$ and $\rho_{out}$ can be decomposed into smaller buildi
 The desirability of equivariance in a network depends on the amount of equivariance possessed by the data of interest. To this end, *relaxed* G-CNN is built on top of a regular G-CNN using a modified (relaxed) kernel consisting of a linear combination of standard G-CNN kernels $ \\{\Psi_l \\}_1^{L} $. Consider $G := \mathbb{Z}^n \rtimes H$. Then, *relaxed* G-equivariant group convolution is defined as:
 
 $$
-(f \tilde{\star} \Psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f(\mathbf{y}, h') \sum_{l=1}^L w_l(h) \Psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')
+(f\;\tilde{\star}\;\Psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f(\mathbf{y}, h') \sum_{l=1}^L w_l(h) \Psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')
 $$
 
 or equivalently as a linear combination of regular group convolutions with different kernels:
 
 $$
 \begin{aligned}
-(f \tilde{\star} \Psi)(\mathbf{x}, h) &= \sum_{l=1}^L w_l(h) \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f(\mathbf{y}, h')  \Psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')\\
- &= \sum_{l=1}^L w_l(h) [(f \star_{G} \Psi_l)(\mathbf{x}, h)]
+(f\;\tilde{\star}\;\Psi)(\mathbf{x}, h) &= \sum_{l=1}^L w_l(h) \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f(\mathbf{y}, h')  \Psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')\\
+ &= \sum_{l=1}^L w_l(h) [(f \star \Psi_l)(\mathbf{x}, h)]
 \end{aligned}
 $$
 
@@ -205,7 +205,7 @@ Therefore, using relaxed group convolutions allows the network to relax strict s
 
 Relaxed steerable G-CNN modified steerable G-CNN in a similar manner. Again, let the kernel in convolution be a linear combination of other kernels, such that the weights used depend on the variable of integration, leading to loss of equivariance.
 
-$$(f \tilde{\star}_{\mathbb{Z}^n} \psi) (\mathbf{x}) = \sum_{\mathbf{y} \in \mathbb{Z}^n} \sum_{l=1}^L (w_l(\mathbf{y}) ⊙ \psi_l(\mathbf{y}))f(\mathbf{x}+\mathbf{y})$$
+$$(f \;\tilde{\star}_{\mathbb{Z}^n} \;\psi) (\mathbf{x}) = \sum_{\mathbf{y} \in \mathbb{Z}^n} \sum_{l=1}^L (w_l(\mathbf{y}) ⊙ \psi_l(\mathbf{y}))f(\mathbf{x}+\mathbf{y})$$
 
 
 Furthermore, <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite> introduces a regularization term to impose equivariance on both relaxed models mentioned above. In our experiments, however, the best-performing models were those without this term.
