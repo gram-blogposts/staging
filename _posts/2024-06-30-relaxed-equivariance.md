@@ -139,7 +139,7 @@ where $\mathbf{x} \in \mathbb{Z}^n$ and $h \in H$. This yields $f_1: \mathbb{Z}^
 Then, $f_1$ undergoes $G$-equivariant convolution with a kernel $\Psi: G \rightarrow \mathbb{R}^{c_2 \times c_1}$:
 
 $$
-(f_1 \star \Psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n} \sum_{h' \in H} f_1(\mathbf{y}, h') \psi(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1}h')
+(f_1 \star \Psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n} \sum_{h' \in H} f_1(\mathbf{y}, h') \Psi(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1}h')
 $$
 
 where $\mathbf{x} \in \mathbb{Z}^n$ and $h \in H$. This outputs the signal $f_2: \mathbb{Z}^n \times H \rightarrow \mathbb{R}^{c_2}$. This way of convolving is repeated for all subsequent layers until the final aggregation layer, e.g. linear layer, if there is one.
