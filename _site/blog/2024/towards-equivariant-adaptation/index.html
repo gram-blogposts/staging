@@ -140,26 +140,37 @@
       {
             "title": "Towards Equivariant Adaptation of Large Pretrained Models",
             "description": "How do you make your foundation model <ins>equivariant and robust</ins> to known transformations without re-training from scratch?",
-            "published": "July 11, 2024",
+            "published": "July 21, 2024",
             "authors": [
               
               {
-                "author": "",
-                "authorURL": "",
+                "author": "Siba Smarak Panigrahi",
+                "authorURL": "https://sibasmarak.github.io/",
                 "affiliations": [
                   {
-                    "name": "",
+                    "name": "McGill University and Mila",
                     "url": ""
                   }
                 ]
               },
               
               {
-                "author": "",
-                "authorURL": "",
+                "author": "Arnab Kumar Mondal",
+                "authorURL": "https://arnab39.github.io/",
                 "affiliations": [
                   {
-                    "name": "",
+                    "name": "McGill University and Mila",
+                    "url": ""
+                  }
+                ]
+              },
+              
+              {
+                "author": "Sékou-Oumar Kaba",
+                "authorURL": "https://oumarkaba.github.io/",
+                "affiliations": [
+                  {
+                    "name": "McGill University and Mila",
                     "url": ""
                   }
                 ]
@@ -444,7 +455,15 @@ in the paper “Equivariant Adaptation of Large Pretrained Models”<d-cite key=
 
 <h2 id="decoupling-equivariance-from-architecture-with-canonicalization">Decoupling Equivariance from Architecture with Canonicalization</h2>
 
-<p>A recent alternative to designing equivariant networks was proposed by Kaba et al. <d-cite key="kaba2023equivariance"></d-cite>.  It suggests that instead of changing the network architecture to incorporate equivariance, why not first learn to transform the input data into a ‘standard’ format, also known as <code class="language-plaintext highlighter-rouge">canonical form</code>. This way, our task prediction network can work on this standardized format, ensuring consistency. This process involves adding an additional inexpensive network called the <code class="language-plaintext highlighter-rouge">canonicalization network</code>, which learns to standardize the input. The primary network that learns to solve the task based on the standardized input is called the <code class="language-plaintext highlighter-rouge">prediction network</code>. In this particular formulation, achieving equivariance requires only ensuring that the canonicalization process is invariant to the transformation of the input. This means no matter which orientation you see the input, the canonicalization process should always bring it back to the same canonical orientation. This is achieved by using a shallow and cheap equivariant architecture for the canonicalization network. (see <d-cite key="kaba2023equivariance"></d-cite> for more details)</p>
+<p>A recent alternative to designing equivariant networks was proposed by Kaba et al. <d-cite key="kaba2023equivariance"></d-cite>.  It suggests that instead of changing the network architecture to incorporate equivariance, why not first learn to transform the input data into a ‘standard’ format (or orientation), also known as <code class="language-plaintext highlighter-rouge">canonical form</code>. This way, our task prediction network can work on this standardized format, ensuring consistency. This process involves adding an additional inexpensive network called the <code class="language-plaintext highlighter-rouge">canonicalization network</code> or $c$, which learns to standardize the input. In our formulation, for an input $x$, the output from canonicalization network is $c(x) = g$, where $g$ denotes the group element corresponding to the orientation of $x$. The primary network that learns to solve the task based on the standardized input is called the <code class="language-plaintext highlighter-rouge">prediction network</code> or $\phi$. In this particular formulation, achieving equivariance requires only ensuring that the canonicalization process is invariant to the transformation of the input. This means no matter which orientation you see the input, the canonicalization process should always bring it back to the same canonical orientation. This is achieved by using a shallow and cheap equivariant architecture for the canonicalization network. (see <d-cite key="kaba2023equivariance"></d-cite> for more details)</p>
+
+<p>Finally, the combination of the canonicalization network and the prediction network can be represented as $\Phi$:</p>
+
+\[\Phi(x) = c(x) \circ \phi(c(x)^{-1}. x)\]
+
+\[\Rightarrow \Phi(g. x) = c(g. x) \circ \phi(c(g. x)^{-1}. g. x)\]
+
+\[\Rightarrow \Phi(g. x) = g.c(x) \circ \phi(c(x)^{-1}. x) = g \circ \Phi(x)\]
 
 <p>The beauty of this approach lies in how the canonicalization network separates the equivariance requirement from the core prediction network architecture. This means that you have the flexibility to employ any powerful pretrained large neural network for the main prediction task.</p>
 
@@ -487,7 +506,7 @@ This results in a highly robust model that can confidently handle varied transfo
     </div>
 </div>
 <div class="caption">
-    Training and inference with canonicalization prior. The canonicalization function learns to output the canonical orientations seen in the dataset during training by minimising KL between the orientation distributions of predicted and pretraing dataset (prior regularization). During inference, transformed data is brought back to the canonical orientation by the canonicalization proces
+    Training and inference with canonicalization prior. The canonicalization function learns to output the canonical orientations seen in the dataset during training by minimising KL between the orientation distributions of predicted and pretraing dataset (prior regularization). During inference, transformed data is brought back to the canonical orientation by the canonicalization process.
 </div>
 
 <h2 id="results-at-a-glance">Results at a Glance</h2>
