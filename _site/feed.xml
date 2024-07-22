@@ -1,5 +1,337 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-22T16:48:12+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
-</subtitle><entry><title type="html">Equivariant Diffusion for Molecule Generation in 3D using Consistency Models</title><link href="http://localhost:4000/blog/2024/equivariant_diffusion/" rel="alternate" type="text/html" title="Equivariant Diffusion for Molecule Generation in 3D using Consistency Models" /><published>2024-07-18T00:00:00+02:00</published><updated>2024-07-18T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/equivariant_diffusion</id><content type="html" xml:base="http://localhost:4000/blog/2024/equivariant_diffusion/"><![CDATA[<h2 id="introduction">Introduction</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-22T17:11:23+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+</subtitle><entry><title type="html">Effect of equivariance on training dynamics</title><link href="http://localhost:4000/blog/2024/relaxed-equivariance/" rel="alternate" type="text/html" title="Effect of equivariance on training dynamics" /><published>2024-07-20T00:00:00+02:00</published><updated>2024-07-20T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/relaxed-equivariance</id><content type="html" xml:base="http://localhost:4000/blog/2024/relaxed-equivariance/"><![CDATA[<p><em>Group Equivariant Convolutional Network</em> (G-CNN) has gained significant traction in recent years owing to their ability to generalize the property of CNNs being equivariant to translations in convolutional layers. With equivariance, the network is able to exploit groups of symmetries and a direct consequence of this is that it generally needs less data to perform well. However, incorporating such knowledge into the network may not always be advantageous, especially when the data itself does not exhibit full equivariance. To address this issue, the G-CNN was modified, introducing <em>relaxed group equivariant CNNs</em> (RG-CNN). Such modified networks adaptively learn the degree of equivariance imposed on the network, i.e. enabling it to operate on a level between full equivariance and no equivariance.
+Surprisingly, for rotational symmetries on fully equivariant data, <d-cite key="wang2023relaxed"></d-cite> found that a G-CNN exhibits poorer performance compared to a RG-CNN. This is a surprising result because a G-CNN, i.e. a fully equivariant network, is designed to perform well on fully equivariant data. Possibly the training dynamics benefit from relaxing of the equivariance constraint. To investigate this, we use the framework described in <d-cite key="park2022visiontransformerswork"></d-cite> for measuring convexity and flatness using the Hessian spectra.</p>
+
+<p>Inspired by the aforementioned observations, this blog post aims to answer the question: <strong>How does the equivariance imposed on a network affect its training dynamics?</strong> We identify the following subquestions:</p>
+
+<ol>
+  <li>How does equivariance imposed on a network influence generalization?</li>
+  <li>How does equivariance imposed on a network influence the convexity of the loss landscape?</li>
+</ol>
+
+<p>We tackle these subquestions by analyzing trained models to investigate their training dynamics.</p>
+
+<p>In view of space constraint, in this blogpost, we omit our reproducibility study and refer the readers to <a href="https://github.com/dgcnz/relaxed-equivariance-dynamics/blob/main/blogpost.md">our extended blog post</a>. Nevertheless, our reproducibility studies corroborated the following claims:</p>
+<ol>
+  <li>Relaxed steerable G-CNN outperforms steerable G-CNN (fully equivariant network) on fully rotationally equivariant data as shown in the experiment on the super resolution dataset in <d-cite key="wang2023relaxed"></d-cite>.</li>
+  <li>Relaxed G-CNN outperforms G-CNN on non-fully rotationally equivariant data as shown in the experiment on the smoke plume dataset in <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite>.</li>
+</ol>
+
+<h2 id="background">Background</h2>
+
+<h3 id="regular-g-cnn">Regular G-CNN</h3>
+
+<p>Consider the segmentation task depicted in the picture below.</p>
+
+<div style="text-align: center;">
+  <img src="https://analyticsindiamag.com/wp-content/uploads/2020/07/u-net-segmentation-e1542978983391.png" alt="Figure 1" style="max-width: 100%;" />
+  <p>Annotated segmented image taken from <d-cite key="cordts2016cityscapesdatasetsemanticurban"></d-cite></p>
+</div>
+
+<p>Naturally, applying segmentation on a rotated 2D image should give the same segmented image as applying such rotation after segmentation. Mathematically, for a neural network $NN$ to be equivariant w.r.t. the group $(G,\cdot)$, such as 2D rotations, then the following property needs to be satisfied:</p>
+
+\[\begin{align*} 
+NN (T_g x) = T'_g NN (x) &amp; \qquad \qquad \forall g \in G. \\
+\end{align*}\]
+
+<p>To build such a network, it is sufficient that each of its layers is equivariant in the same sense. Recall that a CNN achieves equivariance to translations by sharing weights in kernels that are translated across the input in each of its convolution layers. Hence, a G-CNN extends this concept of weight sharing to achieve equivariance w.r.t an arbitrary locally-compact group $G$.</p>
+
+<p>For now on we will focus on affine groups, i.e., let $G := \mathbb{Z}^n \rtimes H$, where $H$ can be, for example, the rotation subgroup $SO(n)$ and $\mathbb{Z}^n$, the discrete translation group.</p>
+
+<p>Furthermore, we’ll consider an input signal of $c_0$ channels on an $n$-dimensional grid $f_0: \mathbb{Z}^n \rightarrow \mathbb{R}^{c_0}$, e.g. RGB images ($f: \mathbb{Z}^2 \rightarrow \mathbb{R}^3$ ).</p>
+
+<h4 id="lifting-convolution">Lifting convolution</h4>
+
+<p>The first layer of a G-CNN lifts the input signal $f_0$ to the group $G$ using the kernel $\psi : \mathbb{Z}^n \rightarrow \mathbb{R}^{c_1 \times c_0}$ as follows:</p>
+
+\[(f_0 \star \psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n} f_0(\mathbf{y}) \psi(h^{-1}(\mathbf{y} - \mathbf{x}))\]
+
+<p>where $\mathbf{x} \in \mathbb{Z}^n$ and $h \in H$. This yields $f_1: \mathbb{Z}^n \times H \rightarrow \mathbb{R}^{c_1}$ which is fed to the next layer.</p>
+
+<h4 id="g-equivariant-convolution">$G$-equivariant convolution</h4>
+
+<p>Then, $f_1$ undergoes $G$-equivariant convolution with a kernel $\Psi: G \rightarrow \mathbb{R}^{c_2 \times c_1}$:</p>
+
+\[(f_1 \star \Psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n} \sum_{h' \in H} f_1(\mathbf{y}, h') \Psi(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1}h')\]
+
+<p>where $\mathbf{x} \in \mathbb{Z}^n$ and $h \in H$. This outputs the signal $f_2: \mathbb{Z}^n \times H \rightarrow \mathbb{R}^{c_2}$. This way of convolving is repeated for all subsequent layers until the final aggregation layer, e.g. linear layer, if there is one.</p>
+
+<p>Note that for <em>regular</em> group convolution to be practically feasible, $G$ has to be <strong>finite</strong> or addecuatly subsampled. Some of these limitations can be solved by <em>steerable</em> group convolutions.</p>
+
+<h4 id="steerable-g-cnn">Steerable G-CNN</h4>
+
+<p>First, consider the group representations $\rho_{in}: H \rightarrow \mathbb{R}^{c_\text{in} \times c_\text{in}}$ and $\rho_{out}: H \rightarrow \mathbb{R}^{c_\text{out} \times c_\text{out}}$. To address the aforementioned equivariance problem, $G$-steerable convolution modifies $G$-equivariant convolution with the following three changes:</p>
+
+<ul>
+  <li>The input signal becomes $f: \mathbb{Z}^n \rightarrow \mathbb{R}^{c_\text{in}}$.</li>
+  <li>The kernel $\psi: \mathbb{Z}^n \rightarrow \mathbb{R}^{c_\text{out} \times c_\text{in}}$ used must satisfy the following constraint for all $h \in H$: \(\psi(h\mathbf{x}) = \rho_{out}(h) \psi(\mathbf{x}) \rho_{in}(h^{-1})\)</li>
+  <li>Standard convolution only over $\mathbb{Z}^n$ and not $G := \mathbb{Z}^n \rtimes H$ is performed.</li>
+</ul>
+
+<p>To secure kernel $\psi$ has the mentioned property, we precompute a set of non-learnable basis kernels $(\psi_l)_{l=1}^L$ which do have it, and define all other kernels as weighted combinations of the basis kernels, using learnable weights with the same shape as the kernels.</p>
+
+<p>Therefore, the convolution is of the form:</p>
+
+\[(f \star_{\mathbb{Z}^n} \psi) (\mathbf{x}) = \sum_{\mathbf{y} \in \mathbb{Z}^n} \sum_{l=1}^L (w_l ⊙ \psi_l(\mathbf{y}))f(\mathbf{x}+\mathbf{y})\]
+
+<p>Whenever both $\rho_{in}$ and $\rho_{out}$ can be decomposed into smaller building blocks called <strong>irreducible representations</strong>, equivariance w.r.t. infinite group $G$ is achieved (see Appendix A.1 of <d-cite key="bekkers2024fastexpressivesenequivariant"></d-cite>).</p>
+
+<h4 id="relaxed-g-cnn">Relaxed G-CNN</h4>
+
+<p>The desirability of equivariance in a network depends on the amount of equivariance possessed by the data of interest. To this end, <em>relaxed</em> G-CNN is built on top of a regular G-CNN using a modified (relaxed) kernel consisting of a linear combination of standard G-CNN kernels $ \{\Psi_l \}_1^{L} $. Consider $G := \mathbb{Z}^n \rtimes H$. Then, <em>relaxed</em> G-equivariant group convolution is defined as:</p>
+
+\[(f\;\tilde{\star}\;\Psi)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f(\mathbf{y}, h') \sum_{l=1}^L w_l(h) \Psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')\]
+
+<p>or equivalently as a linear combination of regular group convolutions with different kernels:</p>
+
+\[\begin{aligned}
+(f\;\tilde{\star}\;\Psi)(\mathbf{x}, h) &amp;= \sum_{l=1}^L w_l(h) \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f(\mathbf{y}, h')  \Psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')\\
+ &amp;= \sum_{l=1}^L w_l(h) [(f \star \Psi_l)(\mathbf{x}, h)]
+\end{aligned}\]
+
+<p>This second formulation makes for a more interpretable visualization, as one can see in the following figure. There, one can observe how a network might learn to downweight the feature maps corresponding to 180 degree rotations, thus breaking rotational equivariance and allowing for different processing of images picturing 6s and 9s.</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-relaxed-equivariance/rgconv-480.webp 480w,/assets/img/2024-06-30-relaxed-equivariance/rgconv-800.webp 800w,/assets/img/2024-06-30-relaxed-equivariance/rgconv-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-relaxed-equivariance/rgconv.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+</div>
+<div class="caption">
+Visualization of relaxed lifting convolutions ($L=1$) as template matching.
+An input image $f_\text{in}$ contains a pattern $e$ in different orientations, each of which is weighted differently by the model.
+</div>
+
+<!---
+ $G$-equivariance of the group convolution arises from kernel $\psi$'s dependence on the composite variable $g^{-1}h$, rather than on both variables $g$ and $h$ separately. This property is broken in relaxed kernels, leading to a loss of equivariance.
+
+Therefore, using relaxed group convolutions allows the network to relax strict symmetry constraints, offering greater flexibility at the cost of reduced equivariance.
+-->
+
+<h4 id="relaxed-steerable-g-cnn">Relaxed steerable G-CNN</h4>
+
+<p>Relaxed steerable G-CNN modified steerable G-CNN in a similar manner. Again, let the kernel in convolution be a linear combination of other kernels, such that the weights used depend on the variable of integration, leading to loss of equivariance.</p>
+
+\[(f \;\tilde{\star}_{\mathbb{Z}^n} \;\psi) (\mathbf{x}) = \sum_{\mathbf{y} \in \mathbb{Z}^n} \sum_{l=1}^L (w_l(\mathbf{y}) ⊙ \psi_l(\mathbf{y}))f(\mathbf{x}+\mathbf{y})\]
+
+<p>Furthermore, <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite> introduces a regularization term to impose equivariance on both relaxed models mentioned above. In our experiments, however, the best-performing models were those without this term.</p>
+
+<h2 id="methodology">Methodology</h2>
+<h3 id="datasets">Datasets</h3>
+<h4 id="super-resolution">Super-Resolution</h4>
+
+<p>The data consists of liquid flowing in 3D space and is produced by a high-resolution state-of-the-art simulation hosted by the John Hopkins University <d-cite key="jhtdb"></d-cite> . Importantly, this dataset is forced to be isotropic, i.e. fully equivariant to rotations, by design.</p>
+
+<p>For the experiment, a subset of 50 timesteps are taken, each downsampled from $1024^3$ to $64^3$ and processed into a task suitable for learning. The model is given an input of 3 consecutive timesteps, $t, t+1, t+2$ (which are first downsampled to $16^3$), and is tasked to upsample timestep $t+1$ to $64^3$, see Figure 1 for a visualization.</p>
+
+<p>We use the following $3$ models from <d-cite key="wang2023relaxed"></d-cite>’s experiment on the same dataset in <a href="#Results">Results</a>:</p>
+
+<ul>
+  <li>CNN.</li>
+  <li>Regular G-CNN.</li>
+  <li>Relaxed G-CNN.</li>
+</ul>
+
+<div style="text-align: center;">
+  <img src="https://hackmd.io/_uploads/r1WCqrL4A.png" alt="Figure 1" style="max-width: 100%;" />
+  <p>Figure 1: Super Resolution architecture, taken from [1].</p>
+</div>
+
+<h4 id="smoke-plume">Smoke Plume</h4>
+<!-- For this experiment in [Wang et al. (2022)](#References), a specialized 2D smoke simulation was generated using PhiFlow [(Holl et al., 2020)](#References). -->
+<p>This is a synthetic $64 \times 64$ 2D smoke simulation dataset generated by PhiFlow <d-cite key="phiflow"></d-cite>, where dispersion of smoke in a scene starting from an inflow position with a buoyant force is simulated (Figure 2).</p>
+
+<p>The dataset we used has a fixed inflow with buoyant force only pointing in one of the following $4$ directions: upwards, downwards, left, or right. For our experiments we keep the buoyant force the same in all directions such that the data is fully equivariant w.r.t. $90$ degree rotations.</p>
+
+<div style="text-align: center;">
+  <img src="https://hackmd.io/_uploads/S1RILeLE0.png" alt="Figure 2" style="max-width: 100%;" />
+  <p>Figure 2: Example of a Smoke Plume sequence generated by PhiFlow.</p>
+</div>
+
+<p>The models trained on this dataset are tasked with predicting the upcoming frame based on the current one. We use the following $2$ models in <a href="#Results">Results</a>:</p>
+
+<ul>
+  <li>Relaxed steerable G-CNN from <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite> with relaxed equivariance w.r.t the C4 group.</li>
+  <li>Steerable G-CNN from <d-cite key="weiler2021generale2equivariantsteerablecnns"></d-cite> with full equivariance w.r.t the C4 group.</li>
+</ul>
+
+<h3 id="training-dynamics-evaluation">Training Dynamics Evaluation</h3>
+
+<p>To assess the training dynamics of a network, we are interested in the final performance and the generalizability of the learned parameters, which are quantified by the final RMSE, and the sharpness of the loss landscape near the final weight-point proposed in <d-cite key="zhao2024improvingconvergencegeneralizationusing"></d-cite>.</p>
+
+<h4 id="sharpness">Sharpness</h4>
+
+<p>To measure the sharpness of the loss landscape after training, we consider changes in the loss averaged over random directions. Let $D$ denote a set of vectors randomly drawn from the unit sphere, and $T$ a set of displacements, i.e. real numbers. Then, the sharpness of the loss $\mathcal{L}$ at a point $w$ is:</p>
+
+\[\phi(w,D,T) = \frac{1}{|D||T|} \sum_{t \in T} \sum_{d \in D} |\mathcal{L}(w+dt)-\mathcal{L}(w)|\]
+
+<p>This definition is an adaptation from the one in <d-cite key="zhao2024improvingconvergencegeneralizationusing"></d-cite>. A sharper loss landscape around the model’s final weights usually implies a greater generalization gap.</p>
+
+<h4 id="hessian-eigenvalue">Hessian Eigenvalue</h4>
+
+<p>Finally, the Hessian eigenvalue spectrum <d-cite key="park2022visiontransformerswork"></d-cite> sheds light on both the efficiency and efficacy of neural network training. Negative Hessian eigenvalues indicate a non-convex loss landscape, which can disturb the optimization process, whereas very large eigenvalues indicate training instability, sharp minima and consequently poor generalization.</p>
+
+<h2 id="results">Results</h2>
+<p>In this section, we study how equivariance imposed on a network influences the convexity of the loss landscape and generalization, answering all the subquestions posed in <a href="#Introduction">Introduction</a>.</p>
+
+<h3 id="smoke-plume-with-full-equivariance">Smoke Plume with full Equivariance</h3>
+
+<p>First, we examine the training, validation and test RMSE for the Steerable G-CNN (E2CNN) <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite> and Relaxed Steerable G-CNN (Rsteer) <d-cite key="weiler2021generale2equivariantsteerablecnns"></d-cite> models on the fully equivariant Smoke Plume dataset.</p>
+
+<table>
+  <tr>
+    <td>
+      <img src="https://hackmd.io/_uploads/ByqLXIUEA.png" alt="Figure 5" style="max-width: 100%;" />
+      <p align="center">Figure 5: Train RMSE curve for rsteer and E2CNN models</p>
+    </td>
+    <td>
+      <img src="https://hackmd.io/_uploads/rJ58Q8LVC.png" alt="Figure 6" style="max-width: 100%;" />
+      <p align="center">Figure 6: Validation RMSE curve for rsteer and E2CNN models</p>
+    </td>
+  </tr>
+</table>
+
+<div style="text-align: center;">
+  <img src="https://hackmd.io/_uploads/HyqIXLIEA.png" alt="Figure 7" style="max-width: 100%;" />
+  <p>Figure 7: Test RMSE for best models, averaged over five seeds</p>
+</div>
+
+<p>Figures 5 and 6 show the train and validation RMSE curves. While rsteer and E2CNN perform similarly on the training data, rsteer has lower RMSE on the validation data, indicating better generalization. Figure 7 confirms that rsteer performs best on the test set, consistent with results on the Isotropic Flow dataset in <d-cite key="wang2023relaxed"></d-cite>.</p>
+
+<p>To understand why relaxed equivariant models outperform fully equivariant ones, we examine the sharpness of the loss and the Hessian spectra.</p>
+
+<div style="text-align: center;">
+  <img src="https://hackmd.io/_uploads/S14l5XZ4A.png" alt="Figure 10" style="max-width: 100%;" />
+  <p>Figure 8: Sharpness at early and best epochs for rsteer and E2CNN models. On the equivariant Smokeplume dataset</p>
+</div>
+
+<p>Figure 10 shows that the rsteer model has much lower sharpness of the loss landscape compared to E2CNN for both checkpoints. This indicates a lower generalization gap, and thus more effective learning. This matches the lower validation RMSE curve we saw earlier.</p>
+
+<!---
+<table>
+  <tr>
+    <td>
+      <img src="assets/img/2024-06-30-relaxed-equivariance/correct_hession3.png" alt="Epoch 3" style="max-width: 100%;">
+      <p align="center">Figure 9: Hessian spectra at an early epoch for rsteer and E2CNN models</p>
+    </td>
+    <td>
+      <img src="assets/img/2024-06-30-relaxed-equivariance/correct_hessian50.png" alt="Epoch best" style="max-width: 100%;">
+      <p align="center">Figure 10: Hessian spectra at the best epoch for rsteer and E2CNN models</p>
+    </td>
+  </tr>
+</table>
+-->
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-relaxed-equivariance/correct_hession3-480.webp 480w,/assets/img/2024-06-30-relaxed-equivariance/correct_hession3-800.webp 800w,/assets/img/2024-06-30-relaxed-equivariance/correct_hession3-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-relaxed-equivariance/correct_hession3.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-relaxed-equivariance/correct_hessian50-480.webp 480w,/assets/img/2024-06-30-relaxed-equivariance/correct_hessian50-800.webp 800w,/assets/img/2024-06-30-relaxed-equivariance/correct_hessian50-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-relaxed-equivariance/correct_hessian50.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+</div>
+<div class="caption">
+    A simple, elegant caption looks good between image rows, after each row, or doesn't have to be there at all.
+</div>
+
+<p>Figures 9 and 10 show Hessian spectra for the same checkpoints as the previous analysis. Regarding loss landscape flatness, both plots indicate that E2CNN has much larger eigenvalues than rsteer, potentially leading to training instability, less flat minima, and poor generalization for E2CNN.</p>
+
+<p>To evaluate the convexity of the loss landscape, we examine the negative eigenvalues in the Hessian spectra. Neither model shows any negative eigenvalues, suggesting that both E2CNN and rsteer encounter convex loss landscapes. Therefore, convexity does not seem to significantly impact performance in this case.</p>
+
+<h3 id="super-resolution-1">Super Resolution</h3>
+
+<p>Similarly, we also analyze the training dynamics of the superresolution models on the isotropic Super-Resolution dataset.</p>
+
+<p>First, we examine the training and validation MAE curves for the Relaxed Equivariant (RGCNN), Fully Equivariant (GCNN), and non-equivariant (CNN) models (run on 6 different seeds).</p>
+
+<table>
+  <tr>
+    <td>
+      <img src="https://hackmd.io/_uploads/HJrVE8IEA.png" alt="Figure 8" style="max-width: 100%;" />
+      <p align="center">Figure 11: Training MAE curve for RGCNN, GCNN and CNN models</p>
+    </td>
+    <td>
+      <img src="https://hackmd.io/_uploads/HJrV48UN0.png" alt="Figure 9" style="max-width: 100%;" />
+      <p align="center">Figure 12: Validation MAE curve for RGCNN, GCNN and CNN models</p>
+    </td>
+  </tr>
+</table>
+
+<p>Here, we observe that early in the training (around epoch $3$), RGCNN starts outperforming the other two models and keeps this lead until its saturation at around $0.1$ MAE. For this reason, we take a checkpoint for each model on epoch $3$ (early) and on its best epoch (Best), to examine the corresponding sharpness values.</p>
+
+<div style="text-align: center;">
+  <img src="https://hackmd.io/_uploads/SkpgREzV0.png" alt="Figure 10" style="max-width: 100%;" />
+  <p>Figure 13: Sharpness of the loss landscape on the super resolution dataset. Ran over 6 seeds, error bars represent the standard deviation. For early, the third epoch was chosen, while for best the epoch with the best validation loss was chosen.</p>
+    
+</div>
+
+<p>Figure 13 shows that the relaxed model has the lowest sharpeness in both cases. This indicates that the relaxed steerable GCNN has better generalisability during its training and at its convergence, matching our findings on the previous dataset.</p>
+
+<h2 id="concluding-remarks">Concluding Remarks</h2>
+
+<p>We reproduced and extended the relevant findings in <d-cite key="wang2023relaxed"></d-cite> reaffirming the effectiveness of relaxed equivariant models and demonstrating that they are able to outperform fully equivariant models even on perfectly equivariant datasets.</p>
+
+<p>We furthermore investigated the authors’ speculation that this superior performance could be due to relaxed models having enhanced training dynamics. Our experiments empirically support this hypothesis, showing that relaxed models exhibit lower validation error, a flatter loss landscape around the final weights, and smaller Hessian eigenvalues, all of which are indicators of improved training dynamics and better generalization.</p>
+
+<p>Our results suggest that replacing fully equivariant networks with relaxed equivariant networks could be advantageous in all application domains where some level of model equivariance is desired, including those where full equivariance is beneficial. For future research, we should investigate different versions of the relaxed model to find out which hyperparameters, like the number of filter banks, correlate with sharpness. Additionally, the method should be applied to different types of data to see if the same observations can be made there.</p>
+
+<h2 id="code">Code</h2>
+
+<ul>
+  <li><a href="https://github.com/dgcnz/relaxed-equivariance-dynamics">Code and experiments for this blog</a></li>
+  <li><a href="https://github.com/dgcnz/gconv"><code class="language-plaintext highlighter-rouge">gconv</code>, a PyTorch library for (relaxed) regular GCNNs</a></li>
+  <li><a href="https://huggingface.co/datasets/dl2-g32/jhtdb">JHTDB 🤗 HuggingFace Dataset</a></li>
+</ul>]]></content><author><name>Diego Canez</name></author><category term="distill" /><category term="formatting" /><summary type="html"><![CDATA[Can relaxing equivariance help in finding better minima?]]></summary></entry><entry><title type="html">Equivariant Diffusion for Molecule Generation in 3D using Consistency Models</title><link href="http://localhost:4000/blog/2024/equivariant_diffusion/" rel="alternate" type="text/html" title="Equivariant Diffusion for Molecule Generation in 3D using Consistency Models" /><published>2024-07-18T00:00:00+02:00</published><updated>2024-07-18T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/equivariant_diffusion</id><content type="html" xml:base="http://localhost:4000/blog/2024/equivariant_diffusion/"><![CDATA[<h2 id="introduction">Introduction</h2>
 
 <p>In this blog post, we discuss the paper <a href="https://arxiv.org/abs/2203.17003">“Equivariant Diffusion for Molecule Generation in 3D”</a> <d-cite key="hoogeboom2022equivariant"></d-cite>, 
 which first introduced 3D molecule generation using diffusion models. Their Equivariant Diffusion Model (EDM) also
@@ -1390,7 +1722,7 @@ Extensive work has demonstrated that equivariant neural networks can significant
 <p>We also analyze the lower bounds of invariant and equivariant regression, please see them in the paper <d-cite key="neurips23"></d-cite>.</p>
 
 <h2 id="conclusion">Conclusion</h2>
-<p>In this work, we both theoretically and empirically study the use of equivariant networks under a mismatch between the model symmetry and the problem symmetry. We define correct, incorrect, and extrinsic equivariance, and show that while incorrect equivariance will create an error lower bound, extrinsic equivariance can aid learning. For more information, please checkout our full papers <d-cite key="iclr23"></d-cite> and <d-cite key="neurips23"></d-cite>.</p>]]></content><author><name>Anonymous</name></author><category term="distill" /><category term="formatting" /><summary type="html"><![CDATA[What happens if we use an equivariant network when there is a mismatch between the model symmetry and the problem symmetry?]]></summary></entry><entry><title type="html">Accelerating Equivariant Graph Neural Networks with JAX</title><link href="http://localhost:4000/blog/2024/egnn-jax/" rel="alternate" type="text/html" title="Accelerating Equivariant Graph Neural Networks with JAX" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/egnn-jax</id><content type="html" xml:base="http://localhost:4000/blog/2024/egnn-jax/"><![CDATA[<h2 id="introduction">Introduction</h2>
+<p>In this work, we both theoretically and empirically study the use of equivariant networks under a mismatch between the model symmetry and the problem symmetry. We define correct, incorrect, and extrinsic equivariance, and show that while incorrect equivariance will create an error lower bound, extrinsic equivariance can aid learning. For more information, please checkout our full papers <d-cite key="iclr23"></d-cite> and <d-cite key="neurips23"></d-cite>.</p>]]></content><author><name>Dian Wang</name></author><category term="distill" /><category term="formatting" /><summary type="html"><![CDATA[What happens if we use an equivariant network when there is a mismatch between the model symmetry and the problem symmetry?]]></summary></entry><entry><title type="html">Accelerating Equivariant Graph Neural Networks with JAX</title><link href="http://localhost:4000/blog/2024/egnn-jax/" rel="alternate" type="text/html" title="Accelerating Equivariant Graph Neural Networks with JAX" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/egnn-jax</id><content type="html" xml:base="http://localhost:4000/blog/2024/egnn-jax/"><![CDATA[<h2 id="introduction">Introduction</h2>
 
 <p>This blogpost serves as a tutorial for the fast and scalable training of Equivariant Neural Networks, which are slower to train due to the handling of more complex data. We propose leveraging JAX’s capabilities to address these challenges. In this work, we analyze the benefits of utilizing JAX and provide a detailed breakdown of the steps needed to achieve a fully JIT-compatible framework. This approach not only enhances the performance of Neural Networks but also opens the door for future research in developing fully equivariant transformers using JAX.</p>
 
@@ -1621,330 +1953,7 @@ $$
 
 <p>You can find the code to our experiments <a href="https://github.com/Ioana-Simion/egnn-jax">here</a>.</p>
 
-<hr />]]></content><author><name>Ioana Simion</name></author><category term="equivariance" /><summary type="html"><![CDATA[A Tutorial on How to Make EGNNs Faster]]></summary></entry><entry><title type="html">Effect of equivariance on training dynamics</title><link href="http://localhost:4000/blog/2024/relaxed-equivariance/" rel="alternate" type="text/html" title="Effect of equivariance on training dynamics" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/relaxed-equivariance</id><content type="html" xml:base="http://localhost:4000/blog/2024/relaxed-equivariance/"><![CDATA[<p><em>Group Equivariant Convolutional Network</em> (G-CNN) has gained significant traction in recent years owing to their ability to generalize the property of CNNs being equivariant to translations in convolutional layers. With equivariance, the network is able to exploit groups of symmetries and a direct consequence of this is that it generally needs less data to perform well. However, incorporating such knowledge into the network may not always be advantageous, especially when the data itself does not exhibit full equivariance. To address this issue, the G-CNN was modified, introducing <em>relaxed group equivariant CNNs</em> (RG-CNN). Such modified networks adaptively learn the degree of equivariance imposed on the network, i.e. enabling it to operate on a level between full equivariance and no equivariance.
-Surprisingly, for rotational symmetries on fully equivariant data, <d-cite key="wang2023relaxed"></d-cite> found that a G-CNN exhibits poorer performance compared to a RG-CNN. This is a surprising result because a G-CNN, i.e. a fully equivariant network, is designed to perform well on fully equivariant data. Possibly the training dynamics benefit from relaxing of the equivariance constraint. To investigate this, we use the framework described in <d-cite key="park2022visiontransformerswork"></d-cite> for measuring convexity and flatness using the Hessian spectra.</p>
-
-<p>Inspired by the aforementioned observations, this blog post aims to answer the question: <strong>How does the equivariance imposed on a network affect its training dynamics?</strong> We identify the following subquestions:</p>
-
-<ol>
-  <li>How does equivariance imposed on a network influence generalization?</li>
-  <li>How does equivariance imposed on a network influence the convexity of the loss landscape?</li>
-</ol>
-
-<p>We tackle these subquestions by analyzing trained models to investigate their training dynamics.</p>
-
-<p>In view of space constraint, in this blogpost, we omit our reproducibility study and refer the readers to <a href="https://github.com/*****/***/blob/main/blogpost.md">our extended blog post</a> (removed for anonimization). Nevertheless, our reproducibility studies corroborated the following claims:</p>
-<ol>
-  <li>Relaxed steerable G-CNN outperforms steerable G-CNN (fully equivariant network) on fully rotationally equivariant data as shown in the experiment on the super resolution dataset in <d-cite key="wang2023relaxed"></d-cite>.</li>
-  <li>Relaxed G-CNN outperforms G-CNN on non-fully rotationally equivariant data as shown in the experiment on the smoke plume dataset in <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite>.</li>
-</ol>
-
-<h2 id="background">Background</h2>
-
-<h3 id="regular-g-cnn">Regular G-CNN</h3>
-
-<p>Consider the segmentation task depicted in the picture below.</p>
-
-<div style="text-align: center;">
-  <img src="https://analyticsindiamag.com/wp-content/uploads/2020/07/u-net-segmentation-e1542978983391.png" alt="Figure 1" style="max-width: 100%;" />
-  <p>Annotated segmented image taken from <d-cite key="cordts2016cityscapesdatasetsemanticurban"></d-cite></p>
-</div>
-
-<p>Naturally, applying segmentation on a rotated 2D image should give the same segmented image as applying such rotation after segmentation. Mathematically, for a neural network $NN$ to be equivariant w.r.t. the group $(G,\cdot)$, such as 2D rotations, then the following property needs to be satisfied:</p>
-
-\[\begin{align*} 
-NN (T_g x) = T'_g NN (x) &amp; \qquad \qquad \forall g \in G. \\
-\end{align*}\]
-
-<p>To build such a network, it is sufficient that each of its layers is equivariant in the same sense. Recall that a CNN achieves equivariance to translations by sharing weights in kernels that are translated across the input in each of its convolution layers. Hence, a G-CNN extends this concept of weight sharing to achieve equivariance w.r.t an arbitrary locally-compact group $G$.</p>
-
-<h4 id="lifting-convolution">Lifting convolution</h4>
-
-<p>Consider an input signal $f^0: \mathbb{R}^n \rightarrow \mathbb{R}^c$, where $c$ is the number of channels. When passing it through a G-CNN, from the outset, it undergoes the lifting convolution with kernel $k : \mathbb{R}^n \rightarrow \mathbb{R}^{m \times c}$ on $x \in \mathbb{R}^n$ and $g \in G$:</p>
-
-\[(k*_{lifting} f^0)(g) = \int_{y \in \mathbb{R}^n}k(g^{-1}y)f^0(y) dy\]
-
-<p>Suppose $f^1: G \rightarrow \mathbb{R}^m$ is the output signal thereof, which is fed to the next layer.</p>
-
-<h4 id="g-equivariant-convolution">$G$-equivariant convolution</h4>
-
-<p>Now, $f^1$ undergoes $G$-equivariant convolution with a kernel $\psi: G \rightarrow \mathbb{R}^{k \times m}$ on $g \in G$:</p>
-
-\[(\psi *_{G} f^1)(g) = \int_{h \in G}\psi(g^{-1}h)f^1(h)dh\]
-
-<p>For now on we will focus on affine groups, i.e., let $G := \mathbb{R}^n \rtimes H$, where $H$ can be, for example, the rotation subgroup $SO(n)$. Therefore we will have:</p>
-
-\[\begin{gathered} 
-(k*_{lifting} f^0)(x, h) = \int_{y \in \mathbb{R}^n}k(h^{-1}(y-x))f^0(y) dy\\
-(\psi *_{G} f^1)(x,h) = \int_{y \in \mathbb{R}^n}\int_{h' \in H}\psi(h^{-1}(y-x), h^{-1}h')f^1(y, h')dh'dy
-\end{gathered}\]
-
-<p>This gives the output signal $f^2: \mathbb{R}^n \times H \rightarrow \mathbb{R}^k$. This way of convolving is repeated for all subsequent layers until the final aggregation layer, e.g. linear layer, if there is one.</p>
-
-<p>Note that for <em>regular</em> group convolution to be practically feasible, $G$ has to be <strong>finite</strong> or addecuatly supsampled. Some of these limitations can be solved by <em>steerable</em> group convolutions.</p>
-
-<h4 id="steerable-g-cnn">Steerable G-CNN</h4>
-
-<p>First, consider the group representations $\rho_{in}: H \rightarrow \mathbb{R}^{in \times in}$ and $\rho_{out}: H \rightarrow \mathbb{R}^{out \times out}$. To address the aforementioned equivariance problem, $G$-steerable convolution modifies $G$-equivariant convolution with the following three changes:</p>
-
-<ul>
-  <li>The input signal becomes $f: \mathbb{R}^n \rightarrow \mathbb{R}^{in}$.</li>
-  <li>The kernel $\psi: \mathbb{R}^n \rightarrow \mathbb{R}^{out \times in}$ used must satisfy the following constraint for all $h \in H$: \(\psi(hx) = \rho_{out}(h) \psi(x) \rho_{in}(h^{-1})\)</li>
-  <li>Standard convolution only over $\mathbb{R}^n$ and not $G := \mathbb{R}^n \rtimes H$ is performed.</li>
-</ul>
-
-<p>To secure kernel $\psi$ has the mentioned property, we precompute a set of non-learnable basis kernels $(\psi_l)_{l=1}^L$ which do have it, and define all other kernels as weighted combinations of the basis kernels, using learnable weights with the same shape as the kernels.</p>
-
-<p>Therefore, the convolution is of the form:</p>
-
-\[(\psi*_{\mathbb{Z}^n}f) (x) = \sum_{y \in \mathbb{Z}^n} \sum_{l=1}^L (w_l ⊙ \psi_l(y))f(x+y)\]
-
-<p>Whenever both $\rho_{in}$ and $\rho_{out}$ can be decomposed into smaller building blocks called <strong>irreducible representations</strong>, equivariance w.r.t. infinite group $G$ is achieved (see Appendix A.1 of <d-cite key="bekkers2024fastexpressivesenequivariant"></d-cite>).</p>
-
-<h4 id="relaxed-g-cnn">Relaxed G-CNN</h4>
-
-<p>The desirability of equivariance in a network depends on the amount of equivariance possessed by the data of interest. To this end, <em>relaxed</em> G-CNN is built on top of a regular G-CNN using a modified (relaxed) kernel consisting of a linear combination of standard G-CNN kernels. Consider $G := \mathbb{Z}^n \rtimes H$. Then, <em>relaxed</em> G-equivariant group convolution is defined as:</p>
-
-<!---
-$$
-(\psi \tilde{*}_{G} f)(g) = \sum_{h \in G}\psi(g,h)f(h) = \sum_{h \in G}\sum_{l=1}^L w_l(h) \psi_l(g^{-1}h)f(h)
-$$
-
-$$
-(\psi \tilde{*}_{G} f)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h') \psi(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')
-$$
--->
-
-\[(\psi \tilde{*}_{G} f)(\mathbf{x}, h) = \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h') \sum_{l=1}^L w_l(h) \psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')\]
-
-<p>or equivalently as a linear combination of regular group convolutions with different kernels:</p>
-
-\[\begin{aligned}
-(\psi \tilde{*}_{G} f)(\mathbf{x}, h) &amp;= \sum_{l=1}^L w_l(h) \sum_{\mathbf{y} \in \mathbb{Z}^n}\sum_{h' \in H} f_1(\mathbf{y}, h')  \psi_l(h^{-1}(\mathbf{y} - \mathbf{x}), h^{-1} h')\\
- &amp;= \sum_{l=1}^L w_l(h) [(\psi_l *_{G} f)(\mathbf{x}, h)]
-\end{aligned}\]
-
-<p>This second formulation makes for a more interpretable visualization, as one can see in the following figure. There, one can observe how a network might learn to downweight the feature maps corresponding to 180 degree rotations, thus breaking rotational equivariance and allowing for different processing of images picturing 6s and 9s.</p>
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        
-
-<figure>
-  <picture>
-    <!-- Auto scaling with imagemagick -->
-    <!--
-      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
-      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
-    -->
-    
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-relaxed-equivariance/rgconv-480.webp 480w,/assets/img/2024-06-30-relaxed-equivariance/rgconv-800.webp 800w,/assets/img/2024-06-30-relaxed-equivariance/rgconv-1400.webp 1400w," sizes="95vw" type="image/webp" />
-    
-    <img src="/assets/img/2024-06-30-relaxed-equivariance/rgconv.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
-  </picture>
-
-  
-</figure>
-
-    </div>
-</div>
-<div class="caption">
-A visual example of a relaxed lifting convolution (for $L=1$). 
-</div>
-
-<!---
- $G$-equivariance of the group convolution arises from kernel $\psi$'s dependence on the composite variable $g^{-1}h$, rather than on both variables $g$ and $h$ separately. This property is broken in relaxed kernels, leading to a loss of equivariance.
-
-Therefore, using relaxed group convolutions allows the network to relax strict symmetry constraints, offering greater flexibility at the cost of reduced equivariance.
--->
-
-<h4 id="relaxed-steerable-g-cnn">Relaxed steerable G-CNN</h4>
-
-<p>Relaxed steerable G-CNN modified steerable G-CNN in a similar manner. Again, let the kernel in convolution be a linear combination of other kernels, such that the weights used depend on the variable of integration, leading to loss of equivariance.</p>
-
-\[(\psi \tilde{*}_{\mathbb{Z}^2} f) (x) = \sum_{y \in \mathbb{Z}^2} \sum_{l=1}^L (w_l(y) ⊙ \psi_l(y))f(x+y)\]
-
-<p>Furthermore, <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite> introduces a regularization term to impose equivariance on both relaxed models mentioned above. In our experiments, however, the best-performing models were those without this term.</p>
-
-<h2 id="methodology">Methodology</h2>
-<h3 id="datasets">Datasets</h3>
-<h4 id="super-resolution">Super-Resolution</h4>
-
-<p>The data consists of liquid flowing in 3D space and is produced by a high-resolution state-of-the-art simulation hosted by the John Hopkins University <d-cite key="jhtdb"></d-cite> . Importantly, this dataset is forced to be isotropic, i.e. fully equivariant to rotations, by design.</p>
-
-<p>For the experiment, a subset of 50 timesteps are taken, each downsampled from $1024^3$ to $64^3$ and processed into a task suitable for learning. The model is given an input of 3 consecutive timesteps, $t, t+1, t+2$ (which are first downsampled to $16^3$), and is tasked to upsample timestep $t+1$ to $64^3$, see Figure 1 for a visualization.</p>
-
-<p>We use the following $3$ models from <d-cite key="wang2023relaxed"></d-cite>’s experiment on the same dataset in <a href="#Results">Results</a>:</p>
-
-<ul>
-  <li>CNN.</li>
-  <li>Regular G-CNN.</li>
-  <li>Relaxed G-CNN.</li>
-</ul>
-
-<div style="text-align: center;">
-  <img src="https://hackmd.io/_uploads/r1WCqrL4A.png" alt="Figure 1" style="max-width: 100%;" />
-  <p>Figure 1: Super Resolution architecture, taken from [1].</p>
-</div>
-
-<h4 id="smoke-plume">Smoke Plume</h4>
-<!-- For this experiment in [Wang et al. (2022)](#References), a specialized 2D smoke simulation was generated using PhiFlow [(Holl et al., 2020)](#References). -->
-<p>This is a synthetic $64 \times 64$ 2D smoke simulation dataset generated by PhiFlow <d-cite key="phiflow"></d-cite>, where dispersion of smoke in a scene starting from an inflow position with a buoyant force is simulated (Figure 2).</p>
-
-<p>The dataset we used has a fixed inflow with buoyant force only pointing in one of the following $4$ directions: upwards, downwards, left, or right. For our experiments we keep the buoyant force the same in all directions such that the data is fully equivariant w.r.t. $90$ degree rotations.</p>
-
-<div style="text-align: center;">
-  <img src="https://hackmd.io/_uploads/S1RILeLE0.png" alt="Figure 2" style="max-width: 100%;" />
-  <p>Figure 2: Example of a Smoke Plume sequence generated by PhiFlow.</p>
-</div>
-
-<p>The models trained on this dataset are tasked with predicting the upcoming frame based on the current one. We use the following $2$ models in <a href="#Results">Results</a>:</p>
-
-<ul>
-  <li>Relaxed steerable G-CNN from <d-cite key="wang2022approximatelyequivariantnetworksimperfectly"></d-cite> with relaxed equivariance w.r.t the C4 group.</li>
-  <li>Steerable G-CNN from <d-cite key="weiler2021generale2equivariantsteerablecnns"></d-cite> with full equivariance w.r.t the C4 group.</li>
-</ul>
-
-<h3 id="training-dynamics-evaluation">Training Dynamics Evaluation</h3>
-
-<p>To assess the training dynamics of a network, we are interested in the final performance and the generalizability of the learned parameters, which are quantified by the final RMSE, and the sharpness of the loss landscape near the final weight-point proposed in <d-cite key="zhao2024improvingconvergencegeneralizationusing"></d-cite>.</p>
-
-<h4 id="sharpness">Sharpness</h4>
-
-<p>To measure the sharpness of the loss landscape after training, we consider changes in the loss averaged over random directions. Let $D$ denote a set of vectors randomly drawn from the unit sphere, and $T$ a set of displacements, i.e. real numbers. Then, the sharpness of the loss $\mathcal{L}$ at a point $w$ is:</p>
-
-\[\phi(w,D,T) = \frac{1}{|D||T|} \sum_{t \in T} \sum_{d \in D} |\mathcal{L}(w+dt)-\mathcal{L}(w)|\]
-
-<p>This definition is an adaptation from the one in <d-cite key="zhao2024improvingconvergencegeneralizationusing"></d-cite>. A sharper loss landscape around the model’s final weights usually implies a greater generalization gap.</p>
-
-<h4 id="hessian-eigenvalue">Hessian Eigenvalue</h4>
-
-<p>Finally, the Hessian eigenvalue spectrum (<d-cite key="park2022visiontransformerswork"></d-cite>) sheds light on both the efficiency and efficacy of neural network training. Negative Hessian eigenvalues indicate a non-convex loss landscape, which can disturb the optimization process, whereas very large eigenvalues indicate training instability, sharp minima and consequently poor generalization.</p>
-
-<h2 id="results">Results</h2>
-<p>In this section, we study how equivariance imposed on a network influences the convexity of the loss landscape and generalization, answering all the subquestions posed in <a href="#Introduction">Introduction</a>.</p>
-
-<h3 id="smoke-plume-with-full-equivariance">Smoke Plume with full Equivariance</h3>
-
-<p>First, we examine the training, validation and test RMSE for the E2CNN and Rsteer models on the fully equivariant Smoke Plume dataset.</p>
-<table>
-  <tr>
-    <td>
-      <img src="https://hackmd.io/_uploads/ByqLXIUEA.png" alt="Figure 5" style="max-width: 100%;" />
-      <p align="center">Figure 5: Train RMSE curve for rsteer and E2CNN models</p>
-    </td>
-    <td>
-      <img src="https://hackmd.io/_uploads/rJ58Q8LVC.png" alt="Figure 6" style="max-width: 100%;" />
-      <p align="center">Figure 6: Validation RMSE curve for rsteer and E2CNN models</p>
-    </td>
-  </tr>
-</table>
-
-<div style="text-align: center;">
-  <img src="https://hackmd.io/_uploads/HyqIXLIEA.png" alt="Figure 7" style="max-width: 100%;" />
-  <p>Figure 7: Test RMSE for best models, averaged over five seeds</p>
-</div>
-
-<p>Figures 5 and 6 show the train and validation RMSE curves. While rsteer and E2CNN perform similarly on the training data, rsteer has lower RMSE on the validation data, indicating better generalization. Figure 7 confirms that rsteer performs best on the test set, consistent with results on the Isotropic Flow dataset in <d-cite key="wang2023relaxed"></d-cite>.</p>
-
-<p>To understand why relaxed equivariant models outperform fully equivariant ones, we examine the sharpness of the loss and the Hessian spectra.</p>
-
-<div style="text-align: center;">
-  <img src="https://hackmd.io/_uploads/S14l5XZ4A.png" alt="Figure 10" style="max-width: 100%;" />
-  <p>Figure 8: Sharpness at early and best epochs for rsteer and E2CNN models. On the equivariant Smokeplume dataset</p>
-</div>
-
-<p>Figure 10 shows that the rsteer model has much lower sharpness of the loss landscape compared to E2CNN for both checkpoints. This indicates a lower generalization gap, and thus more effective learning. This matches the lower validation RMSE curve we saw earlier.</p>
-
-<table>
-  <tr>
-    <td>
-      <img src="https://hackmd.io/_uploads/rJJQKAyNC.png" alt="Epoch 3" style="max-width: 100%;" />
-      <p align="center">Figure 9: Hessian spectra at an early epoch for rsteer and E2CNN models</p>
-    </td>
-    <td>
-      <img src="https://hackmd.io/_uploads/S1jQF0JN0.png" alt="Epoch best" style="max-width: 100%;" />
-      <p align="center">Figure 10: Hessian spectra at the best epoch for rsteer and E2CNN models</p>
-    </td>
-  </tr>
-</table>
-
-<p>Figures 9 and 10 show Hessian spectra for the same checkpoints as the previous analysis. Regarding loss landscape flatness, both plots indicate that E2CNN has much larger eigenvalues than rsteer, potentially leading to training instability, less flat minima, and poor generalization for E2CNN.</p>
-
-<p>To evaluate the convexity of the loss landscape, we examine the negative eigenvalues in the Hessian spectra. Neither model shows any negative eigenvalues, suggesting that both E2CNN and rsteer encounter convex loss landscapes. Therefore, convexity does not seem to significantly impact performance in this case.</p>
-
-<h3 id="super-resolution-1">Super Resolution</h3>
-
-<p>Similarly, we also analyze the training dynamics of the superresolution models on the isotropic Super-Resolution dataset.</p>
-
-<p>First, we examine the training and validation MAE curves for the Relaxed Equivariant (RGCNN), Fully Equivariant (GCNN), and non-equivariant (CNN) models (run on 6 different seeds).</p>
-
-<table>
-  <tr>
-    <td>
-      <img src="https://hackmd.io/_uploads/HJrVE8IEA.png" alt="Figure 8" style="max-width: 100%;" />
-      <p align="center">Figure 11: Training MAE curve for RGCNN, GCNN and CNN models</p>
-    </td>
-    <td>
-      <img src="https://hackmd.io/_uploads/HJrV48UN0.png" alt="Figure 9" style="max-width: 100%;" />
-      <p align="center">Figure 12: Validation MAE curve for RGCNN, GCNN and CNN models</p>
-    </td>
-  </tr>
-</table>
-
-<p>Here, we observe that early in the training (around epoch $3$), RGCNN starts outperforming the other two models and keeps this lead until its saturation at around $0.1$ MAE. For this reason, we take a checkpoint for each model on epoch $3$ (early) and on its best epoch (Best), to examine the corresponding sharpness values.</p>
-
-<div style="text-align: center;">
-  <img src="https://hackmd.io/_uploads/SkpgREzV0.png" alt="Figure 10" style="max-width: 100%;" />
-  <p>Figure 13: Sharpness of the loss landscape on the super resolution dataset. Ran over 6 seeds, error bars represent the standard deviation. For early, the third epoch was chosen, while for best the epoch with the best validation loss was chosen.</p>
-    
-</div>
-
-<p>Figure 13 shows that the relaxed model has the lowest sharpeness in both cases. This indicates that the relaxed steerable GCNN has better generalisability during its training and at its convergence, matching our findings on the previous dataset.</p>
-
-<h2 id="concluding-remarks">Concluding Remarks</h2>
-
-<p>We reproduced and extended the relevant findings in <d-cite key="wang2023relaxed"></d-cite> reaffirming the effectiveness of relaxed equivariant models and demonstrating that they are able to outperform fully equivariant models even on perfectly equivariant datasets.</p>
-
-<p>We furthermore investigated the authors’ speculation that this superior performance could be due to relaxed models having enhanced training dynamics. Our experiments empirically support this hypothesis, showing that relaxed models exhibit lower validation error, a flatter loss landscape around the final weights, and smaller Hessian eigenvalues, all of which are indicators of improved training dynamics and better generalization.</p>
-
-<p>Our results suggest that replacing fully equivariant networks with relaxed equivariant networks could be advantageous in all application domains where some level of model equivariance is desired, including those where full equivariance is beneficial. For future research, we should investigate different versions of the relaxed model to find out which hyperparameters, like the number of filter banks, correlate with sharpness. Additionally, the method should be applied to different types of data to see if the same observations can be made there.</p>
-
-<!---
-## References
-
-[1] Wang, R., Walters, R., & Smidt, T. E. (2023). Relaxed Octahedral Group Convolution for Learning Symmetry Breaking in 3D Physical Systems. arXiv preprint arXiv:2310.02299.
-
-[2] Gruver, N., Finzi, M., Goldblum, M., & Wilson, A. G. (2022). The lie derivative for measuring learned equivariance. arXiv preprint arXiv:2210.02984.
-
-[3] Park, N., & Kim, S. (2022). How do vision transformers work?. arXiv preprint arXiv:2202.06709.
-
-[4] Zhao, B., Gower, R. M., Walters, R., & Yu, R. (2023). Improving Convergence and Generalization Using Parameter Symmetries. arXiv preprint arXiv:2305.13404.
-
-[5] Wang, R., Walters, R., & Yu, R. (2022, June). Approximately equivariant networks for imperfectly symmetric dynamics. In International Conference on Machine Learning (pp. 23078-23091). PMLR.
-
-[6] Holl, P., Koltun, V., Um, K., & Thuerey, N. (2020). phiflow: A differentiable pde solving framework for deep learning via physical simulations. In NeurIPS workshop (Vol. 2).
-
-[7]  Y. Li, E. Perlman, M. Wan, Y. Yang, C. Meneveau, R. Burns, S. Chen, A. Szalay & G. Eyink. "A public turbulence database cluster and applications to study Lagrangian evolution of velocity increments in turbulence". Journal of Turbulence 9, No. 31, 2008.
-
-[8] E. Perlman, R. Burns, Y. Li, and C. Meneveau. "Data Exploration of Turbulence Simulations using a Database Cluster". Supercomputing SC07, ACM, IEEE, 2007.
-
-[9] Super-resolution of Velocity Fields in Three-dimensional Fluid Dynamics: https://huggingface.co/datasets/*******/jhtdb
-
-[10] Weiler, M. and Cesa, G. General E(2)-equivariant steerable CNNs. In Advances in Neural Information Processing Systems (NeurIPS), pp. 14334–14345, 2019b.
-
-[11] Turbulence SuperResolution Replication W&B Report: https://api.wandb.ai/links/*******/hxj68bs1
-
-[12] Equivariance and Training Stability W&B Report: https://api.wandb.ai/links/*******/yu9a85jn
-
-[13] Rotation SmokePlume Replication W&B Report: https://api.wandb.ai/links/*******/hjsmj1u7
-
-[14] `gconv` library for regular group convnets: https://github.com/*****/gconv
-
-[15] Bekkers, E. J., Vadgama, S., Hesselink, R. D., van der Linden, P. A., & Romero, D. W. (2023). Fast, Expressive SE $(n)$ Equivariant Networks through Weight-Sharing in Position-Orientation Space. arXiv preprint arXiv:2310.02970.
-
-[16] M. Cordts, M. Omran, S. Ramos, T. Rehfeld, M. Enzweiler, R. Benenson, U. Franke, S. Roth, and B. Schiele, “The Cityscapes Dataset for Semantic Urban Scene Understanding,” in Proc. of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2016
--->]]></content><author><name>Anon</name></author><category term="distill" /><category term="formatting" /><summary type="html"><![CDATA[Can relaxing equivariance help in finding better minima?]]></summary></entry><entry><title type="html">Applications of TopoX to Topological Deep Learning</title><link href="http://localhost:4000/blog/2024/smpn/" rel="alternate" type="text/html" title="Applications of TopoX to Topological Deep Learning" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/smpn</id><content type="html" xml:base="http://localhost:4000/blog/2024/smpn/"><![CDATA[<h1 id="introduction">Introduction</h1>
+<hr />]]></content><author><name>Ioana Simion</name></author><category term="equivariance" /><summary type="html"><![CDATA[A Tutorial on How to Make EGNNs Faster]]></summary></entry><entry><title type="html">Applications of TopoX to Topological Deep Learning</title><link href="http://localhost:4000/blog/2024/smpn/" rel="alternate" type="text/html" title="Applications of TopoX to Topological Deep Learning" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/smpn</id><content type="html" xml:base="http://localhost:4000/blog/2024/smpn/"><![CDATA[<h1 id="introduction">Introduction</h1>
 
 <p>Representation learning using Graph Neural Networks (GNNs) is a rapidly growing approach to complex tasks in chemistry <d-cite key="ballester2024attending,bekkers2023fast,eijkelboom2023n,battiloro2024n"></d-cite>. Notably, in a subset of these tasks, a crucial aspect is maintaining equivariance to transformations such as <em>translation</em>, <em>rotation</em> and <em>reflection</em>. Learning representations such that <strong>equivariance</strong> or <strong>invariance</strong> can be applied has proved very helpful <d-cite key="bekkers2023fast,eijkelboom2023n"></d-cite>. Additionally, incorporating higher-order relations in GNNs such that they encode more complex topological spaces is a recent effort to increase the expressivity of GNNs <d-cite key="hajij2022topological,eijkelboom2023n,giusti2024topological"></d-cite>.</p>
 
@@ -3241,102 +3250,7 @@ While it has demonstrated strong performance across various benchmark datasets, 
 Structure-Aware Transformer <d-cite key="chen2022structureawaretransformergraphrepresentation"></d-cite> improves on the initial Transformer by incorporating structural information by extracting subgraph representations. 
 DeepGraph <d-cite key="zhao2023layersbeneficialgraphtransformers"></d-cite> explores the benefits of deeper graph transformers by enhancing global attention with substructure tokens and local attention. 
 Despite the success of these architectures, some challenges still remain; for example, the quadratic complexity of the self-attention module limits its use on large graphs. 
-Therefore, the future development of efficient sequence-based graph-processing networks and the imposing of such constraints for geometric learning are open research areas.</p>]]></content><author><name>Tejas Agarwal</name></author><category term="graph" /><category term="representation" /><category term="learning" /><summary type="html"><![CDATA[A first-principles blog post to understand the Graphormer.]]></summary></entry><entry><title type="html">Cancer Immunotherapy Design with Geometric Deep Learning</title><link href="http://localhost:4000/blog/2024/Cancer-Immunotherapy-with-AI/" rel="alternate" type="text/html" title="Cancer Immunotherapy Design with Geometric Deep Learning" /><published>2024-06-13T00:00:00+02:00</published><updated>2024-06-13T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/Cancer-Immunotherapy-with-AI</id><content type="html" xml:base="http://localhost:4000/blog/2024/Cancer-Immunotherapy-with-AI/"><![CDATA[<h1 id="cancer-immunotherapy-design-with-geometric-deep-learning">Cancer Immunotherapy Design with Geometric Deep Learning</h1>
-
-<p>Cancer remains one of the most formidable challenges in medicine, but recent advancements in immunotherapy and artificial intelligence (AI) are opening new frontiers in treatment. This blog post explores the intersection of cancer immunotherapy and AI.</p>
-
-<h2 id="what-is-cancer">What is Cancer?</h2>
-
-<p>Cancer is a group of diseases characterized by the uncontrolled growth and spread of abnormal cells in the body. It begins when genetic mutations in a cell’s DNA disrupt the normal process of cell growth, division, and death. This leads to the formation of tumors, which can be benign (non-cancerous) or malignant (cancerous). Malignant tumors can invade nearby tissues and metastasize, spreading to other parts of the body. There are various types of cancer, classified by the type of cell initially affected <d-cite key="hanahan2011hallmarks"></d-cite>. Treatment options vary and may include surgery, radiation therapy, chemotherapy, targeted therapy, and immunotherapy.</p>
-
-<h2 id="why-is-cancer-so-difficult-to-cure">Why is Cancer So Difficult to Cure?</h2>
-
-<p>Cancer is challenging to cure due to its genetic diversity and constant mutation, leading to treatment resistance <d-cite key="siegel2020colorectal"></d-cite>. Tumors consist of heterogeneous cells, making it difficult for a single therapy to target all cancer cells effectively. Additionally, cancer cells can invade nearby tissues and metastasize, forming secondary tumors that are hard to detect and treat. The ability of cancer cells to evade the immune system and the protective nature of the tumor microenvironment further complicate treatment efforts. Moreover, many cancer treatments, such as chemotherapy and radiation, can harm healthy cells, causing severe side effects and limiting safe dosage levels. Late detection often means the disease is more advanced and harder to treat successfully. Personalized treatment plans are necessary but complex to develop, as each patient’s cancer is unique. These factors underscore the need for ongoing research to develop more effective and targeted therapies.</p>
-
-<h2 id="what-is-cancer-immunotherapy-and-what-makes-it-different">What is Cancer Immunotherapy and What Makes It Different?</h2>
-
-<p>Cancer immunotherapy is a treatment that enhances the body’s immune response to fight cancer. It involves mechanisms such as the Major Histocompatibility Complex (MHC) and T-cell response. MHC is a protein complex found on almost all nucleated cells in the body that presents fragments of proteins (antigens) on their surface. These antigens can be normal self-antigens or, in the case of cancer cells, abnormal or mutated antigens. T-cells, a type of white blood cell, patrol the body searching for these antigens. When a T-cell recognizes an abnormal antigen presented by the MHC on a cancer cell, it becomes activated and can kill cancer cells directly or recruit other immune cells to help eliminate the cancer.</p>
-
-<p>Cancer immunotherapy is relatively new compared to traditional treatments like surgery, chemotherapy, and radiation. The concept dates back over a century, but significant advancements have been made in the past few decades. The first immune checkpoint inhibitor, ipilimumab (Yervoy), was approved by the FDA in 2011 <d-cite key="pardoll2012blockade"></d-cite>.</p>
-
-<p>The main types of cancer immunotherapy include immune checkpoint inhibitors, CAR-T cell therapy, and cancer vaccines. Immune checkpoint inhibitors block proteins that prevent the immune system from attacking cancer cells more effectively. CAR-T cell therapy involves modifying a patient’s T cells to target and kill cancer cells <d-cite key="june2018car"></d-cite>. Cancer vaccines stimulate the immune system to attack cancer cells by presenting them with specific antigens found on cancer cells <d-cite key="melief2015therapeutic"></d-cite>.</p>
-
-<p>Immunotherapy differs from traditional treatments in several ways. It enhances the body’s immune response to identify and attack cancer cells, potentially leading to long-lasting protection against cancer recurrence. Immunotherapy can be highly specific, targeting only cancer cells and sparing normal cells, reducing side effects compared to traditional therapies. Some patients experience long-term remission with immunotherapy, as the immune system can continue to recognize and attack cancer cells even after treatment ends. Additionally, immunotherapy can be combined with other cancer treatments to enhance overall effectiveness.</p>
-
-<p>These distinctive features make cancer immunotherapy a promising and rapidly evolving area in cancer treatment. Understanding the interaction between the immune system and cancer is key to overcoming the challenges and improving the effectiveness of these therapies. Therefore, it is essential to explore how AI can enhance the development and effectiveness of cancer immunotherapy.</p>
-
-<h2 id="ai-for-cancer-immunotherapy">AI for Cancer Immunotherapy</h2>
-
-<p>The two most important interactions are peptide-MHC interaction, to predict which peptides will be shown at the cell surface, and MHC-T-Cell interaction. In this blog post, I will focus on peptide-MHC structure modeling. Accurate modeling of the 3D structure and properties of p-MHC can lead to better-targeted therapies and improved immune responses against cancer cells. Additionally, speed is extremely important due to the massive number of peptide-MHC pairs for each patient and the diversity of MHCs. While there is a very good physical simulation model called Pandora <d-cite key="marzella2022pandora"></d-cite>, it is much slower than potential neural network-based models. One major challenge for using neural networks here is that there is very limited data available, making it challenging to generalize from.</p>
-
-<h2 id="peptide-mhc-structure-modeling-with-diffusion-models">Peptide-MHC Structure Modeling with Diffusion Models</h2>
-
-<p>We need to choose a framework for modeling p-MHC. AI for structural biology has developed quickly in the last few years. The first major breakthroughs in using AI for biology came with non-generative models like AlphaFold 2 <d-cite key="jumper2021highly"></d-cite> and RoseTTAFold <d-cite key="baek2021accurate"></d-cite>. AlphaFold 2 and RoseTTAFold revolutionized protein structure prediction by accurately modeling the three-dimensional shapes of proteins from their amino acid sequences. Both models have significantly advanced our understanding of protein folding, paving the way for new therapeutic discoveries. However, generative models represent the next frontier in AI for biology. Unlike non-generative models that predict static outcomes, generative models can create new data instances, offering more dynamic and flexible solutions. Diffusion models <d-cite key="yang2023diffusion"></d-cite>, flow matching <d-cite key="lipman2022flow"></d-cite>, and GFlowNets <d-cite key="bengio2023gflownet"></d-cite> are prominent examples of generative models. Diffusion models, in particular, have gained popularity for their ability to generate high-quality molecular structures by simulating the gradual process of denoising from a random state.</p>
-
-<p>Work using Diffusion Models such as DiffSBDD <d-cite key="schneuing2022structure"></d-cite> has shown that it is possible to create small molecules for protein pockets using diffusion models. RF-Diffusion has demonstrated the ability to design the backbone structure of proteins with these models. Very recently, AlphaFold 3 <d-cite key="abramson2024accurate"></d-cite> has put diffusion models in the spotlight again by replacing AlphaFold 2’s structure prediction model, extending the structure prediction capabilities from proteins to any multi-component complex in biology. Given their flexibility and power, we choose a diffusion model for our task.</p>
-
-<h3 id="choosing-an-input-representation">Choosing an Input Representation</h3>
-
-<p>For p-MHC we are dealing with a large number of degrees of freedom. For this reason, our first aim is to reduce the degrees of freedom with prior knowledge as much as possible. It has been shown that modeling peptides and proteins at their amino acid level is sufficient to model the full structure. This means that instead of modelling every single atom of the peptide and the MHC pocket we only model a single node for each amino acid. We can later add back the remaining atoms using a simple non-generative regression model <d-cite key="dauparas2022robust"></d-cite>. For the amino acid, we can use several representations:</p>
-
-<ul>
-  <li><strong>Frame-based representation:</strong> Captures the structure of the entire amino acid.</li>
-  <li><strong>C-alpha only representation:</strong> Uses only the alpha carbon of the amino acid, simplifying the structure.</li>
-  <li><strong>C-alpha + side chain orientation representation:</strong> Includes both the alpha carbon and the side chain orientation, providing more detailed structural information.</li>
-</ul>
-
-<p>In this blog post, we will discuss C-alpha only representation and C-alpha + side chain orientation representation. Since only the protein pocket is relevant for the binding process and its structure is largely fixed, we can use AlphaFold2 to predict the structure of the MHC and its pocket. There are a lot more peptides than there are MHCs for each person, which makes this approach computationally feasible.</p>
-
-<p>First, we use the 3D position of the alpha carbon (C-alpha only representation) and a one hot encoding of the amino acid type as node feature.</p>
-
-<h3 id="concept-of-equivariance-and-equivariant-neural-networks">Concept of Equivariance and Equivariant Neural Networks</h3>
-
-<p>For the neural network, we can use our knowledge of geometric representations. The joint translation and rotation of the peptide-MHC complex does not matter for its function. But if we use a normal graph neural network, then it would have to learn to treat a translated or rotated complex the same as the original complex. This usually requires more data and is generally harder. For our task, we want our neural network to be equivariant to rotation and translation but not to reflection, hence SE(3) normally. An equivariant function with respect to a group transforms the input in a way that applying a group action to the input is equivalent to applying the same group action to the output. There are different ways to encode equivariance into a network’s architecture. The most straightforward way is to only let the network use inherently equivariant information.</p>
-
-<p>For a graph in (\mathbb{R}^3), the weighted sum of pairwise differences between nodes is inherently equivariant with respect to rotation and translation. This is the key idea behind the construction of the EGNN network <d-cite key="satorras2021n"></d-cite>, which is the default choice for equivariant diffusion models.</p>
-
-<p>Using amino acids as nodes is very efficient but it does lose a lot of potential information, for instance, the amino acid sidechain orientation (C-alpha + side chain orientation representation). While the neural network might be able to learn this implicitly from enough data, we can also give the orientation as further input without increasing the number of nodes. This, however, changes the space that the SE(3) group acts on to (\mathbb{R}^3 \times S^2) or (\mathbb{R}^3 \times S^3). The advantage of using (\mathbb{R}^3 \times S^2) is that it is a lot more computationally efficient than indexing on (\mathbb{R}^3 \times S^3). Further, (\mathbb{R}^3 \times S^2) is sufficient to fully represent information on (\mathbb{R}^3 \times S^3).</p>
-
-<p>Ponita <d-cite key="bekkers2023fast"></d-cite> is a new, very lean and fast architecture. It achieves equivariance on (\mathbb{R}^3 \times S^2) by defining a bijective mapping from any point pair to an invariant attribute such that any point pair in the equivalence class of the group G is mapped to the same attribute and any attribute maps only to one such equivalence class.</p>
-
-\[\mathbb{R}^3 \times S^2 : \quad [(\mathbf{p}_i, \mathbf{o}_i), (\mathbf{p}_j, \mathbf{o}_j)] \quad \mapsto \quad a_{ij} = \left( \begin{array}{c} 
-\| (\mathbf{p}_j - \mathbf{p}_i) - \mathbf{o}_i^\top (\mathbf{p}_j - \mathbf{p}_i) \mathbf{o}_i \| \\
-\mathbf{o}_i^\top (\mathbf{p}_j - \mathbf{o}_i) \\
-\arccos (\mathbf{o}_i^\top \mathbf{o}_j)
-\end{array} \right)\]
-
-<p>Ponita doesn’t have the high computational overhead of using specialized Clebsch-Gordan tensor products and is very efficient due to the ability to separate group convolutions over different group parts. It also achieves state-of-the-art performance on QM9.</p>
-
-<p>Both using the C-alpha atom only representation with an EGNN and using the C-alpha atom + sidechain orientation representation with Ponita have shown great promise for modeling molecules and for conditional generation in my experiments. Peptide-MHC is difficult as the data we are working with is often not very diverse, which makes it hard to learn for generative models. There are numerous more implementation details involved in building a model like this, which exceed the scope of this blog post. The two most significant, which I want to mention, are encoding the location of the amino acids within the peptide chain as well as using energy guidance to guide the denoising process during sampling. When constructed correctly, a diffusion model can effectively predict the joint structure of peptide-MHCs.</p>
-
-<p><img src="pMHC-Diffusion.png" alt="Diffusion Model generates peptide-MHC structure from random noise: Round points represent C-alpha atoms, while the rest forms the MHC protein pocket. Peptide nodes start as random noise and are progressively denoised by the trained diffusion model into the correct structure." /></p>
-
-<h2 id="open-challenges">Open Challenges</h2>
-
-<p>Beyond peptide-MHC interaction, many open problems in cancer immunotherapy can potentially be solved with AI. Modeling the structure of T-cells interacting with p-MHCs is one such problem. The regions of the T-cell receptors are highly variable, making predicting their structure even more challenging than that of p-MHC. Additionally, designing new TCRs (T-cell receptors) with feature diffusion is highly relevant for enhanced T-cell therapy, where TCRs are modified to target a patient’s specific cancer. Adding time dynamics to the structure modeling is also an intriguing direction, as biological complexes are always dynamic and change their structure to fulfill different functions at different times. Other promising methods for molecule generation include Diffusion Models, Flow Matching, and GFlow Networks. Finally, there is a significant need for better evaluation metrics. Current metrics often result in molecules that look good theoretically but fail in biological experiments.</p>
-
-<h2 id="conclusion">Conclusion</h2>
-
-<p>AI has immense potential to revolutionize cancer immunotherapy by providing advanced tools to model and predict complex biological interactions. While significant progress has been made, many challenges remain. Continued advancements in AI and machine learning will be critical in overcoming these challenges and developing more effective, personalized cancer treatments.</p>
-
-<h2 id="references">References</h2>
-
-<p>[1] Josh Abramson et al. “Accurate structure prediction of biomolecular interactions with AlphaFold 3”. In: Nature (2024), pp. 1–3.<br />
-[2] Minkyung Baek et al. “Accurate prediction of protein structures and interactions using a three-track neural network”. In: Science 373.6557 (2021), pp. 871–876.<br />
-[3] Erik J Bekkers et al. “Fast, Expressive SE (n) Equivariant Networks through Weight-Sharing in Position-Orientation Space”. In: arXiv preprint arXiv:2310.02970 (2023).<br />
-[4] Yoshua Bengio et al. “Gflownet foundations”. In: The Journal of Machine Learning Research 24.1 (2023), pp. 10006–10060.<br />
-[5] Justas Dauparas et al. “Robust deep learning–based protein sequence design using ProteinMPNN”. In: Science 378.6615 (2022), pp. 49–56.<br />
-[6] Douglas Hanahan and Robert A Weinberg. “Hallmarks of cancer: the next generation”. In: cell 144.5 (2011), pp. 646–674.<br />
-[7] John Jumper et al. “Highly accurate protein structure prediction with AlphaFold”. In: nature 596.7873 (2021), pp. 583–589.<br />
-[8] Carl H June et al. “CAR T cell immunotherapy for human cancer”. In: Science 359.6382 (2018), pp. 1361–1365.<br />
-[9] Yaron Lipman et al. “Flow matching for generative modeling”. In: arXiv preprint arXiv:2210.02747 (2022).<br />
-[10] Dario F Marzella et al. “PANDORA: a fast, anchor-restrained modelling protocol for peptide: MHC complexes”. In: Frontiers in Immunology 13 (2022), p. 878762.<br />
-[11] Cornelis JM Melief et al. “Therapeutic cancer vaccines”. In: The Journal of clinical investigation 125.9 (2015), pp. 3401–3412.<br />
-[12] Drew M Pardoll. “The blockade of immune checkpoints in cancer immunotherapy”. In: Nature reviews cancer 12.4 (2012), pp. 252–264.<br />
-[13] Vıctor Garcia Satorras, Emiel Hoogeboom, and Max Welling. “E (n) equivariant graph neural networks”. In: International conference on machine learning. PMLR. 2021, pp. 9323–9332.<br />
-[14] Arne Schneuing et al. “Structure-based drug design with equivariant diffusion models”. In: arXiv preprint arXiv:2210.13695 (2022).<br />
-[15] Rebecca L Siegel et al. “Colorectal cancer statistics, 2020”. In: CA: a cancer journal for clinicians 70.3 (2020), pp. 145–164.<br />
-[16] Ling Yang et al. “Diffusion models: A comprehensive survey of methods and applications”. In: ACM Computing Surveys 56.4 (2023), pp. 1–39.</p>]]></content><author><name>Anonymous</name></author><category term="distill" /><category term="formatting" /><summary type="html"><![CDATA[Cancer Immunotherapy Design with Geometric Deep Learning]]></summary></entry><entry><title type="html">Learning Embedding Spaces with Metrics via Contrastive Learning</title><link href="http://localhost:4000/blog/2024/contrast-learning/" rel="alternate" type="text/html" title="Learning Embedding Spaces with Metrics via Contrastive Learning" /><published>2024-06-13T00:00:00+02:00</published><updated>2024-06-13T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/contrast-learning</id><content type="html" xml:base="http://localhost:4000/blog/2024/contrast-learning/"><![CDATA[<p>Contrastive learning encompasses a variety of methods that learn a constrained embedding space to solve a task. The embedding space is constrained such that a chosen metric, a function that measures the distance between two embeddings, satisfies some desired properties, usually that small distances imply a shared class. Contrastive learning underlies many self-supervised methods, such as MoCo <d-cite key="he_momentum_2020"></d-cite>, <d-cite key="chen_empirical_2021"></d-cite>, SimCLR <d-cite key="chen_simple_2020"></d-cite>, <d-cite key="chen_big_2020"></d-cite>, and BYOL <d-cite key="grill_bootstrap_2020"></d-cite>, as well as supervised methods such as SupCon <d-cite key="khosla_supervised_2020"></d-cite> and SINCERE <d-cite key="feeney_sincere_2024"></d-cite>.</p>
+Therefore, the future development of efficient sequence-based graph-processing networks and the imposing of such constraints for geometric learning are open research areas.</p>]]></content><author><name>Tejas Agarwal</name></author><category term="graph" /><category term="representation" /><category term="learning" /><summary type="html"><![CDATA[A first-principles blog post to understand the Graphormer.]]></summary></entry><entry><title type="html">Learning Embedding Spaces with Metrics via Contrastive Learning</title><link href="http://localhost:4000/blog/2024/contrast-learning/" rel="alternate" type="text/html" title="Learning Embedding Spaces with Metrics via Contrastive Learning" /><published>2024-06-13T00:00:00+02:00</published><updated>2024-06-13T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/contrast-learning</id><content type="html" xml:base="http://localhost:4000/blog/2024/contrast-learning/"><![CDATA[<p>Contrastive learning encompasses a variety of methods that learn a constrained embedding space to solve a task. The embedding space is constrained such that a chosen metric, a function that measures the distance between two embeddings, satisfies some desired properties, usually that small distances imply a shared class. Contrastive learning underlies many self-supervised methods, such as MoCo <d-cite key="he_momentum_2020"></d-cite>, <d-cite key="chen_empirical_2021"></d-cite>, SimCLR <d-cite key="chen_simple_2020"></d-cite>, <d-cite key="chen_big_2020"></d-cite>, and BYOL <d-cite key="grill_bootstrap_2020"></d-cite>, as well as supervised methods such as SupCon <d-cite key="khosla_supervised_2020"></d-cite> and SINCERE <d-cite key="feeney_sincere_2024"></d-cite>.</p>
 
 <p>In contrastive learning, there are two components that determine the constraints on the learned embedding space: the similarity function and the contrastive loss. The similarity function takes a pair of embedding vectors and quantifies how similar they are as a scalar. The contrastive loss determines which pairs of embeddings have similarity evaluated and how the resulting set of similarity values are used to measure error with respect to a task, such as classification. Backpropagating to minimize this error causes a model to learn embeddings that best satisfy the constraints induced by the similarity function and contrastive loss.</p>
 
@@ -3573,7 +3487,102 @@ which is a common normalization <d-cite key="le-khac_contrastive_2020"></d-cite>
 
 <p>The choice of similarity function clearly has an effect on the learned embedding space despite a lack of statistically significant changes in accuracy. The cosine similarity histogram most cleanly aligns with the intuition that contrastive losses should be maximizing and minimizing similarities. In contrast, the negative arc length similarity histogram suggests similarity minimization is sacrificed for very consistent maximization, producing small differences in similarity between some target classes and noise examples. I hypothesize that this change in behavior arises from the difference in similarity function behavior with small angles described in Koishekenov et al. <d-cite key="koishekenov_geometric_2023"></d-cite>.</p>
 
-<p>These differences in the learned embedding spaces could affect performance on downstream tasks such as transfer learning. I hypothesize that the larger difference between target and noise similarities seen in the cosine similarity model would improve transfer learning performance, similar to the improvement of SINCERE over SupCon loss reported in Feeney and Hughes <d-cite key="feeney_sincere_2024"></d-cite>.</p>]]></content><author><name>Patrick Feeney</name></author><category term="distill" /><category term="formatting" /><summary type="html"><![CDATA[Contrastive learning encompasses a variety of methods that learn a constrained embedding space to solve a task. The embedding space is constrained such that a chosen metric, a function that measures the distance between two embeddings, satisfies some desired properties, usually that small distances imply a shared class. Contrastive learning underlies many self-supervised methods, such as MoCo , , SimCLR , , and BYOL , as well as supervised methods such as SupCon and SINCERE .]]></summary></entry><entry><title type="html">Equivariant Neural Fields - continuous representations grounded in geometry</title><link href="http://localhost:4000/blog/2024/equivariant-neural-fields/" rel="alternate" type="text/html" title="Equivariant Neural Fields - continuous representations grounded in geometry" /><published>2024-06-01T00:00:00+02:00</published><updated>2024-06-01T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/equivariant-neural-fields</id><content type="html" xml:base="http://localhost:4000/blog/2024/equivariant-neural-fields/"><![CDATA[<h2 id="introduction">Introduction</h2>
+<p>These differences in the learned embedding spaces could affect performance on downstream tasks such as transfer learning. I hypothesize that the larger difference between target and noise similarities seen in the cosine similarity model would improve transfer learning performance, similar to the improvement of SINCERE over SupCon loss reported in Feeney and Hughes <d-cite key="feeney_sincere_2024"></d-cite>.</p>]]></content><author><name>Patrick Feeney</name></author><category term="distill" /><category term="formatting" /><summary type="html"><![CDATA[Contrastive learning encompasses a variety of methods that learn a constrained embedding space to solve a task. The embedding space is constrained such that a chosen metric, a function that measures the distance between two embeddings, satisfies some desired properties, usually that small distances imply a shared class. Contrastive learning underlies many self-supervised methods, such as MoCo , , SimCLR , , and BYOL , as well as supervised methods such as SupCon and SINCERE .]]></summary></entry><entry><title type="html">Cancer Immunotherapy Design with Geometric Deep Learning</title><link href="http://localhost:4000/blog/2024/Cancer-Immunotherapy-with-AI/" rel="alternate" type="text/html" title="Cancer Immunotherapy Design with Geometric Deep Learning" /><published>2024-06-13T00:00:00+02:00</published><updated>2024-06-13T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/Cancer-Immunotherapy-with-AI</id><content type="html" xml:base="http://localhost:4000/blog/2024/Cancer-Immunotherapy-with-AI/"><![CDATA[<h1 id="cancer-immunotherapy-design-with-geometric-deep-learning">Cancer Immunotherapy Design with Geometric Deep Learning</h1>
+
+<p>Cancer remains one of the most formidable challenges in medicine, but recent advancements in immunotherapy and artificial intelligence (AI) are opening new frontiers in treatment. This blog post explores the intersection of cancer immunotherapy and AI.</p>
+
+<h2 id="what-is-cancer">What is Cancer?</h2>
+
+<p>Cancer is a group of diseases characterized by the uncontrolled growth and spread of abnormal cells in the body. It begins when genetic mutations in a cell’s DNA disrupt the normal process of cell growth, division, and death. This leads to the formation of tumors, which can be benign (non-cancerous) or malignant (cancerous). Malignant tumors can invade nearby tissues and metastasize, spreading to other parts of the body. There are various types of cancer, classified by the type of cell initially affected <d-cite key="hanahan2011hallmarks"></d-cite>. Treatment options vary and may include surgery, radiation therapy, chemotherapy, targeted therapy, and immunotherapy.</p>
+
+<h2 id="why-is-cancer-so-difficult-to-cure">Why is Cancer So Difficult to Cure?</h2>
+
+<p>Cancer is challenging to cure due to its genetic diversity and constant mutation, leading to treatment resistance <d-cite key="siegel2020colorectal"></d-cite>. Tumors consist of heterogeneous cells, making it difficult for a single therapy to target all cancer cells effectively. Additionally, cancer cells can invade nearby tissues and metastasize, forming secondary tumors that are hard to detect and treat. The ability of cancer cells to evade the immune system and the protective nature of the tumor microenvironment further complicate treatment efforts. Moreover, many cancer treatments, such as chemotherapy and radiation, can harm healthy cells, causing severe side effects and limiting safe dosage levels. Late detection often means the disease is more advanced and harder to treat successfully. Personalized treatment plans are necessary but complex to develop, as each patient’s cancer is unique. These factors underscore the need for ongoing research to develop more effective and targeted therapies.</p>
+
+<h2 id="what-is-cancer-immunotherapy-and-what-makes-it-different">What is Cancer Immunotherapy and What Makes It Different?</h2>
+
+<p>Cancer immunotherapy is a treatment that enhances the body’s immune response to fight cancer. It involves mechanisms such as the Major Histocompatibility Complex (MHC) and T-cell response. MHC is a protein complex found on almost all nucleated cells in the body that presents fragments of proteins (antigens) on their surface. These antigens can be normal self-antigens or, in the case of cancer cells, abnormal or mutated antigens. T-cells, a type of white blood cell, patrol the body searching for these antigens. When a T-cell recognizes an abnormal antigen presented by the MHC on a cancer cell, it becomes activated and can kill cancer cells directly or recruit other immune cells to help eliminate the cancer.</p>
+
+<p>Cancer immunotherapy is relatively new compared to traditional treatments like surgery, chemotherapy, and radiation. The concept dates back over a century, but significant advancements have been made in the past few decades. The first immune checkpoint inhibitor, ipilimumab (Yervoy), was approved by the FDA in 2011 <d-cite key="pardoll2012blockade"></d-cite>.</p>
+
+<p>The main types of cancer immunotherapy include immune checkpoint inhibitors, CAR-T cell therapy, and cancer vaccines. Immune checkpoint inhibitors block proteins that prevent the immune system from attacking cancer cells more effectively. CAR-T cell therapy involves modifying a patient’s T cells to target and kill cancer cells <d-cite key="june2018car"></d-cite>. Cancer vaccines stimulate the immune system to attack cancer cells by presenting them with specific antigens found on cancer cells <d-cite key="melief2015therapeutic"></d-cite>.</p>
+
+<p>Immunotherapy differs from traditional treatments in several ways. It enhances the body’s immune response to identify and attack cancer cells, potentially leading to long-lasting protection against cancer recurrence. Immunotherapy can be highly specific, targeting only cancer cells and sparing normal cells, reducing side effects compared to traditional therapies. Some patients experience long-term remission with immunotherapy, as the immune system can continue to recognize and attack cancer cells even after treatment ends. Additionally, immunotherapy can be combined with other cancer treatments to enhance overall effectiveness.</p>
+
+<p>These distinctive features make cancer immunotherapy a promising and rapidly evolving area in cancer treatment. Understanding the interaction between the immune system and cancer is key to overcoming the challenges and improving the effectiveness of these therapies. Therefore, it is essential to explore how AI can enhance the development and effectiveness of cancer immunotherapy.</p>
+
+<h2 id="ai-for-cancer-immunotherapy">AI for Cancer Immunotherapy</h2>
+
+<p>The two most important interactions are peptide-MHC interaction, to predict which peptides will be shown at the cell surface, and MHC-T-Cell interaction. In this blog post, I will focus on peptide-MHC structure modeling. Accurate modeling of the 3D structure and properties of p-MHC can lead to better-targeted therapies and improved immune responses against cancer cells. Additionally, speed is extremely important due to the massive number of peptide-MHC pairs for each patient and the diversity of MHCs. While there is a very good physical simulation model called Pandora <d-cite key="marzella2022pandora"></d-cite>, it is much slower than potential neural network-based models. One major challenge for using neural networks here is that there is very limited data available, making it challenging to generalize from.</p>
+
+<h2 id="peptide-mhc-structure-modeling-with-diffusion-models">Peptide-MHC Structure Modeling with Diffusion Models</h2>
+
+<p>We need to choose a framework for modeling p-MHC. AI for structural biology has developed quickly in the last few years. The first major breakthroughs in using AI for biology came with non-generative models like AlphaFold 2 <d-cite key="jumper2021highly"></d-cite> and RoseTTAFold <d-cite key="baek2021accurate"></d-cite>. AlphaFold 2 and RoseTTAFold revolutionized protein structure prediction by accurately modeling the three-dimensional shapes of proteins from their amino acid sequences. Both models have significantly advanced our understanding of protein folding, paving the way for new therapeutic discoveries. However, generative models represent the next frontier in AI for biology. Unlike non-generative models that predict static outcomes, generative models can create new data instances, offering more dynamic and flexible solutions. Diffusion models <d-cite key="yang2023diffusion"></d-cite>, flow matching <d-cite key="lipman2022flow"></d-cite>, and GFlowNets <d-cite key="bengio2023gflownet"></d-cite> are prominent examples of generative models. Diffusion models, in particular, have gained popularity for their ability to generate high-quality molecular structures by simulating the gradual process of denoising from a random state.</p>
+
+<p>Work using Diffusion Models such as DiffSBDD <d-cite key="schneuing2022structure"></d-cite> has shown that it is possible to create small molecules for protein pockets using diffusion models. RF-Diffusion has demonstrated the ability to design the backbone structure of proteins with these models. Very recently, AlphaFold 3 <d-cite key="abramson2024accurate"></d-cite> has put diffusion models in the spotlight again by replacing AlphaFold 2’s structure prediction model, extending the structure prediction capabilities from proteins to any multi-component complex in biology. Given their flexibility and power, we choose a diffusion model for our task.</p>
+
+<h3 id="choosing-an-input-representation">Choosing an Input Representation</h3>
+
+<p>For p-MHC we are dealing with a large number of degrees of freedom. For this reason, our first aim is to reduce the degrees of freedom with prior knowledge as much as possible. It has been shown that modeling peptides and proteins at their amino acid level is sufficient to model the full structure. This means that instead of modelling every single atom of the peptide and the MHC pocket we only model a single node for each amino acid. We can later add back the remaining atoms using a simple non-generative regression model <d-cite key="dauparas2022robust"></d-cite>. For the amino acid, we can use several representations:</p>
+
+<ul>
+  <li><strong>Frame-based representation:</strong> Captures the structure of the entire amino acid.</li>
+  <li><strong>C-alpha only representation:</strong> Uses only the alpha carbon of the amino acid, simplifying the structure.</li>
+  <li><strong>C-alpha + side chain orientation representation:</strong> Includes both the alpha carbon and the side chain orientation, providing more detailed structural information.</li>
+</ul>
+
+<p>In this blog post, we will discuss C-alpha only representation and C-alpha + side chain orientation representation. Since only the protein pocket is relevant for the binding process and its structure is largely fixed, we can use AlphaFold2 to predict the structure of the MHC and its pocket. There are a lot more peptides than there are MHCs for each person, which makes this approach computationally feasible.</p>
+
+<p>First, we use the 3D position of the alpha carbon (C-alpha only representation) and a one hot encoding of the amino acid type as node feature.</p>
+
+<h3 id="concept-of-equivariance-and-equivariant-neural-networks">Concept of Equivariance and Equivariant Neural Networks</h3>
+
+<p>For the neural network, we can use our knowledge of geometric representations. The joint translation and rotation of the peptide-MHC complex does not matter for its function. But if we use a normal graph neural network, then it would have to learn to treat a translated or rotated complex the same as the original complex. This usually requires more data and is generally harder. For our task, we want our neural network to be equivariant to rotation and translation but not to reflection, hence SE(3) normally. An equivariant function with respect to a group transforms the input in a way that applying a group action to the input is equivalent to applying the same group action to the output. There are different ways to encode equivariance into a network’s architecture. The most straightforward way is to only let the network use inherently equivariant information.</p>
+
+<p>For a graph in (\mathbb{R}^3), the weighted sum of pairwise differences between nodes is inherently equivariant with respect to rotation and translation. This is the key idea behind the construction of the EGNN network <d-cite key="satorras2021n"></d-cite>, which is the default choice for equivariant diffusion models.</p>
+
+<p>Using amino acids as nodes is very efficient but it does lose a lot of potential information, for instance, the amino acid sidechain orientation (C-alpha + side chain orientation representation). While the neural network might be able to learn this implicitly from enough data, we can also give the orientation as further input without increasing the number of nodes. This, however, changes the space that the SE(3) group acts on to (\mathbb{R}^3 \times S^2) or (\mathbb{R}^3 \times S^3). The advantage of using (\mathbb{R}^3 \times S^2) is that it is a lot more computationally efficient than indexing on (\mathbb{R}^3 \times S^3). Further, (\mathbb{R}^3 \times S^2) is sufficient to fully represent information on (\mathbb{R}^3 \times S^3).</p>
+
+<p>Ponita <d-cite key="bekkers2023fast"></d-cite> is a new, very lean and fast architecture. It achieves equivariance on (\mathbb{R}^3 \times S^2) by defining a bijective mapping from any point pair to an invariant attribute such that any point pair in the equivalence class of the group G is mapped to the same attribute and any attribute maps only to one such equivalence class.</p>
+
+\[\mathbb{R}^3 \times S^2 : \quad [(\mathbf{p}_i, \mathbf{o}_i), (\mathbf{p}_j, \mathbf{o}_j)] \quad \mapsto \quad a_{ij} = \left( \begin{array}{c} 
+\| (\mathbf{p}_j - \mathbf{p}_i) - \mathbf{o}_i^\top (\mathbf{p}_j - \mathbf{p}_i) \mathbf{o}_i \| \\
+\mathbf{o}_i^\top (\mathbf{p}_j - \mathbf{o}_i) \\
+\arccos (\mathbf{o}_i^\top \mathbf{o}_j)
+\end{array} \right)\]
+
+<p>Ponita doesn’t have the high computational overhead of using specialized Clebsch-Gordan tensor products and is very efficient due to the ability to separate group convolutions over different group parts. It also achieves state-of-the-art performance on QM9.</p>
+
+<p>Both using the C-alpha atom only representation with an EGNN and using the C-alpha atom + sidechain orientation representation with Ponita have shown great promise for modeling molecules and for conditional generation in my experiments. Peptide-MHC is difficult as the data we are working with is often not very diverse, which makes it hard to learn for generative models. There are numerous more implementation details involved in building a model like this, which exceed the scope of this blog post. The two most significant, which I want to mention, are encoding the location of the amino acids within the peptide chain as well as using energy guidance to guide the denoising process during sampling. When constructed correctly, a diffusion model can effectively predict the joint structure of peptide-MHCs.</p>
+
+<p><img src="pMHC-Diffusion.png" alt="Diffusion Model generates peptide-MHC structure from random noise: Round points represent C-alpha atoms, while the rest forms the MHC protein pocket. Peptide nodes start as random noise and are progressively denoised by the trained diffusion model into the correct structure." /></p>
+
+<h2 id="open-challenges">Open Challenges</h2>
+
+<p>Beyond peptide-MHC interaction, many open problems in cancer immunotherapy can potentially be solved with AI. Modeling the structure of T-cells interacting with p-MHCs is one such problem. The regions of the T-cell receptors are highly variable, making predicting their structure even more challenging than that of p-MHC. Additionally, designing new TCRs (T-cell receptors) with feature diffusion is highly relevant for enhanced T-cell therapy, where TCRs are modified to target a patient’s specific cancer. Adding time dynamics to the structure modeling is also an intriguing direction, as biological complexes are always dynamic and change their structure to fulfill different functions at different times. Other promising methods for molecule generation include Diffusion Models, Flow Matching, and GFlow Networks. Finally, there is a significant need for better evaluation metrics. Current metrics often result in molecules that look good theoretically but fail in biological experiments.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>AI has immense potential to revolutionize cancer immunotherapy by providing advanced tools to model and predict complex biological interactions. While significant progress has been made, many challenges remain. Continued advancements in AI and machine learning will be critical in overcoming these challenges and developing more effective, personalized cancer treatments.</p>
+
+<h2 id="references">References</h2>
+
+<p>[1] Josh Abramson et al. “Accurate structure prediction of biomolecular interactions with AlphaFold 3”. In: Nature (2024), pp. 1–3.<br />
+[2] Minkyung Baek et al. “Accurate prediction of protein structures and interactions using a three-track neural network”. In: Science 373.6557 (2021), pp. 871–876.<br />
+[3] Erik J Bekkers et al. “Fast, Expressive SE (n) Equivariant Networks through Weight-Sharing in Position-Orientation Space”. In: arXiv preprint arXiv:2310.02970 (2023).<br />
+[4] Yoshua Bengio et al. “Gflownet foundations”. In: The Journal of Machine Learning Research 24.1 (2023), pp. 10006–10060.<br />
+[5] Justas Dauparas et al. “Robust deep learning–based protein sequence design using ProteinMPNN”. In: Science 378.6615 (2022), pp. 49–56.<br />
+[6] Douglas Hanahan and Robert A Weinberg. “Hallmarks of cancer: the next generation”. In: cell 144.5 (2011), pp. 646–674.<br />
+[7] John Jumper et al. “Highly accurate protein structure prediction with AlphaFold”. In: nature 596.7873 (2021), pp. 583–589.<br />
+[8] Carl H June et al. “CAR T cell immunotherapy for human cancer”. In: Science 359.6382 (2018), pp. 1361–1365.<br />
+[9] Yaron Lipman et al. “Flow matching for generative modeling”. In: arXiv preprint arXiv:2210.02747 (2022).<br />
+[10] Dario F Marzella et al. “PANDORA: a fast, anchor-restrained modelling protocol for peptide: MHC complexes”. In: Frontiers in Immunology 13 (2022), p. 878762.<br />
+[11] Cornelis JM Melief et al. “Therapeutic cancer vaccines”. In: The Journal of clinical investigation 125.9 (2015), pp. 3401–3412.<br />
+[12] Drew M Pardoll. “The blockade of immune checkpoints in cancer immunotherapy”. In: Nature reviews cancer 12.4 (2012), pp. 252–264.<br />
+[13] Vıctor Garcia Satorras, Emiel Hoogeboom, and Max Welling. “E (n) equivariant graph neural networks”. In: International conference on machine learning. PMLR. 2021, pp. 9323–9332.<br />
+[14] Arne Schneuing et al. “Structure-based drug design with equivariant diffusion models”. In: arXiv preprint arXiv:2210.13695 (2022).<br />
+[15] Rebecca L Siegel et al. “Colorectal cancer statistics, 2020”. In: CA: a cancer journal for clinicians 70.3 (2020), pp. 145–164.<br />
+[16] Ling Yang et al. “Diffusion models: A comprehensive survey of methods and applications”. In: ACM Computing Surveys 56.4 (2023), pp. 1–39.</p>]]></content><author><name>Anonymous</name></author><category term="distill" /><category term="formatting" /><summary type="html"><![CDATA[Cancer Immunotherapy Design with Geometric Deep Learning]]></summary></entry><entry><title type="html">Equivariant Neural Fields - continuous representations grounded in geometry</title><link href="http://localhost:4000/blog/2024/equivariant-neural-fields/" rel="alternate" type="text/html" title="Equivariant Neural Fields - continuous representations grounded in geometry" /><published>2024-06-01T00:00:00+02:00</published><updated>2024-06-01T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/equivariant-neural-fields</id><content type="html" xml:base="http://localhost:4000/blog/2024/equivariant-neural-fields/"><![CDATA[<h2 id="introduction">Introduction</h2>
 <p>Neural fields (NeFs) <d-cite key="xie2022neural"></d-cite> have emerged as a promising paradigm for representing continuous signals in a variety of domains. 
 Recently, they have been used as a continuous alternative for classical discrete signal representations - showing promising results especially in higher dimensional settings where traditional grid-based methods often fall short <d-cite key="dupont2022data"></d-cite>.</p>
 
@@ -3612,7 +3621,7 @@ Recently, they have been used as a continuous alternative for classical discrete
     Neural Fields. when applied to images, a neural field $f_\theta$ maps coordinates $x \in \mathbb{R}^2$ to pixel values $I(x) \in \mathbb{R}^3$.
 </div>
 
-<p>Conditional Neural Fields (CNFs) extend this concept of neural fields by introducing a conditioning variable \(z_f\) that modulates the neural field for a specific signal \(f\). This enhancement allows CNFs to effectively represent an entire dataset of signals \(f \in \mathcal{D}\) using a single, shared set of weights \(\theta\) along with a set of unique conditioning variables \(z_f\). Since these representations are signal-specific, they latents can be used as a representation in downstream tasks. This approach has been successful in various tasks, including classification <d-cite key="dupont2022data"></d-cite>, segmentation <d-cite key="zhang20233dshape2vecset"></d-cite>, and even solving partial differential equations<d-cite key="yin2022continuous"></d-cite> <d-cite key="knigge2024pde"></d-cite>.</p>
+<p>Conditional Neural Fields (CNFs) extend this concept of neural fields by introducing a conditioning variable \(z_f\) that modulates the neural field for a specific signal \(f\). This enhancement allows CNFs to effectively represent an entire dataset of signals \(f \in \mathcal{D}\) using a single, shared set of weights \(\theta\) along with a set of unique conditioning variables \(z_f\). Since these representations are signal-specific, they latents can be used as a representation in downstream tasks. This approach has been successful in various tasks, including classification <d-cite key="dupont2022data"></d-cite>, segmentation <d-cite key="de2023deep"></d-cite>, generation <d-cite key="zhang20233dshape2vecset"></d-cite> and even solving partial differential equations<d-cite key="yin2022continuous"></d-cite> <d-cite key="knigge2024pde"></d-cite>.</p>
 
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
