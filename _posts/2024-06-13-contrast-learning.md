@@ -13,6 +13,22 @@ authors:
     affiliations:
       name: Tufts University
 
+toc:
+  - name: Similarity Functions
+    subsections:
+      - name: Cosine Similarity
+      - name: Negative Arc Length
+      - name: Negative Euclidean Distance
+  - name: Contrastive Losses
+    subsections:
+      - name: Margin Losses
+      - name: Cross Entropy Losses
+  - name: Case Study with Contrastive Learning on a Hypersphere
+    subsections:
+      - name: Supervised Learning Accuracy
+      - name: Supervised Learning Embedding Space
+  - name: Discussion
+
 bibliography: 2024-06-13-contrast-learning.bib
 ---
 
