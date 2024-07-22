@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-22T14:15:39+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
-</subtitle><entry><title type="html">Grasping Graphormer : Assessing Transformer Performance for Graph Representation</title><link href="http://localhost:4000/blog/2024/graphormer/" rel="alternate" type="text/html" title="Grasping Graphormer : Assessing Transformer Performance for Graph Representation" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/graphormer</id><content type="html" xml:base="http://localhost:4000/blog/2024/graphormer/"><![CDATA[<h2 id="introduction">Introduction</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-22T18:31:00+05:30</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+</subtitle><entry><title type="html">Grasping Graphormer : Assessing Transformer Performance for Graph Representation</title><link href="http://localhost:4000/blog/2024/graphormer/" rel="alternate" type="text/html" title="Grasping Graphormer : Assessing Transformer Performance for Graph Representation" /><published>2024-06-30T00:00:00+05:30</published><updated>2024-06-30T00:00:00+05:30</updated><id>http://localhost:4000/blog/2024/graphormer</id><content type="html" xml:base="http://localhost:4000/blog/2024/graphormer/"><![CDATA[<h2 id="introduction">Introduction</h2>
 <p>The Transformer architecture has revolutionized sequence modelling. 
 Its versatility is demonstrated by its application in various domains, from natural language processing to computer vision to even reinforcement learning. 
 With its strong ability to learn rich representations across domains, it seems natural that the power of the transformer can be adapted to graphs.</p>
@@ -334,7 +334,7 @@ The impact is significant, and it greatly improves the performance, as proven em
 
 <p>The [VNode] (or a Virtual Node) is arguably one of the most important contributions from the work. 
 It is an artificial node that is connected to <b>all</b> other nodes. 
-The authors cite this paper<d-cite key="gilmer2017neuralmessagepassingquantum"></d-cite> as an empirical motivation, but a better intuition behind the concept is as a generalization of the [CLS] token widely used in NLP and Vision. 
+The authors cite this paper<d-cite key="gilmer2017neuralmessagepassingquantum"></d-cite> as an empirical motivation, but a better intuition behind the concept is as a generalization of the [CLS] (or Classification) token widely used in NLP and Vision. 
 This has an important implication on \(b\) and \(\phi\), because the [VNode] is connected to every node,</p>
 
 \[\phi([VNode], v) = 1, \forall v \in G\]
@@ -412,8 +412,8 @@ We also provide explicit mathematical equations on how the above claims can be r
 <ul>
   <li><b>Mean Aggregate</b> :
     <ul>
-      <li>Set $ b_{\phi(v_i, v_j)} = 0 $ when $\phi(v_i, v_j) = 1$ and $-\infty$ otherwise,</li>
-      <li>Set $ W_Q = 0, W_K = 0$ and let $ W_V = I$ (Identity matrix), using these,</li>
+      <li>Set \(b_{\phi(v_i, v_j)} = 0\) when \(\phi(v_i, v_j) = 1\) and \(-\infty\) otherwise,</li>
+      <li>Set \(W_Q = 0, W_K = 0\) and let \(W_V = I\) (Identity matrix), using these,</li>
       <li>
 \[h^{(l)}_{v_i} = \sum_{v_j \in N(v_i)} softmax(A_{ij}) * (W_v * h^{(l-1)}_{v_j}) \implies h^{(l)}_{v_i} = \frac{1}{|N(v_i)|}*\sum_{v_j \in N(v_i)} h^{(l-1)}_{v_j}\]
       </li>
@@ -421,15 +421,15 @@ We also provide explicit mathematical equations on how the above claims can be r
   </li>
   <li><b>Sum Aggregate</b> :
     <ul>
-      <li>For this, we just need to get the mean aggregate and then multiply by $ |N(v_i)| $,</li>
+      <li>For this, we just need to get the mean aggregate and then multiply by \(\|N(v_i)\|\),</li>
       <li>Loosely, the degree can be extracted from <a href="link_to_centrality_eqn">centrality-encoding</a> by an attention head, and then the FFN can multiply this to the learned mean aggregate, the latter part is a direct consequence of the universal approximation theorem.</li>
     </ul>
   </li>
   <li><b>Max Aggregate</b> :
     <ul>
-      <li>For this one we assume that if we have $t$ dimensions in our hidden state, we <i>also</i> have t heads.</li>
-      <li>The proof is such that each Head will extract the maximum from neighbours, clearly, to only keep immediate neighbours around, we can use the same formulation for $b$ and $\phi$ as in the mean aggregate.</li>
-      <li>Using $W_K = e_t$ (t-th unit vector), $W_K = e_t$ and $W_Q = 0$ (Identity matrix), we can get a pretty good approximation to the max aggregate. To get the full deal however, we need a <i>hard-max</i> instead of the <i>soft-max</i> being used; to accomplish this we finally consider the bias in the query layer (i.e., something like <code class="language-plaintext highlighter-rouge">nn.Linear(in_dim, out_dim, use_bias=True)</code>), set it to $T \cdot I$ with a high enough $T$ (temperature), this will make the soft-max behave like a hard-max.</li>
+      <li>For this one we assume that if we have \(t\) dimensions in our hidden state, we <i>also</i> have t heads.</li>
+      <li>The proof is such that each Head will extract the maximum from neighbours, clearly, to only keep immediate neighbours around, we can use the same formulation for \(b\) and \(\phi\) as in the mean aggregate.</li>
+      <li>Using \(W_K = e_t\) (t-th unit vector), \(W_K = e_t\) and \(W_Q = 0\) (Identity matrix), we can get a pretty good approximation to the max aggregate. To get the full deal however, we need a <i>hard-max</i> instead of the <i>soft-max</i> being used; to accomplish this we finally consider the bias in the query layer (i.e., something like <code class="language-plaintext highlighter-rouge">nn.Linear(in_dim, out_dim, use_bias=True)</code>), set it to \(T \cdot I\) with a high enough \(T\) (temperature), this will make the soft-max behave like a hard-max.</li>
     </ul>
   </li>
 </ul>
@@ -513,7 +513,7 @@ Thus näively adding a [VNode] / Super Node would lead to over-smoothening in tr
 <p>Operations such as MEAN_READOUT involve aggregation over all nodes, making it a global operation.
 Given that Fact 3 implies that every node representation can be MEAN-READOUT, this means that the model can learn to selectively propagate global information using the [VNode].</p>
 <details><summary>Proof for Fact 3</summary>
-<p>Setting $W_Q = W_K = 0$, and the bias terms in both to be $T \cdot 1$ (where T is temperature), as well as, setting $W_V = I$ (Identity matrix), with a large enough $T$ (much larger than the scale of $b_{\phi(v_i, v_j)}$, so that $T^2 1 1^T$ can dominate), we can get MEAN-READOUT on all nodes. Note that while this proof doesn’t require [VNode], it should be noted that, the [Vnode] is very important to establish a <b>balance</b> between this completely global flow and the local flow. As in a normal setting, with the $T$ not being too large, the only way for global information is through the [VNode], as the $b_{\phi(v_i, v_j)}$ would most likely limit information from nodes that are very far.</p>
+<p>Setting \(W_Q = W_K = 0\), and the bias terms in both to be \(T \cdot 1\) (where T is temperature), as well as, setting \(W_V = I\) (Identity matrix), with a large enough \(T\) (much larger than the scale of \(b_{\phi(v_i, v_j)}\), so that \(T^2 1 1^T\) can dominate), we can get MEAN-READOUT on all nodes. Note that while this proof doesn’t require [VNode], it should be noted that, the [Vnode] is very important to establish a <b>balance</b> between this completely global flow and the local flow. As in a normal setting, with the \(T\) not being too large, the only way for global information is through the [VNode], as the \(b_{\phi(v_i, v_j)}\) would most likely limit information from nodes that are very far.</p>
 </details>
 
 <hr />
@@ -646,7 +646,7 @@ While it has demonstrated strong performance across various benchmark datasets, 
 Structure-Aware Transformer <d-cite key="chen2022structureawaretransformergraphrepresentation"></d-cite> improves on the initial Transformer by incorporating structural information by extracting subgraph representations. 
 DeepGraph <d-cite key="zhao2023layersbeneficialgraphtransformers"></d-cite> explores the benefits of deeper graph transformers by enhancing global attention with substructure tokens and local attention. 
 Despite the success of these architectures, some challenges still remain; for example, the quadratic complexity of the self-attention module limits its use on large graphs. 
-Therefore, the future development of efficient sequence-based graph-processing networks and the imposing of such constraints for geometric learning are open research areas.</p>]]></content><author><name>Tejas Agarwal</name></author><category term="graph" /><category term="representation" /><category term="learning" /><summary type="html"><![CDATA[A first-principles blog post to understand the Graphormer.]]></summary></entry><entry><title type="html">a distill-style blog post</title><link href="http://localhost:4000/blog/2021/distill/" rel="alternate" type="text/html" title="a distill-style blog post" /><published>2021-05-22T00:00:00+02:00</published><updated>2021-05-22T00:00:00+02:00</updated><id>http://localhost:4000/blog/2021/distill</id><content type="html" xml:base="http://localhost:4000/blog/2021/distill/"><![CDATA[<h2 id="equations">Equations</h2>
+Therefore, the future development of efficient sequence-based graph-processing networks and the imposing of such constraints for geometric learning are open research areas.</p>]]></content><author><name>Tejas Agarwal</name></author><category term="graph" /><category term="representation" /><category term="learning" /><summary type="html"><![CDATA[A first-principles blog post to understand the Graphormer.]]></summary></entry><entry><title type="html">a distill-style blog post</title><link href="http://localhost:4000/blog/2021/distill/" rel="alternate" type="text/html" title="a distill-style blog post" /><published>2021-05-22T00:00:00+05:30</published><updated>2021-05-22T00:00:00+05:30</updated><id>http://localhost:4000/blog/2021/distill</id><content type="html" xml:base="http://localhost:4000/blog/2021/distill/"><![CDATA[<h2 id="equations">Equations</h2>
 
 <p>This theme supports rendering beautiful math in inline and display modes using <a href="https://www.mathjax.org/">MathJax 3</a> engine.
 You just need to surround your math expression with <code class="language-plaintext highlighter-rouge">$$</code>, like <code class="language-plaintext highlighter-rouge">$$ E = mc^2 $$</code>.

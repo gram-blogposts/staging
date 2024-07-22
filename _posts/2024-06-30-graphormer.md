@@ -265,7 +265,7 @@ The impact is significant, and it greatly improves the performance, as proven em
 
 The \[VNode\] (or a Virtual Node) is arguably one of the most important contributions from the work. 
 It is an artificial node that is connected to <b>all</b> other nodes. 
-The authors cite this paper<d-cite key="gilmer2017neuralmessagepassingquantum"></d-cite> as an empirical motivation, but a better intuition behind the concept is as a generalization of the \[CLS\] token widely used in NLP and Vision. 
+The authors cite this paper<d-cite key="gilmer2017neuralmessagepassingquantum"></d-cite> as an empirical motivation, but a better intuition behind the concept is as a generalization of the \[CLS\] (or Classification) token widely used in NLP and Vision. 
 This has an important implication on $$b$$ and $$\phi$$, because the \[VNode\] is connected to every node,
 
 $$
@@ -326,16 +326,16 @@ We also provide explicit mathematical equations on how the above claims can be r
 {% details Proof(s) for Fact 1 %}
 For each type of aggregation, we provide simple function and weight definitions that achieve it, 
 * <b>Mean Aggregate</b> :
-    - Set $ b_{\phi(v_i, v_j)} = 0 $ when $\phi(v_i, v_j) = 1$ and $-\infty$ otherwise,
-    - Set $ W_Q = 0, W_K = 0$ and let $ W_V = I$ (Identity matrix), using these,
+    - Set $$ b_{\phi(v_i, v_j)} = 0 $$ when $$ \phi(v_i, v_j) = 1 $$ and $$ -\infty $$ otherwise,
+    - Set $$ W_Q = 0, W_K = 0 $$ and let $$ W_V = I $$ (Identity matrix), using these,
     - $$ h^{(l)}_{v_i} = \sum_{v_j \in N(v_i)} softmax(A_{ij}) * (W_v * h^{(l-1)}_{v_j}) \implies h^{(l)}_{v_i} = \frac{1}{|N(v_i)|}*\sum_{v_j \in N(v_i)} h^{(l-1)}_{v_j} $$
 * <b>Sum Aggregate</b> :
-    - For this, we just need to get the mean aggregate and then multiply by $ \|N(v_i)\| $,
+    - For this, we just need to get the mean aggregate and then multiply by $$ \|N(v_i)\| $$,
     - Loosely, the degree can be extracted from [centrality-encoding](link_to_centrality_eqn) by an attention head, and then the FFN can multiply this to the learned mean aggregate, the latter part is a direct consequence of the universal approximation theorem.
 * <b>Max Aggregate</b> :
-    - For this one we assume that if we have $t$ dimensions in our hidden state, we <i>also</i> have t heads.
-    - The proof is such that each Head will extract the maximum from neighbours, clearly, to only keep immediate neighbours around, we can use the same formulation for $b$ and $\phi$ as in the mean aggregate.
-    - Using $W_K = e_t$ (t-th unit vector), $W_K = e_t$ and $W_Q = 0$ (Identity matrix), we can get a pretty good approximation to the max aggregate. To get the full deal however, we need a <i>hard-max</i> instead of the <i>soft-max</i> being used; to accomplish this we finally consider the bias in the query layer (i.e., something like `nn.Linear(in_dim, out_dim, use_bias=True)`), set it to $T \cdot I$ with a high enough $T$ (temperature), this will make the soft-max behave like a hard-max.
+    - For this one we assume that if we have $$ t $$ dimensions in our hidden state, we <i>also</i> have t heads.
+    - The proof is such that each Head will extract the maximum from neighbours, clearly, to only keep immediate neighbours around, we can use the same formulation for $$b$$ and $$\phi$$ as in the mean aggregate.
+    - Using $$W_K = e_t$$ (t-th unit vector), $$W_K = e_t$$ and $$W_Q = 0$$ (Identity matrix), we can get a pretty good approximation to the max aggregate. To get the full deal however, we need a <i>hard-max</i> instead of the <i>soft-max</i> being used; to accomplish this we finally consider the bias in the query layer (i.e., something like `nn.Linear(in_dim, out_dim, use_bias=True)`), set it to $$T \cdot I$$ with a high enough $$T$$ (temperature), this will make the soft-max behave like a hard-max.
 {% enddetails %}
 
 Fact 2 follows from Fact 1, with GIN being the most powerful traditional GNN, which can theoretically identify all graphs distinguishable by the 1-WL test, as it is now a special case of Graphormer. 
@@ -391,7 +391,7 @@ Thus näively adding a \[VNode\] / Super Node would lead to over-smoothening in 
 Operations such as MEAN_READOUT involve aggregation over all nodes, making it a global operation.
 Given that Fact 3 implies that every node representation can be MEAN-READOUT, this means that the model can learn to selectively propagate global information using the \[VNode\].
 {% details Proof for Fact 3 %}
-Setting $W_Q = W_K = 0$, and the bias terms in both to be $T \cdot 1$ (where T is temperature), as well as, setting $W_V = I$ (Identity matrix), with a large enough $T$ (much larger than the scale of $b_{\phi(v_i, v_j)}$, so that $T^2 1 1^T$ can dominate), we can get MEAN-READOUT on all nodes. Note that while this proof doesn't require \[VNode\], it should be noted that, the \[Vnode\] is very important to establish a <b>balance</b> between this completely global flow and the local flow. As in a normal setting, with the $T$ not being too large, the only way for global information is through the \[VNode\], as the $b_{\phi(v_i, v_j)}$ would most likely limit information from nodes that are very far.
+Setting $$W_Q = W_K = 0$$, and the bias terms in both to be $$T \cdot 1$$ (where T is temperature), as well as, setting $$W_V = I$$ (Identity matrix), with a large enough $$T$$ (much larger than the scale of $$b_{\phi(v_i, v_j)}$$, so that $$T^2 1 1^T$$ can dominate), we can get MEAN-READOUT on all nodes. Note that while this proof doesn't require \[VNode\], it should be noted that, the \[Vnode\] is very important to establish a <b>balance</b> between this completely global flow and the local flow. As in a normal setting, with the $$T$$ not being too large, the only way for global information is through the \[VNode\], as the $$b_{\phi(v_i, v_j)}$$ would most likely limit information from nodes that are very far.
 {% enddetails %}
 
 
