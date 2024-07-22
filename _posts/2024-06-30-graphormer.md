@@ -113,7 +113,8 @@ The aggregation and combination at layer $$l$$ are defined as:
   where $$\mathcal{N}(v_i)$$ is the set of first or higher-order neighbours of $$v_i$$. 
   Common aggregation functions include MEAN, MAX, and SUM. 
   The COMBINE function fuses neighbor information into the node representation. 
-  In general, a READOUT function is any function of the final-layer node representations from a GNN that we can use as a graph-level representation. So $$ h_G = \text{READOUT}(\{h_i^{(L)}\}) $$ is a graph-level representation. 
+  
+- **Graph Level Representation (READOUT)**: In general, a READOUT function is any function of the final-layer node representations from a GNN that we can use as a graph-level representation. So $$ h_G = \text{READOUT}(\{h_i^{(L)}\}) $$ is a graph-level representation. 
 A MEAN-READOUT is a simple example of a READOUT function, where the graph-level representation is the mean of the node representations.
 
   
@@ -262,10 +263,10 @@ The impact is significant, and it greatly improves the performance, as proven em
 
 ### VNode
 
-The [VNode] (or a Virtual Node) is arguably one of the most important contributions from the work. 
+The \[VNode\] (or a Virtual Node) is arguably one of the most important contributions from the work. 
 It is an artificial node that is connected to <b>all</b> other nodes. 
 The authors cite this paper<d-cite key="gilmer2017neuralmessagepassingquantum"></d-cite> as an empirical motivation, but a better intuition behind the concept is as a generalization of the \[CLS\] token widely used in NLP and Vision. 
-This has an important implication on $$b$$ and $$\phi$$, because the [VNode] is connected to every node,
+This has an important implication on $$b$$ and $$\phi$$, because the \[VNode\] is connected to every node,
 
 $$
 \phi([VNode], v) = 1, \forall v \in G
@@ -288,14 +289,14 @@ However, since this is not a <b>physical connection</b>, $$ b_{\phi([VNode], v)}
 In implementation, NLP models have a distinct learnable embedding vector (along with other token embeddings in the mebedding matrix) and append this to the start of every training example, and the final layer representation of this token is used for the task (e.g. sentiment analysis, harmful-ness prediction, etc.).
 With enough task-specific (downstream) data the \[CLS\] token can learn to extract task-relevant information from the data, without having to train the model again!
 {% enddetails %}
-With graphs and text being different modalities, the [VNode] also helps in <b>relaying</b> global information to distant or non-connected clusters in a graph. 
-This is significantly important to the model's expressivity, as this information might otherwise never propagate. In fact, the [VNode] becomes a learnable and dataset-specific READOUT function.
+With graphs and text being different modalities, the \[VNode\] also helps in <b>relaying</b> global information to distant or non-connected clusters in a graph. 
+This is significantly important to the model's expressivity, as this information might otherwise never propagate. In fact, the \[VNode\] becomes a learnable and dataset-specific READOUT function.
 
 
 This can be implemented as follows:
 ```python
     # Initialize the VNode
-    self.v_node = nn.Embedding(1, num_heads) # one per head (different from CLS)
+    self.v_node = nn.Embedding(1, num_heads)
     ...
     # During forward pass (suppose VNode is the first node)
     ...
@@ -306,7 +307,7 @@ This can be implemented as follows:
     ...
 ```
 
-Again, we emphasise that the information-relay point of view is much more important to the model than the summary-token view. The design choice of one [VNode] per head enables each head to encode different global information.
+The design choice of one \[VNode\] per head enables each head to encode different global information.
 
 ---
 
@@ -321,20 +322,24 @@ These are the three main facts from the paper,
 The [spatial encoding](#spatial-encoding) provides the model with important geometric information. 
 Observe that with an appropriate $$b_{\phi(v_i, v_j)}$$, the model can <b>find (learn)</b> neighbours for any $$v_i$$ and thus easily implement <b>mean-statistics (GCN!)</b>. 
 By knowing the degree (some form of [centrality encoding](#centrality-encoding)), mean-statistics can be transformed into sum-statistics; it (indirectly) follows that various statistics can be learned by different heads, which leads to varied representations and allows GraphSAGE, GIN or GCN to be modeled as a Graphormer.
+We also provide explicit mathematical equations on how the above claims can be realized, feel free to skip them.
+{% details Proof(s) for Fact 1 %}
+For each type of aggregation, we provide simple function and weight definitions that achieve it, 
+* <b>Mean Aggregate</b> :
+    - Set $ b_{\phi(v_i, v_j)} = 0 $ when $\phi(v_i, v_j) = 1$ and $-\infty$ otherwise,
+    - Set $ W_Q = 0, W_K = 0$ and let $ W_V = I$ (Identity matrix), using these,
+    - $$ h^{(l)}_{v_i} = \sum_{v_j \in N(v_i)} softmax(A_{ij}) * (W_v * h^{(l-1)}_{v_j}) \implies h^{(l)}_{v_i} = \frac{1}{|N(v_i)|}*\sum_{v_j \in N(v_i)} h^{(l-1)}_{v_j} $$
+* <b>Sum Aggregate</b> :
+    - For this, we just need to get the mean aggregate and then multiply by $ \|N(v_i)\| $,
+    - Loosely, the degree can be extracted from a [centrality-encoding](link_to_centrality_eqn) by an attention head, and then the FFN can multiply this to the learned mean aggregate, the latter part is not so loose, because it is a direct consequence of the universal approximation theorem.
+* <b>Max Aggregate</b> :
+    - For this one we assume that if we have $t$ dimensions in our hidden state, we <i>also</i> have t heads.
+    - The proof is such that each Head will extract the maximum from neighbours, clearly, to only keep immediate neighbours around, we can use the same formulation for $b$ and $\phi$ as in the mean aggregate.
+    - Using $W_K = e_t$ (t-th unit vector), $W_K = e_t$ and $W_Q = 0$ (Identity matrix), we can get a pretty good approximation to the max aggregate. To get the full deal however, we need a <i>hard-max</i> instead of the <i>soft-max</i> being used; to accomplish this we finally consider the bias in the query layer (i.e., something like `nn.Linear(in_dim, out_dim, use_bias=True)`), set it to $T \cdot I$ with a high enough $T$ (temperature), this will make the soft-max behave like a hard-max.
+{% enddetails %}
 
 Fact 2 follows from Fact 1, with GIN being the most powerful traditional GNN, which can theoretically identify all graphs distinguishable by the 1-WL test, as it is now a special case of Graphormer. 
 The latter can do the same (& more!).
-
-More importantly, Fact 3 implies that Graphormer allows the flow of <i>Global</i> (and Local) information within the network. 
-This truly sets the network apart from traditional GNNs, which can only aggregate local information up to a fixed radius (or depth).
-
-Traditional GNNs are <i>designed</i> to prevent this type of flow, as with their architecture, this would lead to over-smoothening. 
-However, the clever design around [VNode] prevents this from happening in Graphormer. 
-The addition of a supernode along with Attention and the learnable $$b_{\phi(v_i, v_j)}$$ facilitate this, the [VNode] can relay global information, and the attention mechanism can selectively choose from there.
-
-Operations such as MEAN_READOUT involve aggregation over all nodes, making it a global operation.
-Given that Fact 3 implies that every node representation can be MEAN-READOUT, this means that the model can learn to selectively propagate global information using the [VNode].
-
 {% details The WL Test and an example for Fact 2 %}
 First we need to fix some notation for the WL test, briefly, it can be expressed as -
 
@@ -369,6 +374,25 @@ However for the graphormer, Shortest Path Distances (SPD) directly affects atten
 What is important is not that red and blue nodes have a different SPD set, <u><i>but that these two types of nodes have different SPD sets across the two graphs</i></u>, this signal can help the model distinguish the two graphs and is the reason why Graphormer is better than 1-WL test limited architectures.
 {% enddetails %}
 
+More importantly, Fact 3 implies that Graphormer allows the flow of <i>Global</i> (and Local) information within the network. 
+This truly sets the network apart from traditional GNNs, which can only aggregate local information up to a fixed radius (or depth).
+
+Traditional GNNs are <i>designed</i> to prevent this type of flow, as with their architecture, this would lead to over-smoothening. 
+However, the clever design around \[VNode\] prevents this from happening in Graphormer. 
+The addition of a supernode along with Attention and the learnable $$b_{\phi(v_i, v_j)}$$ facilitate this, the \[VNode\] can relay global information, and the attention mechanism can selectively choose from there.
+
+{% details Over-smoothening %}
+Over-smoothening results in traditional GNNs when the neighbourhood considered for feature aggregation is too large. 
+If we build a 10 layer deep network for a graph where the maximum distance bwteen any two nodes is 10, then all nodes will agrregate information from all other nodes, and the final representation will be the same for all nodes.
+Thus näively adding a \[VNode\] / Super Node would lead to over-smoothening in traditional GNNs.
+{% enddetails %}
+
+Operations such as MEAN_READOUT involve aggregation over all nodes, making it a global operation.
+Given that Fact 3 implies that every node representation can be MEAN-READOUT, this means that the model can learn to selectively propagate global information using the \[VNode\].
+{% details Proof for Fact 3 %}
+Setting $W_Q = W_K = 0$, and the bias terms in both to be $T \cdot 1$ (where T is temperature), as well as, setting $W_V = I$ (Identity matrix), with a large enough $T$ (much larger than the scale of $b_{\phi(v_i, v_j)}$, so that $T^2 1 1^T$ can dominate), we can get MEAN-READOUT on all nodes. Note that while this proof doesn't require \[VNode\], it should be noted that, the \[Vnode\] is very important to establish a <b>balance</b> between this completely global flow and the local flow. As in a normal setting, with the $T$ not being too large, the only way for global information is through the \[VNode\], as the $b_{\phi(v_i, v_j)}$ would most likely limit information from nodes that are very far.
+{% enddetails %}
+
 
 ---
 
@@ -393,7 +417,17 @@ Table 1: Results on PCQM4M-LSC
 | Graphormer | 47.1M | 0.0582 | 0.1234 |
 
 Notably, As pointed out in the [VNode](#vnode) section, Graphormer does not encounter over-smoothing issues, with both training and validation errors continuing to decrease as model depth and width increased. 
-Additionally, Graph Transformer (GT) showed no performance gain despite a significant increase in parameters from GT to GT-Wide, highlighting Graphormer's scaling capabilities. We also observe a strong overfitting (>0.045 difference between train and validate MAE) for Transformer based models. Graphormer's higher overfitting can be attributed to its special structure, as it can extract more information from the training data.
+Additionally, Graph Transformer (GT) showed no performance gain despite a significant increase in parameters from GT to GT-Wide, highlighting Graphormer's scaling capabilities. 
+We also observe a strong overfitting (>0.045 difference between train and validate MAE) for Transformer based models. 
+This can be attributed to its special structure, as it can extract more information from the training data.
+
+{% details Graph Trasformer (GT) %}
+
+The Graph Transformer is an architecture which works on heterogeneous graphs.
+It uses a transformer to create several graphs at runtime by combining several meta-paths and the using a traditional GNN to aggregate information.
+As a transformer is not involved in the information relay stage, it's expressivity is mid-way between a traditional GNN and a Graphormer.
+
+{% enddetails %}
 
 Further experiments for graph-level prediction tasks were performed on datasets from popular leaderboards like [OGBG](https://ogb.stanford.edu/docs/graphprop/#ogbg-mol) (MolPCBA, MolHIV) and [benchmarking-GNNs](https://paperswithcode.com/paper/benchmarking-graph-neural-networks) (ZINC), which also showed Graphormer consistently outperforming top-performing GNNs.
 
@@ -415,7 +449,8 @@ Table 2: Comparison between Graphormer and GROVER on MolHIV
 | GROVER (LARGE)| 107.7M | 80.32±0.14 |
 | Graphormer-FLAG | 47.0M | 80.51±0.53 |
 
-However, as evident in Table 2, Graphormer manages to offer competitive performance on the benchmarks without even using the additional features (known to boost performance), which showcases it increases the expressiveness of complex information. Additionally the gap in performance can be attributed to the MolHIV dataset, which is too small for Graphormer to extract enough information.
+However, as evident in Table 2, Graphormer manages to offer competitive performance on the benchmarks without even using the additional features (known to boost performance), which showcases it increases the expressiveness of complex information. 
+Additionally the gap in performance can be attributed to the MolHIV dataset, which is too small for Graphormer to extract generalizable features.
 
 
 ---
