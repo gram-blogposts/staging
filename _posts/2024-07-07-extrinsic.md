@@ -8,18 +8,43 @@ date: 2024-07-07
 featured: true
 
 authors:
-  - name: Anonymous
-    url: ""
+  - name: Dian Wang
+    url: "https://pointw.github.io"
     affiliations:
-      name: Anonymous
-  # - name: Boris Podolsky
-  #   url: "https://en.wikipedia.org/wiki/Boris_Podolsky"
-  #   affiliations:
-  #     name: IAS, Princeton
-  # - name: Nathan Rosen
-  #   url: "https://en.wikipedia.org/wiki/Nathan_Rosen"
-  #   affiliations:
-  #     name: IAS, Princeton
+      name: Northeastern University
+  - name: Jung Yeon Park
+    url: "https://jypark0.github.io"
+    affiliations:
+      name: Northeastern University
+  - name: Xupeng Zhu
+    url: "https://zxp-s-works.github.io"
+    affiliations:
+      name: Northeastern University
+  - name: Neel Sortur
+    url: "https://nsortur.github.io"
+    affiliations:
+      name: Northeastern University
+  - name: Mingxi Jia
+    url: "https://saulbatman.github.io"
+    affiliations:
+      name: Brown University
+  - name: Guanang Su
+    url: "https://xxs90.github.io"
+    affiliations:
+      name: University of Minnesota
+  - name: Lawson L.S. Wong
+    url: "https://www.khoury.northeastern.edu/home/lsw/"
+    affiliations:
+      name: Northeastern University
+  - name: Robert Platt
+    url: "https://www2.ccs.neu.edu/research/helpinghands/people/"
+    affiliations:
+      name: Northeastern University
+  - name: Robin Walters
+    url: "http://www.robinwalters.com"
+    affiliations:
+      name: Northeastern University
+
 
 bibliography: 2024-07-07-extrinsic/2024-07-07-extrinsic.bib
 
