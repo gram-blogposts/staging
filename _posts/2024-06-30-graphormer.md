@@ -229,7 +229,7 @@ $$
 
 
 The above equation shows the modified computation of the Query-Key Product matrix. 
-Notice that the additional term $$b_{\phi(v_i, v_j)}$$ a learnable scalar value, is just an embedding look-up, and acts like a bias term.
+Notice that the additional term $$b_{\phi(v_i, v_j)}$$, a learnable scalar value, is just an embedding look-up and acts like a bias term.
 Since this structural information is independent of which layer of our model is using it, we share this value across all layers. 
 
 
@@ -331,7 +331,7 @@ For each type of aggregation, we provide simple function and weight definitions 
     - $$ h^{(l)}_{v_i} = \sum_{v_j \in N(v_i)} softmax(A_{ij}) * (W_v * h^{(l-1)}_{v_j}) \implies h^{(l)}_{v_i} = \frac{1}{|N(v_i)|}*\sum_{v_j \in N(v_i)} h^{(l-1)}_{v_j} $$
 * <b>Sum Aggregate</b> :
     - For this, we just need to get the mean aggregate and then multiply by $ \|N(v_i)\| $,
-    - Loosely, the degree can be extracted from a [centrality-encoding](link_to_centrality_eqn) by an attention head, and then the FFN can multiply this to the learned mean aggregate, the latter part is not so loose, because it is a direct consequence of the universal approximation theorem.
+    - Loosely, the degree can be extracted from [centrality-encoding](link_to_centrality_eqn) by an attention head, and then the FFN can multiply this to the learned mean aggregate, the latter part is a direct consequence of the universal approximation theorem.
 * <b>Max Aggregate</b> :
     - For this one we assume that if we have $t$ dimensions in our hidden state, we <i>also</i> have t heads.
     - The proof is such that each Head will extract the maximum from neighbours, clearly, to only keep immediate neighbours around, we can use the same formulation for $b$ and $\phi$ as in the mean aggregate.
@@ -341,11 +341,12 @@ For each type of aggregation, we provide simple function and weight definitions 
 Fact 2 follows from Fact 1, with GIN being the most powerful traditional GNN, which can theoretically identify all graphs distinguishable by the 1-WL test, as it is now a special case of Graphormer. 
 The latter can do the same (& more!).
 {% details The WL Test and an example for Fact 2 %}
-First we need to fix some notation for the WL test, briefly, it can be expressed as -
+First we need to fix some notation for the WL test. 
+Briefly, the formulation can be expressed as -
 
 $$ c^{(k+1)}(v) = HASH(c^{(k)}(v), \{c^{(k)}(u)\}_{u \in N(v)} )$$
 
-where $$c^{(k)}(v)$$ is the $$k^{th}$$ iteration representation (color for convinience) of node $$v$$ and importantly $$HASH$$ is an <i>injective</i> hash function. 
+where $$c^{(k)}(v)$$ is the $$k^{th}$$ iteration representation (color for convenience) of node $$v$$ and importantly $$HASH$$ is an <i>injective</i> hash function. 
 Additionally, all nodes with the same color have the same feature vector
 
 Given this, consider the following graphs -
@@ -360,7 +361,7 @@ Given this, consider the following graphs -
 </div>
 
 The hashing process converges in one iteration itself, now the 1-WL test would count number of colors and that vector would act as the final graph representation, which for both of the graphs will be $$ [0, 0, 4, 2] $$ (i.e., $$ [count(a), count(b), count(x), count(y)] $$), even though they are different, the 1-WL test fails to distinguish them. 
-There are several such cases and so traditional GNNs are fairly limited in their expressivity.
+There are several such cases and thus it can be said traditional GNNs are fairly limited in their expressivity.
 
 However for the graphormer, Shortest Path Distances (SPD) directly affects attention weights (because the paper uses SPD as $$\phi(v_i, v_j)$$), and if we look at the SPD sets for the two types of nodes (red and blue) in both the graphs, (we have ordered according to the BFS traversal by top left red node, though any ordering would suffice)
 
@@ -371,7 +372,7 @@ However for the graphormer, Shortest Path Distances (SPD) directly affects atten
     - Red nodes - $$ \{0, 1, 1, 2, 3, 3\} $$
     - Blue nodes - $$ \{1, 0, 1, 1, 2, 2\} $$
 
-What is important is not that red and blue nodes have a different SPD set, <u><i>but that these two types of nodes have different SPD sets across the two graphs</i></u>, this signal can help the model distinguish the two graphs and is the reason why Graphormer is better than 1-WL test limited architectures.
+What is important is not that red and blue nodes have a different SPD set, <u><i>but that these two types of nodes have different SPD sets across the two graphs</i></u>. This signal can help the model distinguish the two graphs and is the reason why Graphormer is better than 1-WL test limited architectures.
 {% enddetails %}
 
 More importantly, Fact 3 implies that Graphormer allows the flow of <i>Global</i> (and Local) information within the network. 
@@ -383,7 +384,7 @@ The addition of a supernode along with Attention and the learnable $$b_{\phi(v_i
 
 {% details Over-smoothening %}
 Over-smoothening results in traditional GNNs when the neighbourhood considered for feature aggregation is too large. 
-If we build a 10 layer deep network for a graph where the maximum distance bwteen any two nodes is 10, then all nodes will agrregate information from all other nodes, and the final representation will be the same for all nodes.
+If we build a 10 layer deep network for a graph where the maximum distance bwteen any two nodes is 10, then all nodes will aggregate information from all other nodes, and the final representation will be the same for all nodes.
 Thus näively adding a \[VNode\] / Super Node would lead to over-smoothening in traditional GNNs.
 {% enddetails %}
 

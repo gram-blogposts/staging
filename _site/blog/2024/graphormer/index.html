@@ -688,7 +688,7 @@ This scalar value is then added to the element corresponding to the operation be
 \[A_{ij} = \frac{(h_i W_Q)(h_j W_K)^T}{\sqrt{d}} + b_{\phi(v_i, v_j)}\]
 
 <p>The above equation shows the modified computation of the Query-Key Product matrix. 
-Notice that the additional term \(b_{\phi(v_i, v_j)}\) a learnable scalar value, is just an embedding look-up, and acts like a bias term.
+Notice that the additional term \(b_{\phi(v_i, v_j)}\), a learnable scalar value, is just an embedding look-up and acts like a bias term.
 Since this structural information is independent of which layer of our model is using it, we share this value across all layers.</p>
 
 <p>The benefits of using such an encoding are:</p>
@@ -815,7 +815,7 @@ We also provide explicit mathematical equations on how the above claims can be r
 <b>Sum Aggregate</b> :
     <ul>
       <li>For this, we just need to get the mean aggregate and then multiply by $ |N(v_i)| $,</li>
-      <li>Loosely, the degree can be extracted from a <a href="link_to_centrality_eqn">centrality-encoding</a> by an attention head, and then the FFN can multiply this to the learned mean aggregate, the latter part is not so loose, because it is a direct consequence of the universal approximation theorem.</li>
+      <li>Loosely, the degree can be extracted from <a href="link_to_centrality_eqn">centrality-encoding</a> by an attention head, and then the FFN can multiply this to the learned mean aggregate, the latter part is a direct consequence of the universal approximation theorem.</li>
     </ul>
   </li>
   <li>
@@ -832,11 +832,12 @@ We also provide explicit mathematical equations on how the above claims can be r
 <p>Fact 2 follows from Fact 1, with GIN being the most powerful traditional GNN, which can theoretically identify all graphs distinguishable by the 1-WL test, as it is now a special case of Graphormer. 
 The latter can do the same (&amp; more!).</p>
 <details><summary>The WL Test and an example for Fact 2</summary>
-<p>First we need to fix some notation for the WL test, briefly, it can be expressed as -</p>
+<p>First we need to fix some notation for the WL test. 
+Briefly, the formulation can be expressed as -</p>
 
 \[c^{(k+1)}(v) = HASH(c^{(k)}(v), \{c^{(k)}(u)\}_{u \in N(v)} )\]
 
-<p>where \(c^{(k)}(v)\) is the \(k^{th}\) iteration representation (color for convinience) of node \(v\) and importantly \(HASH\) is an <i>injective</i> hash function. 
+<p>where \(c^{(k)}(v)\) is the \(k^{th}\) iteration representation (color for convenience) of node \(v\) and importantly \(HASH\) is an <i>injective</i> hash function. 
 Additionally, all nodes with the same color have the same feature vector</p>
 
 <p>Given this, consider the following graphs -</p>
@@ -868,7 +869,7 @@ Additionally, all nodes with the same color have the same feature vector</p>
 </div>
 
 <p>The hashing process converges in one iteration itself, now the 1-WL test would count number of colors and that vector would act as the final graph representation, which for both of the graphs will be \([0, 0, 4, 2]\) (i.e., \([count(a), count(b), count(x), count(y)]\)), even though they are different, the 1-WL test fails to distinguish them. 
-There are several such cases and so traditional GNNs are fairly limited in their expressivity.</p>
+There are several such cases and thus it can be said traditional GNNs are fairly limited in their expressivity.</p>
 
 <p>However for the graphormer, Shortest Path Distances (SPD) directly affects attention weights (because the paper uses SPD as \(\phi(v_i, v_j)\)), and if we look at the SPD sets for the two types of nodes (red and blue) in both the graphs, (we have ordered according to the BFS traversal by top left red node, though any ordering would suffice)</p>
 
@@ -887,7 +888,7 @@ There are several such cases and so traditional GNNs are fairly limited in their
   </li>
 </ul>
 
-<p>What is important is not that red and blue nodes have a different SPD set, <u><i>but that these two types of nodes have different SPD sets across the two graphs</i></u>, this signal can help the model distinguish the two graphs and is the reason why Graphormer is better than 1-WL test limited architectures.</p>
+<p>What is important is not that red and blue nodes have a different SPD set, <u><i>but that these two types of nodes have different SPD sets across the two graphs</i></u>. This signal can help the model distinguish the two graphs and is the reason why Graphormer is better than 1-WL test limited architectures.</p>
 </details>
 
 <p>More importantly, Fact 3 implies that Graphormer allows the flow of <i>Global</i> (and Local) information within the network. 
@@ -899,7 +900,7 @@ The addition of a supernode along with Attention and the learnable \(b_{\phi(v_i
 
 <details><summary>Over-smoothening</summary>
 <p>Over-smoothening results in traditional GNNs when the neighbourhood considered for feature aggregation is too large. 
-If we build a 10 layer deep network for a graph where the maximum distance bwteen any two nodes is 10, then all nodes will agrregate information from all other nodes, and the final representation will be the same for all nodes.
+If we build a 10 layer deep network for a graph where the maximum distance bwteen any two nodes is 10, then all nodes will aggregate information from all other nodes, and the final representation will be the same for all nodes.
 Thus näively adding a [VNode] / Super Node would lead to over-smoothening in traditional GNNs.</p>
 </details>
 
