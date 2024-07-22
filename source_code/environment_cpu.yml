@@ -1,0 +1,16 @@
+name: egnn-transformer
+channels:
+  - pytorch
+  - anaconda
+  - conda-forge
+  - defaults
+dependencies:
+  - pytorch
+  - tqdm
+  - lightning
+  - jax
+  - flax
+  - tensorboard
+  - pip:
+    - jraph
+    - torch_geometric
