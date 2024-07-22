@@ -8,15 +8,15 @@ date: 2024-06-13
 featured: true
 
 authors:
-  - name: Anonymous
-    url: "https://Anonymous"
+  - name: Patrick Feeney
+    url: "https://patrickfeeney.github.io/"
     affiliations:
-      name: Anonymous
+      name: Tufts University
 
 bibliography: 2024-06-13-contrast-learning.bib
 ---
 
-Contrastive learning encompasses a variety of methods that learn a constrained embedding space to solve a task. The embedding space is constrained such that a chosen metric, a function that measures the distance between two embeddings, satisfies some desired property, usually that small distances imply a shared class. Contrastive learning underlies many self-supervised methods, such as MoCo <d-cite key="he_momentum_2020"></d-cite>, <d-cite key="chen_empirical_2021"></d-cite>, SimCLR <d-cite key="chen_simple_2020"></d-cite>, <d-cite key="chen_big_2020"></d-cite>, and BYOL <d-cite key="grill_bootstrap_2020"></d-cite>, as well as supervised methods such as SupCon <d-cite key="khosla_supervised_2020"></d-cite> and SINCERE <d-cite key="feeney_sincere_2024"></d-cite>.
+Contrastive learning encompasses a variety of methods that learn a constrained embedding space to solve a task. The embedding space is constrained such that a chosen metric, a function that measures the distance between two embeddings, satisfies some desired properties, usually that small distances imply a shared class. Contrastive learning underlies many self-supervised methods, such as MoCo <d-cite key="he_momentum_2020"></d-cite>, <d-cite key="chen_empirical_2021"></d-cite>, SimCLR <d-cite key="chen_simple_2020"></d-cite>, <d-cite key="chen_big_2020"></d-cite>, and BYOL <d-cite key="grill_bootstrap_2020"></d-cite>, as well as supervised methods such as SupCon <d-cite key="khosla_supervised_2020"></d-cite> and SINCERE <d-cite key="feeney_sincere_2024"></d-cite>.
 
 In contrastive learning, there are two components that determine the constraints on the learned embedding space: the similarity function and the contrastive loss. The similarity function takes a pair of embedding vectors and quantifies how similar they are as a scalar. The contrastive loss determines which pairs of embeddings have similarity evaluated and how the resulting set of similarity values are used to measure error with respect to a task, such as classification. Backpropagating to minimize this error causes a model to learn embeddings that best satisfy the constraints induced by the similarity function and contrastive loss.
 
@@ -43,7 +43,7 @@ $$s(z_1, z_2) = 1 - \frac{\text{arccos}(z_1 \cdot z_2)}{\pi}$$
 
 This function assumes that 
 $$||z_1|| = ||z_2|| = 1$$
-which is a common normalization <d-cite key="le-khac_contrastive_2020"></d-cite> that restricts the embeddings to a hypersphere. The arc length $$\text{arccos}(z_1 \cdot z_2)$$ is a natural choice for comparing such vectors as it is the geodesic distance, or the length of the shortest path between $$z_1$$ and $$z_2$$ on the hypersphere. Subtracting the arc length converts the distance metric into a similarity function with range $$[0, 1]$$.
+which is a common normalization <d-cite key="le-khac_contrastive_2020"></d-cite> that restricts the embeddings to a hypersphere. The arc length $$\text{arccos}(z_1 \cdot z_2)$$ is a natural choice for comparing such vectors as it is the geodesic distance, or the length of the shortest path between $$z_1$$ and $$z_2$$ on the hypersphere. Subtracting the arc length converts the distance metric into a similarity function with range $$[0, 1]$$. Koishekenov et al. <d-cite key="koishekenov_geometric_2023"></d-cite> recently reported improved downstream performance by replacing cosine similarity with negative arc length for two self-supervised cross entropy losses.
 
 ### Negative Euclidean Distance
 
@@ -154,7 +154,7 @@ We utilize the methodology of Feeney and Hughes <d-cite key="feeney_sincere_2024
   </tr>
 </table>
 
-We find no statistically significant difference based on the 95% confidence interval of the accuracy difference <d-cite key="foody_classification_2009"></d-cite> from 1,000 iterations of test set bootstrapping. This aligns with the results in Feeney and Hughes <d-cite key="feeney_sincere_2024"></d-cite>, which found a similar lack of statistically significant results across choices of supervised contrastive cross entropy losses. This suggests that supervised learning accuracy is similar across choices of reasonable similarity functions and contrastive losses.
+We find no statistically significant difference based on the 95% confidence interval of the accuracy difference <d-cite key="foody_classification_2009"></d-cite> from 1,000 iterations of test set bootstrapping. This aligns with the results in Feeney and Hughes <d-cite key="feeney_sincere_2024"></d-cite>, which used different loss functions with cosine similarity and found a similar lack of statistically significant results across choices of supervised contrastive cross entropy losses. This suggests that supervised learning accuracy is similar across choices of reasonable similarity functions and contrastive losses.
 
 ### Supervised Learning Embedding Space
 
@@ -184,4 +184,6 @@ The model trained with negative arc length similarity does a better job of forci
 
 ### Discussion
 
-The choice of similarity function clearly has an effect on the learned embedding space despite a lack of statistically significant changes in accuracy. The cosine similarity histogram most cleanly aligns with the intuition that contrastive losses should be maximizing and minimizing similarities. In contrast, the negative arc length similarity histogram suggests similarity minimization is sacrificed for very consistent maximization. These differences in the learned embedding spaces could affect performance on downstream tasks such as transfer learning.
+The choice of similarity function clearly has an effect on the learned embedding space despite a lack of statistically significant changes in accuracy. The cosine similarity histogram most cleanly aligns with the intuition that contrastive losses should be maximizing and minimizing similarities. In contrast, the negative arc length similarity histogram suggests similarity minimization is sacrificed for very consistent maximization, producing small differences in similarity between some target classes and noise examples. I hypothesize that this change in behavior arises from the difference in similarity function behavior with small angles described in Koishekenov et al. <d-cite key="koishekenov_geometric_2023"></d-cite>.
+
+These differences in the learned embedding spaces could affect performance on downstream tasks such as transfer learning. I hypothesize that the larger difference between target and noise similarities seen in the cosine similarity model would improve transfer learning performance, similar to the improvement of SINCERE over SupCon loss reported in Feeney and Hughes <d-cite key="feeney_sincere_2024"></d-cite>.
