@@ -119,11 +119,44 @@
             "authors": [
               
               {
-                "author": "Anonymous",
-                "authorURL": "None",
+                "author": "Ioana Simion",
+                "authorURL": "https://www.linkedin.com/in/ioanasimion-is/",
                 "affiliations": [
                   {
-                    "name": "None",
+                    "name": "University of Amsterdam",
+                    "url": ""
+                  }
+                ]
+              },
+              
+              {
+                "author": "Stefan Vasilev",
+                "authorURL": "https://www.linkedin.com/in/stefanvasilevai/",
+                "affiliations": [
+                  {
+                    "name": "University of Amsterdam",
+                    "url": ""
+                  }
+                ]
+              },
+              
+              {
+                "author": "Jonas Schäfer",
+                "authorURL": "https://www.linkedin.com/in/schaefjo/",
+                "affiliations": [
+                  {
+                    "name": "University of Amsterdam",
+                    "url": ""
+                  }
+                ]
+              },
+              
+              {
+                "author": "Gregory Hok Tjoan Go",
+                "authorURL": "https://www.linkedin.com/in/gregorygo12/",
+                "affiliations": [
+                  {
+                    "name": "University of Amsterdam",
                     "url": ""
                   }
                 ]
@@ -382,6 +415,8 @@
   <li>Provide an overview of reproduction results for the Equivariant Graph Neural Network.</li>
 </ol>
 
+<p><em>Editor’s Note</em> : You can find the code used in this tutorial in the following <a href="https://github.com/Ioana-Simion/egnn-jax" rel="external nofollow noopener" target="_blank">repository</a>.</p>
+
 <h3 id="recap-of-equivariance">Recap of Equivariance</h3>
 
 <p>As equivariance is prevalent in the natural sciences <d-cite key="balaban1985applications"></d-cite><d-cite key="gupta2013wtf"></d-cite><d-cite key="miller1995wordnet"></d-cite><d-cite key="thölke2022equivariant"></d-cite><d-cite key="maron2020learning"></d-cite>, it makes sense to utilize them for our neural networks, especially given the evidence suggesting that it significantly improves performance through increasing the network’s generalizability <d-cite key="bronstein2021geometric"></d-cite>. One large area within this subfield of deep learning is learning 3D translation and rotation symmetries, where various techniques have been created such as Graph Convolutional Neural Networks <d-cite key="cohen2016group"></d-cite> and Tensor Field Networks <d-cite key="thomas2018tensor"></d-cite>.</p>
@@ -439,7 +474,7 @@ $$
 $$
 </div>
 
-<p>This idea of using the distances during computation forms one of the bases of our proposed transformer architecture, as it is a simple yet effective way to impose geometric equivariance within a system.</p>
+<p>This idea of using the distances during computation forms an important basis in these architectures, as it is a simple yet effective way to impose geometric equivariance within a system.</p>
 
 <h3 id="why-jax">Why JAX?</h3>
 
@@ -600,6 +635,8 @@ $$
 <p>Our EGNN comparisons reveal that the JAX-based model is faster than traditional PyTorch implementations, benefiting from JIT compilation to optimize runtime performance. In addition, we also demonstrate that these JAX-based models also achieve comparable performances to the aforementioned PyTorch ones, meaning that they are generally more suitable for equivariance tasks.</p>
 
 <p>We also adapted the model for two well-known datasets: the QM9 dataset for molecule property prediction and the N-body dataset for simulating physical systems. This demonstrates the flexibility and potential of our JAX framework as a strong foundation for further development. Our work suggests that the JAX-based EGNN framework can be effectively extended to other applications, facilitating future research and advancements in equivariant neural networks and beyond.</p>
+
+<p>You can find the code to our experiments <a href="https://github.com/Ioana-Simion/egnn-jax" rel="external nofollow noopener" target="_blank">here</a>.</p>
 
 <hr>
 
