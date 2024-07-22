@@ -45,20 +45,16 @@
 <lastmod>2024-07-07T00:00:00+02:00</lastmod>
 </url>
 <url>
-<loc>http://localhost:4000/blog/2024/towards-equivariant-adaptation/</loc>
-<<<<<<< HEAD
-<lastmod>2024-07-11T00:00:00+02:00</lastmod>
-</url>
-<url>
 <loc>http://localhost:4000/blog/2024/equivariant_diffusion/</loc>
 <lastmod>2024-07-18T00:00:00+02:00</lastmod>
 </url>
 <url>
 <loc>http://localhost:4000/blog/2024/relaxed-equivariance/</loc>
 <lastmod>2024-07-20T00:00:00+02:00</lastmod>
-=======
-<lastmod>2024-07-21T00:00:00-04:00</lastmod>
->>>>>>> ebe3e8db3494e9e10485f410f847fb951ae3689a
+</url>
+<url>
+<loc>http://localhost:4000/blog/2024/towards-equivariant-adaptation/</loc>
+<lastmod>2024-07-21T00:00:00+02:00</lastmod>
 </url>
 <url>
 <loc>http://localhost:4000/</loc>

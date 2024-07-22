@@ -1,6 +1,236 @@
-<<<<<<< HEAD
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-22T17:11:23+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
-</subtitle><entry><title type="html">Effect of equivariance on training dynamics</title><link href="http://localhost:4000/blog/2024/relaxed-equivariance/" rel="alternate" type="text/html" title="Effect of equivariance on training dynamics" /><published>2024-07-20T00:00:00+02:00</published><updated>2024-07-20T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/relaxed-equivariance</id><content type="html" xml:base="http://localhost:4000/blog/2024/relaxed-equivariance/"><![CDATA[<p><em>Group Equivariant Convolutional Network</em> (G-CNN) has gained significant traction in recent years owing to their ability to generalize the property of CNNs being equivariant to translations in convolutional layers. With equivariance, the network is able to exploit groups of symmetries and a direct consequence of this is that it generally needs less data to perform well. However, incorporating such knowledge into the network may not always be advantageous, especially when the data itself does not exhibit full equivariance. To address this issue, the G-CNN was modified, introducing <em>relaxed group equivariant CNNs</em> (RG-CNN). Such modified networks adaptively learn the degree of equivariance imposed on the network, i.e. enabling it to operate on a level between full equivariance and no equivariance.
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-22T17:16:18+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+</subtitle><entry><title type="html">Towards Equivariant Adaptation of Large Pretrained Models</title><link href="http://localhost:4000/blog/2024/towards-equivariant-adaptation/" rel="alternate" type="text/html" title="Towards Equivariant Adaptation of Large Pretrained Models" /><published>2024-07-21T00:00:00+02:00</published><updated>2024-07-21T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/towards-equivariant-adaptation</id><content type="html" xml:base="http://localhost:4000/blog/2024/towards-equivariant-adaptation/"><![CDATA[<p>Deep learning has witnessed tremendous growth in the past decade. Still, as we strive for more nuanced understanding and performance improvements, one challenge emerges clearly: how do we ensure our models understand data transformations? Enter equivariance, an idea that can help our networks maintain consistent behaviour with data transformations. But with the rise of large pretrained models, how do we make them equivariant without changing their architecture or retraining the model from scratch with data augmentation? In this blogpost, we delve into ideas presented
+in the paper “Equivariant Adaptation of Large Pretrained Models”<d-cite key="mondal2023equivariant"></d-cite> to answer this question.</p>
+
+<h2 id="what-is-equivariance">What is Equivariance?</h2>
+<p>Equivariant networks <d-cite key="cohen2016group,worrall2019deep,bronstein2021geometric"></d-cite> are deep neural networks that maintain consistent behaviour when input data undergo transformations like rotation, scaling, or translation. In simpler terms, if we rotate an image of a cat, an equivariant network would still recognize it as a cat! Another example of this would be segmentation maps on images. If we rotate an image, the segmentation map should rotate in the same way to maintain consistency.</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/equivariant-adaptation/image1-480.webp 480w,/assets/img/equivariant-adaptation/image1-800.webp 800w,/assets/img/equivariant-adaptation/image1-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/equivariant-adaptation/image1.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/equivariant-adaptation/image2-480.webp 480w,/assets/img/equivariant-adaptation/image2-800.webp 800w,/assets/img/equivariant-adaptation/image2-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/equivariant-adaptation/image2.png" class="img-fluid rounded z-depth-1 fixed-size-img2" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+</div>
+<div class="caption">
+    Equivariant tasks. Instance segmentation requires segmentation maps to be consistent with the input image transformations and 
+    classification requires the network to recognize the same object in different orientations.
+</div>
+
+<p>The beauty of this is that such networks lead to more accurate, robust predictions and need fewer samples to train – this is great in theory but hard to implement in practice, especially for large pretrained models whose equivariant counterparts are not trivial to design or are very expensive to re-train from scratch. These massive models pretrained on the entire internet are extremely good at solving and reasoning about different tasks and are called <code class="language-plaintext highlighter-rouge">foundation models</code> <d-cite key="bommasani2021opportunities"></d-cite>. Despite having such capabilities, foundation models are not naturally equivariant and usually don’t handle transformations well. (see the GPT-4 example below) Our goal is to incorporate the benefits of equivariance in existing foundation models.</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/equivariant-adaptation/image3-480.webp 480w,/assets/img/equivariant-adaptation/image3-800.webp 800w,/assets/img/equivariant-adaptation/image3-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/equivariant-adaptation/image3.png" class="img-fluid rounded z-depth-1 fixed-size-img3" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/equivariant-adaptation/image4-480.webp 480w,/assets/img/equivariant-adaptation/image4-800.webp 800w,/assets/img/equivariant-adaptation/image4-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/equivariant-adaptation/image4.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+</div>
+<div class="caption">
+    ChatGPT-4 for image parsing. The model is accurate in extracting text from 'straight' images, but it fails to do so for 'inverted' images.
+</div>
+
+<h2 id="decoupling-equivariance-from-architecture-with-canonicalization">Decoupling Equivariance from Architecture with Canonicalization</h2>
+
+<p>A recent alternative to designing equivariant networks was proposed by Kaba et al. <d-cite key="kaba2023equivariance"></d-cite>.  It suggests that instead of changing the network architecture to incorporate equivariance, why not first learn to transform the input data into a ‘standard’ format (or orientation), also known as <code class="language-plaintext highlighter-rouge">canonical form</code>. This way, our task prediction network can work on this standardized format, ensuring consistency. This process involves adding an additional inexpensive network called the <code class="language-plaintext highlighter-rouge">canonicalization network</code> or $c$, which learns to standardize the input. In our formulation, for an input $x$, the output from canonicalization network is $c(x) = g$, where $g$ denotes the group element corresponding to the orientation of $x$. The primary network that learns to solve the task based on the standardized input is called the <code class="language-plaintext highlighter-rouge">prediction network</code> or $\phi$. In this particular formulation, achieving equivariance requires only ensuring that the canonicalization process is invariant to the transformation of the input. This means no matter which orientation you see the input, the canonicalization process should always bring it back to the same canonical orientation. This is achieved by using a shallow and cheap equivariant architecture for the canonicalization network. (see <d-cite key="kaba2023equivariance"></d-cite> for more details)</p>
+
+<p>Finally, the combination of the canonicalization network and the prediction network can be represented as $\Phi$:</p>
+
+\[\Phi(x) = c(x) \circ \phi(c(x)^{-1}. x)\]
+
+\[\Rightarrow \Phi(g. x) = c(g. x) \circ \phi(c(g. x)^{-1}. g. x)\]
+
+\[\Rightarrow \Phi(g. x) = g.c(x) \circ \phi(c(x)^{-1}. x) = g \circ \Phi(x)\]
+
+<p>The beauty of this approach lies in how the canonicalization network separates the equivariance requirement from the core prediction network architecture. This means that you have the flexibility to employ any powerful pretrained large neural network for the main prediction task.</p>
+
+<p>Sounds straightforward? Well, it has a hitch.</p>
+
+<p>The <strong>main challenge</strong> is ensuring the canonicalization network ‘plays nice’ with the prediction network. For example, the canonicalization network can output orientations that hurt the training of the prediction network, leading to poor task performance. This becomes more important when the prediction network is pretrained on a certain dataset. For instance, if the canonicalization network transforms all images to be upside-down, but our pretrained prediction network wasn’t trained on upside-down images, the whole system falls apart. So, it’s vital that the canonicalization network outputs orientations of the data that is in-distribution for the pretrained prediction network.</p>
+
+<h2 id="learning-to-predict-the-correct-orientation-for-the-pretrained-network">Learning to Predict the Correct Orientation for the Pretrained Network</h2>
+
+<p>The magic lies in designing our canonicalization function not just to transform data but to do so while being aware of how our prediction model was initially trained. The key is ensuring that the data being transformed (or standardized) is done to align with what the pretrained prediction model expects. Mathematically, the goal is to bring the predicted out-of-distribution orientations to the distribution of orientations the pretrained prediction network has seen.</p>
+
+<h1 id="enter-the-canonicalization-prior">Enter the Canonicalization Prior</h1>
+
+<p>In simple terms, it’s a guiding force ensuring that our canonicalization function behaves and produces output that the pretrained prediction network would expect and appreciate. 
+We leverage the idea that our data can provide hints on the ‘typical’ transformations it undergoes. By encoding this into a prior, one can guide our canonicalization function to produce transformed data that’s not just standardized but also aligned with what the prediction network was trained on.</p>
+
+<p>While mathematical and intricate, this entire process can be boiled down to ensuring that the large pretrained prediction network always looks at in-distribution samples. 
+This results in a highly robust model that can confidently handle varied transformations in the input data, giving accurate predictions every time.</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/equivariant-adaptation/image5-480.webp 480w,/assets/img/equivariant-adaptation/image5-800.webp 800w,/assets/img/equivariant-adaptation/image5-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/equivariant-adaptation/image5.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+</div>
+<div class="caption">
+    Training and inference with canonicalization prior. The canonicalization function learns to output the canonical orientations seen in the dataset during training by minimising KL between the orientation distributions of predicted and pretraing dataset (prior regularization). During inference, transformed data is brought back to the canonical orientation by the canonicalization process.
+</div>
+
+<h2 id="results-at-a-glance">Results at a Glance</h2>
+
+<p>This section highlights the effectiveness of the approach for image classification and instance segmentation tasks. Additional results and experiments including point cloud classification and part segmentation are detailed in <d-cite key="mondal2023equivariant"></d-cite>.</p>
+
+<h1 id="image-classification">Image Classification</h1>
+
+<p>The authors select Vision Transformer (ViT) <d-cite key="dosovitskiy2020image"></d-cite> and ResNet-50 <d-cite key="he2016deep"></d-cite> as pretrained<d-footnote>Pretrained on ImageNet<d-cite key="deng2009imagenet"></d-cite>.</d-footnote> prediction network for image classification and \(C_8\) group, i.e., eight discrete rotations (multiples of 45\(^\circ\)) as the set of known transformations. The objective is to make the prediction networks equivariant and robust to these transformations, as an example, on CIFAR-100 dataset <d-cite key="krizhevsky2009learning"></d-cite>.</p>
+
+<p>The authors compare different fine-tuning setups. First, <strong>Vanilla</strong> indicates the standard fine-tuning on the downstream dataset. <strong>C8-Aug.</strong> indicates fine-tuning on the downstream
+dataset and \(C_8\) group data augmentations. <strong>LC</strong> is the learned canonicalization approach proposed in Kaba et. al. <d-cite key="kaba2023equivariance"></d-cite>. 
+<strong>Prior-Regularized LC</strong> is the learned canonicalization approach with prior regularization (as described in above sections, proposed in <d-cite key="mondal2023equivariant"></d-cite>). The evaluation includes reporting the performance of the models on the test set of <strong>CIFAR-100</strong> and an augmented version, <strong>CIFAR-100 [C8]</strong>, where each sample is augmented with every transformation of \(C_8\) group.</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/equivariant-adaptation/image6-480.webp 480w,/assets/img/equivariant-adaptation/image6-800.webp 800w,/assets/img/equivariant-adaptation/image6-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/equivariant-adaptation/image6.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+</div>
+<div class="caption">
+    Fine-tuning performance of ResNet-50 and ViT on CIFAR-100 dataset. Vanilla has the highest performance on CIFAR-100, but it is the worst on CIFAR-100 [C8] which indicates poor
+    robustness. Prior-Regularized LC preserves the performance on CIFAR-100 and outperforms other baselines on CIFAR-100 [C8].
+</div>
+
+<h1 id="instance-segmentation">Instance Segmentation</h1>
+<p>Furthermore, the authors scale this idea to large foundation models like the Segment Anything Model (SAM) <d-cite key="kirillov2023segment"></d-cite> and make it robust to rotations while having a nominal increase in the number of parameters and inference speed.</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/equivariant-adaptation/image7-480.webp 480w,/assets/img/equivariant-adaptation/image7-800.webp 800w,/assets/img/equivariant-adaptation/image7-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/equivariant-adaptation/image7.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+</div>
+<div class="caption">
+    Predicted masks from the Segment Anything Model (SAM) <d-cite key="kirillov2023segment"></d-cite> showcasing both the original model and prior-regularized equivariant adaptation 
+    for 90-degrees counter-clockwise rotated input images taken from the COCO 2017 dataset <d-cite key="lin2014microsoft"></d-cite>. The approach makes SAM equivariant to the
+    group of 90-degrees rotations while only requiring 0.3% extra parameters and modestly increasing the inference time by 7.3%.
+</div>
+
+<p>Finally, to facilitate the ideas discussed on equivariant adaptation of large-scale models, an open-source package <a href="https://github.com/arnab39/equiadapt">Equiadapt</a> is available from the authors.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In the ever-evolving world of AI and deep learning, it is critical to ensure models are robust and aware of symmetries. By learning to smartly transform our input data so that they are in the correct orientation for the pretrained models, we can create large-scale models that are powerful and aware of data transformations, bringing us a step closer to AI systems that understand the world as we do. As research into scaling continues, the fusion of large foundational models with equivariant adaptation techniques such as the one presented in this blogpost has the potential to emerge as a fundamental approach in enhancing the consistency and reliability of AI systems.</p>]]></content><author><name>Siba Smarak Panigrahi</name></author><category term="distill" /><category term="formatting" /><summary type="html"><![CDATA[How do you make your foundation model equivariant and robust to known transformations without re-training from scratch?]]></summary></entry><entry><title type="html">Effect of equivariance on training dynamics</title><link href="http://localhost:4000/blog/2024/relaxed-equivariance/" rel="alternate" type="text/html" title="Effect of equivariance on training dynamics" /><published>2024-07-20T00:00:00+02:00</published><updated>2024-07-20T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/relaxed-equivariance</id><content type="html" xml:base="http://localhost:4000/blog/2024/relaxed-equivariance/"><![CDATA[<p><em>Group Equivariant Convolutional Network</em> (G-CNN) has gained significant traction in recent years owing to their ability to generalize the property of CNNs being equivariant to translations in convolutional layers. With equivariance, the network is able to exploit groups of symmetries and a direct consequence of this is that it generally needs less data to perform well. However, incorporating such knowledge into the network may not always be advantageous, especially when the data itself does not exhibit full equivariance. To address this issue, the G-CNN was modified, introducing <em>relaxed group equivariant CNNs</em> (RG-CNN). Such modified networks adaptively learn the degree of equivariance imposed on the network, i.e. enabling it to operate on a level between full equivariance and no equivariance.
 Surprisingly, for rotational symmetries on fully equivariant data, <d-cite key="wang2023relaxed"></d-cite> found that a G-CNN exhibits poorer performance compared to a RG-CNN. This is a surprising result because a G-CNN, i.e. a fully equivariant network, is designed to perform well on fully equivariant data. Possibly the training dynamics benefit from relaxing of the equivariance constraint. To investigate this, we use the framework described in <d-cite key="park2022visiontransformerswork"></d-cite> for measuring convexity and flatness using the Hessian spectra.</p>
 
 <p>Inspired by the aforementioned observations, this blog post aims to answer the question: <strong>How does the equivariance imposed on a network affect its training dynamics?</strong> We identify the following subquestions:</p>
@@ -1039,246 +1269,7 @@ distribution, compared to sequential de-noising predictions of the EDM, which ar
 <p>Using multi-step sampling should in theory yield competitive results, but we observed no such improvement. 
 Since it cannot be conclusively ruled out that this was caused by a bug in our multi-step sampling code, we hope 
 to continue investigating if the consistency model paradigm can reliably be used for molecule generation in the future
-and show more competitive results as previous works suggest is possible <d-cite key="fan2023ecconf"></d-cite>.</p>]]></content><author><name>Martin Sedlacek *</name></author><category term="equivariance," /><category term="diffusion," /><category term="molecule" /><category term="generation," /><category term="consistency" /><category term="models" /><summary type="html"><![CDATA[Introduction to the seminal papers &quot;Equivariant Diffusion for Molecule Generation in 3D&quot; and &quot;Consistency Models&quot; with an adaptation fusing the two together for fast molecule generation.]]></summary></entry><entry><title type="html">Towards Equivariant Adaptation of Large Pretrained Models</title><link href="http://localhost:4000/blog/2024/towards-equivariant-adaptation/" rel="alternate" type="text/html" title="Towards Equivariant Adaptation of Large Pretrained Models" /><published>2024-07-11T00:00:00+02:00</published><updated>2024-07-11T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/towards-equivariant-adaptation</id><content type="html" xml:base="http://localhost:4000/blog/2024/towards-equivariant-adaptation/"><![CDATA[<p>Deep learning has witnessed tremendous growth in the past decade. Still, as we strive for more nuanced understanding and performance improvements, one challenge emerges clearly: how do we ensure our models understand data transformations? Enter equivariance, an idea that can help our networks maintain consistent behaviour with data transformations. But with the rise of large pretrained models, how do we make them equivariant without changing their architecture or retraining the model from scratch with data augmentation? In this blogpost, we delve into ideas presented
-=======
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-21T13:54:15-04:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
-</subtitle><entry><title type="html">Towards Equivariant Adaptation of Large Pretrained Models</title><link href="http://localhost:4000/blog/2024/towards-equivariant-adaptation/" rel="alternate" type="text/html" title="Towards Equivariant Adaptation of Large Pretrained Models" /><published>2024-07-21T00:00:00-04:00</published><updated>2024-07-21T00:00:00-04:00</updated><id>http://localhost:4000/blog/2024/towards-equivariant-adaptation</id><content type="html" xml:base="http://localhost:4000/blog/2024/towards-equivariant-adaptation/"><![CDATA[<p>Deep learning has witnessed tremendous growth in the past decade. Still, as we strive for more nuanced understanding and performance improvements, one challenge emerges clearly: how do we ensure our models understand data transformations? Enter equivariance, an idea that can help our networks maintain consistent behaviour with data transformations. But with the rise of large pretrained models, how do we make them equivariant without changing their architecture or retraining the model from scratch with data augmentation? In this blogpost, we delve into ideas presented
->>>>>>> ebe3e8db3494e9e10485f410f847fb951ae3689a
-in the paper “Equivariant Adaptation of Large Pretrained Models”<d-cite key="mondal2023equivariant"></d-cite> to answer this question.</p>
-
-<h2 id="what-is-equivariance">What is Equivariance?</h2>
-<p>Equivariant networks <d-cite key="cohen2016group,worrall2019deep,bronstein2021geometric"></d-cite> are deep neural networks that maintain consistent behaviour when input data undergo transformations like rotation, scaling, or translation. In simpler terms, if we rotate an image of a cat, an equivariant network would still recognize it as a cat! Another example of this would be segmentation maps on images. If we rotate an image, the segmentation map should rotate in the same way to maintain consistency.</p>
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        
-
-<figure>
-  <picture>
-    <!-- Auto scaling with imagemagick -->
-    <!--
-      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
-      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
-    -->
-    
-      <source class="responsive-img-srcset" srcset="/assets/img/equivariant-adaptation/image1-480.webp 480w,/assets/img/equivariant-adaptation/image1-800.webp 800w,/assets/img/equivariant-adaptation/image1-1400.webp 1400w," sizes="95vw" type="image/webp" />
-    
-    <img src="/assets/img/equivariant-adaptation/image1.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
-  </picture>
-
-  
-</figure>
-
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        
-
-<figure>
-  <picture>
-    <!-- Auto scaling with imagemagick -->
-    <!--
-      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
-      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
-    -->
-    
-      <source class="responsive-img-srcset" srcset="/assets/img/equivariant-adaptation/image2-480.webp 480w,/assets/img/equivariant-adaptation/image2-800.webp 800w,/assets/img/equivariant-adaptation/image2-1400.webp 1400w," sizes="95vw" type="image/webp" />
-    
-    <img src="/assets/img/equivariant-adaptation/image2.png" class="img-fluid rounded z-depth-1 fixed-size-img2" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
-  </picture>
-
-  
-</figure>
-
-    </div>
-</div>
-<div class="caption">
-    Equivariant tasks. Instance segmentation requires segmentation maps to be consistent with the input image transformations and 
-    classification requires the network to recognize the same object in different orientations.
-</div>
-
-<p>The beauty of this is that such networks lead to more accurate, robust predictions and need fewer samples to train – this is great in theory but hard to implement in practice, especially for large pretrained models whose equivariant counterparts are not trivial to design or are very expensive to re-train from scratch. These massive models pretrained on the entire internet are extremely good at solving and reasoning about different tasks and are called <code class="language-plaintext highlighter-rouge">foundation models</code> <d-cite key="bommasani2021opportunities"></d-cite>. Despite having such capabilities, foundation models are not naturally equivariant and usually don’t handle transformations well. (see the GPT-4 example below) Our goal is to incorporate the benefits of equivariance in existing foundation models.</p>
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        
-
-<figure>
-  <picture>
-    <!-- Auto scaling with imagemagick -->
-    <!--
-      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
-      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
-    -->
-    
-      <source class="responsive-img-srcset" srcset="/assets/img/equivariant-adaptation/image3-480.webp 480w,/assets/img/equivariant-adaptation/image3-800.webp 800w,/assets/img/equivariant-adaptation/image3-1400.webp 1400w," sizes="95vw" type="image/webp" />
-    
-    <img src="/assets/img/equivariant-adaptation/image3.png" class="img-fluid rounded z-depth-1 fixed-size-img3" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
-  </picture>
-
-  
-</figure>
-
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        
-
-<figure>
-  <picture>
-    <!-- Auto scaling with imagemagick -->
-    <!--
-      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
-      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
-    -->
-    
-      <source class="responsive-img-srcset" srcset="/assets/img/equivariant-adaptation/image4-480.webp 480w,/assets/img/equivariant-adaptation/image4-800.webp 800w,/assets/img/equivariant-adaptation/image4-1400.webp 1400w," sizes="95vw" type="image/webp" />
-    
-    <img src="/assets/img/equivariant-adaptation/image4.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
-  </picture>
-
-  
-</figure>
-
-    </div>
-</div>
-<div class="caption">
-    ChatGPT-4 for image parsing. The model is accurate in extracting text from 'straight' images, but it fails to do so for 'inverted' images.
-</div>
-
-<h2 id="decoupling-equivariance-from-architecture-with-canonicalization">Decoupling Equivariance from Architecture with Canonicalization</h2>
-
-<p>A recent alternative to designing equivariant networks was proposed by Kaba et al. <d-cite key="kaba2023equivariance"></d-cite>.  It suggests that instead of changing the network architecture to incorporate equivariance, why not first learn to transform the input data into a ‘standard’ format (or orientation), also known as <code class="language-plaintext highlighter-rouge">canonical form</code>. This way, our task prediction network can work on this standardized format, ensuring consistency. This process involves adding an additional inexpensive network called the <code class="language-plaintext highlighter-rouge">canonicalization network</code> or $c$, which learns to standardize the input. In our formulation, for an input $x$, the output from canonicalization network is $c(x) = g$, where $g$ denotes the group element corresponding to the orientation of $x$. The primary network that learns to solve the task based on the standardized input is called the <code class="language-plaintext highlighter-rouge">prediction network</code> or $\phi$. In this particular formulation, achieving equivariance requires only ensuring that the canonicalization process is invariant to the transformation of the input. This means no matter which orientation you see the input, the canonicalization process should always bring it back to the same canonical orientation. This is achieved by using a shallow and cheap equivariant architecture for the canonicalization network. (see <d-cite key="kaba2023equivariance"></d-cite> for more details)</p>
-
-<p>Finally, the combination of the canonicalization network and the prediction network can be represented as $\Phi$:</p>
-
-\[\Phi(x) = c(x) \circ \phi(c(x)^{-1}. x)\]
-
-\[\Rightarrow \Phi(g. x) = c(g. x) \circ \phi(c(g. x)^{-1}. g. x)\]
-
-\[\Rightarrow \Phi(g. x) = g.c(x) \circ \phi(c(x)^{-1}. x) = g \circ \Phi(x)\]
-
-<p>The beauty of this approach lies in how the canonicalization network separates the equivariance requirement from the core prediction network architecture. This means that you have the flexibility to employ any powerful pretrained large neural network for the main prediction task.</p>
-
-<p>Sounds straightforward? Well, it has a hitch.</p>
-
-<p>The <strong>main challenge</strong> is ensuring the canonicalization network ‘plays nice’ with the prediction network. For example, the canonicalization network can output orientations that hurt the training of the prediction network, leading to poor task performance. This becomes more important when the prediction network is pretrained on a certain dataset. For instance, if the canonicalization network transforms all images to be upside-down, but our pretrained prediction network wasn’t trained on upside-down images, the whole system falls apart. So, it’s vital that the canonicalization network outputs orientations of the data that is in-distribution for the pretrained prediction network.</p>
-
-<h2 id="learning-to-predict-the-correct-orientation-for-the-pretrained-network">Learning to Predict the Correct Orientation for the Pretrained Network</h2>
-
-<p>The magic lies in designing our canonicalization function not just to transform data but to do so while being aware of how our prediction model was initially trained. The key is ensuring that the data being transformed (or standardized) is done to align with what the pretrained prediction model expects. Mathematically, the goal is to bring the predicted out-of-distribution orientations to the distribution of orientations the pretrained prediction network has seen.</p>
-
-<h1 id="enter-the-canonicalization-prior">Enter the Canonicalization Prior</h1>
-
-<p>In simple terms, it’s a guiding force ensuring that our canonicalization function behaves and produces output that the pretrained prediction network would expect and appreciate. 
-We leverage the idea that our data can provide hints on the ‘typical’ transformations it undergoes. By encoding this into a prior, one can guide our canonicalization function to produce transformed data that’s not just standardized but also aligned with what the prediction network was trained on.</p>
-
-<p>While mathematical and intricate, this entire process can be boiled down to ensuring that the large pretrained prediction network always looks at in-distribution samples. 
-This results in a highly robust model that can confidently handle varied transformations in the input data, giving accurate predictions every time.</p>
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        
-
-<figure>
-  <picture>
-    <!-- Auto scaling with imagemagick -->
-    <!--
-      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
-      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
-    -->
-    
-      <source class="responsive-img-srcset" srcset="/assets/img/equivariant-adaptation/image5-480.webp 480w,/assets/img/equivariant-adaptation/image5-800.webp 800w,/assets/img/equivariant-adaptation/image5-1400.webp 1400w," sizes="95vw" type="image/webp" />
-    
-    <img src="/assets/img/equivariant-adaptation/image5.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
-  </picture>
-
-  
-</figure>
-
-    </div>
-</div>
-<div class="caption">
-    Training and inference with canonicalization prior. The canonicalization function learns to output the canonical orientations seen in the dataset during training by minimising KL between the orientation distributions of predicted and pretraing dataset (prior regularization). During inference, transformed data is brought back to the canonical orientation by the canonicalization process.
-</div>
-
-<h2 id="results-at-a-glance">Results at a Glance</h2>
-
-<p>This section highlights the effectiveness of the approach for image classification and instance segmentation tasks. Additional results and experiments including point cloud classification and part segmentation are detailed in <d-cite key="mondal2023equivariant"></d-cite>.</p>
-
-<h1 id="image-classification">Image Classification</h1>
-
-<p>The authors select Vision Transformer (ViT) <d-cite key="dosovitskiy2020image"></d-cite> and ResNet-50 <d-cite key="he2016deep"></d-cite> as pretrained<d-footnote>Pretrained on ImageNet<d-cite key="deng2009imagenet"></d-cite>.</d-footnote> prediction network for image classification and \(C_8\) group, i.e., eight discrete rotations (multiples of 45\(^\circ\)) as the set of known transformations. The objective is to make the prediction networks equivariant and robust to these transformations, as an example, on CIFAR-100 dataset <d-cite key="krizhevsky2009learning"></d-cite>.</p>
-
-<p>The authors compare different fine-tuning setups. First, <strong>Vanilla</strong> indicates the standard fine-tuning on the downstream dataset. <strong>C8-Aug.</strong> indicates fine-tuning on the downstream
-dataset and \(C_8\) group data augmentations. <strong>LC</strong> is the learned canonicalization approach proposed in Kaba et. al. <d-cite key="kaba2023equivariance"></d-cite>. 
-<strong>Prior-Regularized LC</strong> is the learned canonicalization approach with prior regularization (as described in above sections, proposed in <d-cite key="mondal2023equivariant"></d-cite>). The evaluation includes reporting the performance of the models on the test set of <strong>CIFAR-100</strong> and an augmented version, <strong>CIFAR-100 [C8]</strong>, where each sample is augmented with every transformation of \(C_8\) group.</p>
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        
-
-<figure>
-  <picture>
-    <!-- Auto scaling with imagemagick -->
-    <!--
-      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
-      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
-    -->
-    
-      <source class="responsive-img-srcset" srcset="/assets/img/equivariant-adaptation/image6-480.webp 480w,/assets/img/equivariant-adaptation/image6-800.webp 800w,/assets/img/equivariant-adaptation/image6-1400.webp 1400w," sizes="95vw" type="image/webp" />
-    
-    <img src="/assets/img/equivariant-adaptation/image6.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
-  </picture>
-
-  
-</figure>
-
-    </div>
-</div>
-<div class="caption">
-    Fine-tuning performance of ResNet-50 and ViT on CIFAR-100 dataset. Vanilla has the highest performance on CIFAR-100, but it is the worst on CIFAR-100 [C8] which indicates poor
-    robustness. Prior-Regularized LC preserves the performance on CIFAR-100 and outperforms other baselines on CIFAR-100 [C8].
-</div>
-
-<h1 id="instance-segmentation">Instance Segmentation</h1>
-<p>Furthermore, the authors scale this idea to large foundation models like the Segment Anything Model (SAM) <d-cite key="kirillov2023segment"></d-cite> and make it robust to rotations while having a nominal increase in the number of parameters and inference speed.</p>
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        
-
-<figure>
-  <picture>
-    <!-- Auto scaling with imagemagick -->
-    <!--
-      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
-      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
-    -->
-    
-      <source class="responsive-img-srcset" srcset="/assets/img/equivariant-adaptation/image7-480.webp 480w,/assets/img/equivariant-adaptation/image7-800.webp 800w,/assets/img/equivariant-adaptation/image7-1400.webp 1400w," sizes="95vw" type="image/webp" />
-    
-    <img src="/assets/img/equivariant-adaptation/image7.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
-  </picture>
-
-  
-</figure>
-
-    </div>
-</div>
-<div class="caption">
-    Predicted masks from the Segment Anything Model (SAM) <d-cite key="kirillov2023segment"></d-cite> showcasing both the original model and prior-regularized equivariant adaptation 
-    for 90-degrees counter-clockwise rotated input images taken from the COCO 2017 dataset <d-cite key="lin2014microsoft"></d-cite>. The approach makes SAM equivariant to the
-    group of 90-degrees rotations while only requiring 0.3% extra parameters and modestly increasing the inference time by 7.3%.
-</div>
-
-<p>Finally, to facilitate the ideas discussed on equivariant adaptation of large-scale models, an open-source package <a href="https://github.com/arnab39/equiadapt">Equiadapt</a> is available from the authors.</p>
-
-<h2 id="conclusion">Conclusion</h2>
-
-<<<<<<< HEAD
-<p>In the ever-evolving world of AI and deep learning, it is critical to ensure models are robust and aware of symmetries. By learning to smartly transform our input data so that they are in the correct orientation for the pretrained models, we can create large-scale models that are powerful and aware of data transformations, bringing us a step closer to AI systems that understand the world as we do. As research into scaling continues, the fusion of large foundational models with equivariant adaptation techniques such as the one presented in this blogpost has the potential to emerge as a fundamental approach in enhancing the consistency and reliability of AI systems.</p>]]></content><author><name>{&quot;name&quot;=&gt;nil, &quot;url&quot;=&gt;&quot;&quot;, &quot;affiliations&quot;=&gt;{&quot;name&quot;=&gt;nil}}</name></author><category term="distill" /><category term="formatting" /><summary type="html"><![CDATA[How do you make your foundation model equivariant and robust to known transformations without re-training from scratch?]]></summary></entry><entry><title type="html">Correct, Incorrect and Extrinsic Equivariance</title><link href="http://localhost:4000/blog/2024/extrinsic/" rel="alternate" type="text/html" title="Correct, Incorrect and Extrinsic Equivariance" /><published>2024-07-07T00:00:00+02:00</published><updated>2024-07-07T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/extrinsic</id><content type="html" xml:base="http://localhost:4000/blog/2024/extrinsic/"><![CDATA[<h2 id="abstract">Abstract</h2>
-=======
-<p>In the ever-evolving world of AI and deep learning, it is critical to ensure models are robust and aware of symmetries. By learning to smartly transform our input data so that they are in the correct orientation for the pretrained models, we can create large-scale models that are powerful and aware of data transformations, bringing us a step closer to AI systems that understand the world as we do. As research into scaling continues, the fusion of large foundational models with equivariant adaptation techniques such as the one presented in this blogpost has the potential to emerge as a fundamental approach in enhancing the consistency and reliability of AI systems.</p>]]></content><author><name>Siba Smarak Panigrahi</name></author><category term="distill" /><category term="formatting" /><summary type="html"><![CDATA[How do you make your foundation model equivariant and robust to known transformations without re-training from scratch?]]></summary></entry><entry><title type="html">a distill-style blog post</title><link href="http://localhost:4000/blog/2021/distill/" rel="alternate" type="text/html" title="a distill-style blog post" /><published>2021-05-22T00:00:00-04:00</published><updated>2021-05-22T00:00:00-04:00</updated><id>http://localhost:4000/blog/2021/distill</id><content type="html" xml:base="http://localhost:4000/blog/2021/distill/"><![CDATA[<h2 id="equations">Equations</h2>
->>>>>>> ebe3e8db3494e9e10485f410f847fb951ae3689a
+and show more competitive results as previous works suggest is possible <d-cite key="fan2023ecconf"></d-cite>.</p>]]></content><author><name>Martin Sedlacek *</name></author><category term="equivariance," /><category term="diffusion," /><category term="molecule" /><category term="generation," /><category term="consistency" /><category term="models" /><summary type="html"><![CDATA[Introduction to the seminal papers &quot;Equivariant Diffusion for Molecule Generation in 3D&quot; and &quot;Consistency Models&quot; with an adaptation fusing the two together for fast molecule generation.]]></summary></entry><entry><title type="html">Correct, Incorrect and Extrinsic Equivariance</title><link href="http://localhost:4000/blog/2024/extrinsic/" rel="alternate" type="text/html" title="Correct, Incorrect and Extrinsic Equivariance" /><published>2024-07-07T00:00:00+02:00</published><updated>2024-07-07T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/extrinsic</id><content type="html" xml:base="http://localhost:4000/blog/2024/extrinsic/"><![CDATA[<h2 id="abstract">Abstract</h2>
 
 <p>Although equivariant machine learning has proven effective at many tasks, success depends heavily on the assumption that the ground truth function is symmetric over the entire domain matching the symmetry in an equivariant neural network. A missing piece in the equivariant learning literature is the analysis of equivariant networks when symmetry exists only partially or implicitly in the domain. We propose the definitions of correct, incorrect, and extrinsic equivariance, which describe the relationship between model symmetry and problem symmetry. We show that imposing extrinsic equivariance can improve the model’s performance. We also provide the lower error bound analysis of incorrect equivariance, quantitatively showing the degree to which the symmetry mismatch will impede learning.</p>
 
