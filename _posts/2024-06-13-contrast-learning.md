@@ -12,6 +12,10 @@ authors:
     url: "https://patrickfeeney.github.io/"
     affiliations:
       name: Tufts University
+  - name: Michael C. Hughes
+    url: "https://www.michaelchughes.com/"
+    affiliations:
+      name: Tufts University
 
 bibliography: 2024-06-13-contrast-learning.bib
 ---
